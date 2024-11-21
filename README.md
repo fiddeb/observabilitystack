@@ -87,12 +87,15 @@ Access **Grafana** to set up dashboards and visualize metrics, logs, and traces:
 
 1. Log in to Grafana (`http://grafana.dev.local` or the relevant address). No log in needed.
 
-To enable login:
+
+>To enable login:
 update grafana_values.yaml under grafana.ini
+```yaml
   auth:
     disable_login: false
   auth.anonymous:
     enabled: false
+```
 ---
 
 ## Troubleshooting
