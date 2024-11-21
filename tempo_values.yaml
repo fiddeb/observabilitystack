@@ -1,0 +1,139 @@
+global:
+  commonLabels: {}
+
+nameOverride: ""
+fullnameOverride: ""
+
+replicas: 1
+
+tempo:
+  repository: grafana/tempo
+  pullPolicy: IfNotPresent
+  updateStrategy: RollingUpdate
+  memBallastSizeMbs: 1024
+  multitenancyEnabled: false
+  reportingEnabled: true
+  metricsGenerator:
+    enabled: false
+    remoteWriteUrl: "http://prometheus-server/api/v1/write"
+  retention: 24h
+  global_overrides:
+    per_tenant_override_config: /conf/overrides.yaml
+  server:
+    http_listen_port: 3100
+  storage:
+    trace:
+      backend: local
+      local:
+        path: /var/tempo/traces
+      wal:
+        path: /var/tempo/wal
+  receivers:
+    otlp:
+      protocols:
+        grpc:
+          endpoint: "0.0.0.0:4317"
+        http:
+          endpoint: "0.0.0.0:4318"
+  securityContext: {}
+  extraArgs: {}
+  extraEnv: []
+  extraEnvFrom: []
+  extraVolumeMounts: []
+
+config: |
+    memberlist:
+      cluster_label: "{{ .Release.Name }}.{{ .Release.Namespace }}"
+    multitenancy_enabled: {{ .Values.tempo.multitenancyEnabled }}
+    usage_report:
+      reporting_enabled: {{ .Values.tempo.reportingEnabled }}
+    compactor:
+      compaction:
+        block_retention: {{ .Values.tempo.retention }}
+    distributor:
+      receivers:
+        {{- toYaml .Values.tempo.receivers | nindent 8 }}
+    ingester:
+      {{- toYaml .Values.tempo.ingester | nindent 6 }}
+    server:
+      {{- toYaml .Values.tempo.server | nindent 6 }}
+    storage:
+      {{- toYaml .Values.tempo.storage | nindent 6 }}
+    querier:
+      {{- toYaml .Values.tempo.querier | nindent 6 }}
+    query_frontend:
+      {{- toYaml .Values.tempo.queryFrontend | nindent 6 }}
+    overrides:
+      {{- toYaml .Values.tempo.global_overrides | nindent 6 }}
+      {{- if .Values.tempo.metricsGenerator.enabled }}
+          metrics_generator_processors:
+          - 'service-graphs'
+          - 'span-metrics'
+    metrics_generator:
+          storage:
+            path: "/tmp/tempo"
+            remote_write:
+              - url: {{ .Values.tempo.metricsGenerator.remoteWriteUrl }}
+      {{- end }}
+
+tempoQuery:
+  repository: grafana/tempo-query
+  pullPolicy: IfNotPresent
+  enabled: false
+
+  service:
+    port: 16686
+
+  ingress:
+    enabled: false
+    path: /
+    pathType: Prefix
+
+  resources: {}
+  extraArgs: {}
+  extraEnv: []
+  extraVolumeMounts: []
+  securityContext: {}
+
+securityContext:
+  runAsUser: 10001
+  runAsGroup: 10001
+  fsGroup: 10001
+  runAsNonRoot: true
+
+serviceAccount:
+  create: true
+  automountServiceAccountToken: true
+
+service:
+  type: ClusterIP
+
+persistence:
+  enabled: false
+  enableStatefulSetAutoDeletePVC: false
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+
+podAnnotations: {}
+podLabels: {}
+extraLabels: {}
+
+extraVolumes: []
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+
+priorityClassName: null
+
+networkPolicy:
+  enabled: false
+  ingress: true
+  allowExternal: true
+  explicitNamespacesSelector: {}
+  egress:
+    enabled: false
+    blockDNSResolution: false
+    ports: []
+    to: []

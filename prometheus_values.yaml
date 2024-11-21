@@ -1,0 +1,125 @@
+rbac:
+  create: true
+
+podSecurityPolicy:
+  enabled: false
+
+serviceAccounts:
+  server:
+    create: true
+    name: ""
+
+configmapReload:
+  reloadUrl: ""
+  prometheus:
+    enabled: true
+    name: configmap-reload
+    image:
+      repository: quay.io/prometheus-operator/prometheus-config-reloader
+      tag: v0.78.1
+      pullPolicy: IfNotPresent
+    containerPort: 8080
+    containerPortName: metrics
+    livenessProbe:
+      httpGet:
+        path: /healthz
+        port: metrics
+        scheme: HTTP
+      periodSeconds: 10
+      initialDelaySeconds: 2
+    readinessProbe:
+      httpGet:
+        path: /healthz
+        port: metrics
+        scheme: HTTP
+      periodSeconds: 10
+    startupProbe:
+      enabled: false
+      httpGet:
+        path: /healthz
+        port: metrics
+        scheme: HTTP
+      periodSeconds: 10
+
+server:
+  name: server
+  releaseNamespace: false
+  image:
+    repository: quay.io/prometheus/prometheus
+    pullPolicy: IfNotPresent
+  enableServiceLinks: true
+  extraFlags:
+    - web.enable-lifecycle
+  configPath: /etc/config/prometheus.yml
+  global:
+    scrape_interval: 1m
+    scrape_timeout: 10s
+    evaluation_interval: 1m
+  ingress:
+    enabled: false
+    path: /
+    pathType: Prefix
+  strategy:
+    type: Recreate
+  podAntiAffinityTopologyKey: kubernetes.io/hostname
+  persistentVolume:
+    enabled: true
+    accessModes:
+      - ReadWriteOnce
+    mountPath: /data
+    size: 8Gi
+  replicaCount: 1
+  readinessProbeInitialDelay: 30
+  readinessProbePeriodSeconds: 5
+  readinessProbeTimeout: 4
+  readinessProbeFailureThreshold: 3
+  readinessProbeSuccessThreshold: 1
+  livenessProbeInitialDelay: 30
+  livenessProbePeriodSeconds: 15
+  livenessProbeTimeout: 10
+  livenessProbeFailureThreshold: 3
+  livenessProbeSuccessThreshold: 1
+  startupProbe:
+    enabled: false
+    periodSeconds: 5
+    failureThreshold: 30
+    timeoutSeconds: 10
+  hostNetwork: false
+  dnsPolicy: ClusterFirst
+  securityContext:
+    runAsUser: 65534
+    runAsNonRoot: true
+    runAsGroup: 65534
+    fsGroup: 65534
+  service:
+    enabled: true
+    servicePort: 80
+    sessionAffinity: None
+    type: ClusterIP
+  terminationGracePeriodSeconds: 300
+  retention: "15d"
+
+serverFiles:
+  prometheus.yml:
+    rule_files:
+      - /etc/config/recording_rules.yml
+      - /etc/config/alerting_rules.yml
+      - /etc/config/rules
+      - /etc/config/alerts
+    scrape_configs:
+      - job_name: prometheus
+        static_configs:
+          - targets:
+              - localhost:9090
+
+alertmanager:
+  enabled: false
+
+kube-state-metrics:
+  enabled: false
+
+prometheus-node-exporter:
+  enabled: false
+
+prometheus-pushgateway:
+  enabled: false
