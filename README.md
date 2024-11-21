@@ -13,7 +13,11 @@ A minimal observability stack leveraging **OpenTelemetry**, **Grafana**, **Loki*
 
 ## Installation Instructions
 
-Install the components using Helm:
+You can set up the observability stack in two ways:
+
+### Option 1: Manual Installation Using Helm
+
+Install each component manually with Helm using the following commands:
 
 ```bash
 # Traefik (reverse proxy)
@@ -35,7 +39,55 @@ helm install --values grafana_values.yaml grafana --namespace=observability-lab 
 helm install --values opentelemetry_values.yaml otel-collector --namespace=observability-lab open-telemetry/opentelemetry-collector --create-namespace
 ```
 
+**Important**: Traefik must be installed manually using Helm, as it is not included in the script. Run the following command to install Traefik:
+
+```bash
+helm install traefik traefik/traefik
+```
+
 ---
+
+### Option 2: Automated Installation Using Script
+
+Use the `manage_env.sh` script to install, update, or uninstall the observability stack. This script handles the installation and configuration of Loki, Tempo, Prometheus, Grafana, and the OpenTelemetry Collector.
+
+#### Usage
+
+1. Ensure the script is executable:
+
+   ```bash
+   chmod +x manage_env.sh
+   ```
+
+2. Run the script with one of the following commands:
+   - To **install** the stack:
+
+     ```bash
+     ./manage_env.sh install
+     ```
+
+   - To **update** the stack:
+
+     ```bash
+     ./manage_env.sh update
+     ```
+
+   - To **uninstall** the stack:
+
+     ```bash
+     ./manage_env.sh uninstall
+     ```
+
+**Note**: The script does not include Traefik. Make sure to install Traefik separately using the Helm command provided above.
+
+---
+
+
+
+>- Use the manual installation method for complete control over the Helm commands.
+- Use the script `manage_env.sh` for an easier and automated setup process.
+- Always install Traefik manually with Helm before proceeding with other components.
+
 
 ## Testing Loki Logging
 
