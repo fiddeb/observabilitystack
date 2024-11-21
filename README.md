@@ -88,29 +88,45 @@ Use the `manage_env.sh` script to install, update, or uninstall the observabilit
 - Use the script `manage_env.sh` for an easier and automated setup process.
 - Always install Traefik manually with Helm before proceeding with other components.
 
+---
 
 ## Testing Loki Logging
 
-You can test the Loki installation by sending a test log:
+You can test your Loki installation by sending a test log:
 
 ```bash
 curl -H "Content-Type: application/json" -XPOST -s \
 "http://loki.dev.local/loki/api/v1/push" \
---data-raw '{
-  "streams": [
+--data-raw "{
+  \"streams\": [
     {
-      "stream": { "job": "test" },
-      "values": [
-        ["$(date +%s)000000000", "fizzbuzz"]
+      \"stream\": { \"job\": \"test\" },
+      \"values\": [
+        [\"$(date +%s)000000000\", \"fizzbuzz\"]
       ]
     }
   ]
-}' \
+}" \
 -H "X-Scope-OrgId: foo"
 ```
 
----
+To verify that the log was successfully sent, use `logcli` to query Loki:
 
+```bash
+logcli query --addr=http://loki.dev.local --org-id="foo" '{job="test"}' --limit=5000 --since=60m
+```
+
+### Explanation of the Command:
+- `--addr=http://loki.dev.local`: Specifies the URL of your Loki instance.
+- `--org-id="foo"`: Specifies the tenant ID if using multi-tenancy.
+- `'{job="test"}'`: Filters logs based on the label `job` with the value `test`.
+- `--since=60m`: Retrieves logs generated within the last 60 minutes.
+- `--limit=5000`: Limits the number of returned logs to 5000 (optional).
+
+If everything is configured correctly, you should see your test log (`fizzbuzz`) in the `logcli` query results.
+```bash
+2024-11-21T23:26:50+01:00 {} fizzbuzz
+```
 ## Using Ingress
 
 If an ingress controller (e.g., Traefik) is configured, update your `/etc/hosts` file to map domain names for the services. Add the following entries:
