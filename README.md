@@ -84,7 +84,7 @@ Use the `manage_env.sh` script to install, update, or uninstall the observabilit
 
 
 
->- Use the manual installation method for complete control over the Helm commands.
+- Use the manual installation method for complete control over the Helm commands.
 - Use the script `manage_env.sh` for an easier and automated setup process.
 - Always install Traefik manually with Helm before proceeding with other components.
 
