@@ -1,13 +1,13 @@
 # ObservabilityStack
 
-A minimal observability stack leveraging **OpenTelemetry**, **Grafana**, **Loki**, **Prometheus**, and **Tempo** for test.
+A minimal observability stack leveraging **OpenTelemetry**, **Grafana**, **Loki**, **Prometheus**, and **Tempo** for testing.
 
 ## Features
-- **OpenTelemetry**: Standardized telemetry data collection and export.
-- **Grafana**: visualization of telemetry.
-- **Loki**: Log aggregation and querying.
+- **OpenTelemetry**: Vendor-agnostic way to receive, process and export telemetry data.
+- **Grafana**: Visualization of telemetry.
+- **Loki**: Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus
 - **Prometheus**: Metric collection and alerting.
-- **Tempo**: Distributed tracing.
+- **Tempo**: Grafana Tempo is an open source, easy-to-use, and high-scale distributed tracing backend.
 
 ---
 
@@ -83,10 +83,10 @@ Use the `manage_env.sh` script to install, update, or uninstall the observabilit
 ---
 
 
-
-- Use the manual installation method for complete control over the Helm commands.
+- Always install Traefik manually with Helm before proceeding with other components (or use another Ingress controller)
+- Use the manual installation method for complete control.
 - Use the script `manage_env.sh` for an easier and automated setup process.
-- Always install Traefik manually with Helm before proceeding with other components.
+
 
 ---
 
@@ -116,14 +116,14 @@ To verify that the log was successfully sent, use `logcli` to query Loki:
 logcli query --addr=http://loki.dev.local --org-id="foo" '{job="test"}' --limit=5000 --since=60m
 ```
 
-### Explanation of the Command:
+#### Explanation of the Command:
 - `--addr=http://loki.dev.local`: Specifies the URL of your Loki instance.
 - `--org-id="foo"`: Specifies the tenant ID if using multi-tenancy.
 - `'{job="test"}'`: Filters logs based on the label `job` with the value `test`.
 - `--since=60m`: Retrieves logs generated within the last 60 minutes.
 - `--limit=5000`: Limits the number of returned logs to 5000 (optional).
 
-If everything is configured correctly, you should see your test log (`fizzbuzz`) in the `logcli` query results.
+If everything is configured correctly, you should see your test log (`fizzbuzz`) in the `logcli result.
 ```bash
 2024-11-21T23:26:50+01:00 {} fizzbuzz
 ```
