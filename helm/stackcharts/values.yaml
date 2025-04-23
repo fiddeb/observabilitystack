@@ -1,5 +1,6 @@
 loki:
   enabled: true
+  fullnameOverride: loki
   loki:
     fullnameOverride: loki
     commonConfig:
