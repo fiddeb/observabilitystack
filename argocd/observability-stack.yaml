@@ -8,7 +8,7 @@ spec:
   source:
     repoURL: 'https://github.com/fiddeb/observabilitystack.git'
     targetRevision: auto   # Byt ut "develop" mot önskad branch
-    path: helm/stacksharts
+    path: helm/stackcharts
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: observability-lab
