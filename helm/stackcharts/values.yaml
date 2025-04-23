@@ -24,7 +24,7 @@ loki:
       max_concurrent: 2
   deploymentMode: SingleBinary
   singleBinary:
-
+    fullnameOverride: loki
     replicas: 1
     resources:
       limits:
