@@ -1,6 +1,7 @@
 loki:
   enabled: true
   loki:
+    fullnameOverride: loki
     commonConfig:
       replication_factor: 1
     storage:
@@ -23,6 +24,7 @@ loki:
       max_concurrent: 2
   deploymentMode: SingleBinary
   singleBinary:
+
     replicas: 1
     resources:
       limits:
