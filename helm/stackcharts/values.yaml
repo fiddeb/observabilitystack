@@ -37,9 +37,6 @@ loki:
       # Keep a little bit lower than memory limits
       - name: GOMEMLIMIT
         value: 2750MiB
-  
-  minio:
-    enabled: true
   chunksCache:
     # default is 500MB, with limited memory keep this smaller
     writebackSizeLimit: 10MB
@@ -634,5 +631,17 @@ grafana:
 
   revisionHistoryLimit: 10
 minio:
-  enabled: false
-  
+  enabled: true
+  mode: standalone          # Välj single node läge istället för distribuerad installation
+  replicas: 1               # Endast en instans körs
+  persistence:
+    enabled: false          # Inga PVC:er (för demo räcker det ofta utan persistens)
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+  accessKey: "minio"        # Demo credentials, byt ut om det behövs
+  secretKey: "minio123"
