@@ -1,6 +1,7 @@
 loki:
   enabled: true
   fullnameOverride: loki
+  
   loki:
     commonConfig:
       replication_factor: 1
@@ -107,12 +108,11 @@ loki:
     replicas: 0
 tempo:
   enabled: true
-  fullnameOverride: tempo
   global:
     commonLabels: {}
 
   nameOverride: ""
-  fullnameOverride: ""
+  fullnameOverride: "tempo"
 
   replicas: 1
 
