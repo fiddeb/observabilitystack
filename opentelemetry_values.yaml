@@ -24,7 +24,7 @@ presets:
 configMap:
   create: true
   existingName: ""
-config:
+config: 
   receivers:
     filelog:
       include:

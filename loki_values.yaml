@@ -33,10 +33,9 @@ singleBinary:
     # Keep a little bit lower than memory limits
     - name: GOMEMLIMIT
       value: 3750MiB
-chunksCache:
-  # default is 500MB, with limited memory keep this smaller
-  writebackSizeLimit: 10MB
-
+memcachedChunks:
+  # -- Specifies whether the Memcached chunks cache should be enabled
+  enabled: false
 read:
   replicas: 0
 backend:
@@ -84,3 +83,21 @@ ingress:
   # -- Hosts configuration for the ingress, passed through the `tpl` function to allow templating
   hosts:
     - loki.dev.local
+ingester:
+  replicas: 0
+querier:
+  replicas: 0
+queryFrontend:
+  replicas: 0
+queryScheduler:
+  replicas: 0
+distributor:
+  replicas: 0
+compactor:
+  replicas: 0
+indexGateway:
+  replicas: 0
+bloomCompactor:
+  replicas: 0
+bloomGateway:
+  replicas: 0

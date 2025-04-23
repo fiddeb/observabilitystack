@@ -70,7 +70,8 @@ uninstall_component() {
 # Handle actions based on the provided argument
 case "$ACTION" in
     install|update)
-
+        # Traefik (installed in the default namespace)
+        install_or_update "Traefik" "traefik" "traefik/traefik"
         # Other components in the observability-lab namespace
         install_or_update "Loki" "loki" "grafana/loki" --values loki_values.yaml --namespace "$NAMESPACE" --create-namespace
         install_or_update "Tempo" "tempo" "grafana/tempo" --values tempo_values.yaml --namespace "$NAMESPACE" --create-namespace
@@ -95,6 +96,9 @@ case "$ACTION" in
 
         # Loki
         uninstall_component "Loki" "loki" "$NAMESPACE"
+        
+        # Traefik (installed in the default namespace)
+        uninstall_component "Traefik" "traefik" "default"
         ;;
     *)
         usage
