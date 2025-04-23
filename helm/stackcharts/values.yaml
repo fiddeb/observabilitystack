@@ -2,7 +2,6 @@ loki:
   enabled: true
   fullnameOverride: loki
   loki:
-    fullnameOverride: loki
     commonConfig:
       replication_factor: 1
     storage:
@@ -25,7 +24,6 @@ loki:
       max_concurrent: 2
   deploymentMode: SingleBinary
   singleBinary:
-    fullnameOverride: loki
     replicas: 1
     resources:
       limits:
@@ -109,6 +107,7 @@ loki:
     replicas: 0
 tempo:
   enabled: true
+  fullnameOverride: tempo
   global:
     commonLabels: {}
 
@@ -251,6 +250,7 @@ tempo:
 
 prometheus:
   enabled: true
+  fullnameOverride: prometheus
   rbac:
     create: true
 
@@ -379,6 +379,7 @@ prometheus:
 
 grafana:
   enabled: true
+  fullnameOverride: grafana
   global:
     imageRegistry: null
     imagePullSecrets: []
