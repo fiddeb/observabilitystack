@@ -37,6 +37,9 @@ loki:
       # Keep a little bit lower than memory limits
       - name: GOMEMLIMIT
         value: 2750MiB
+  
+  minio:
+    enabled: true
   chunksCache:
     # default is 500MB, with limited memory keep this smaller
     writebackSizeLimit: 10MB
@@ -631,5 +634,5 @@ grafana:
 
   revisionHistoryLimit: 10
 minio:
-  enabled: true
+  enabled: false
   
