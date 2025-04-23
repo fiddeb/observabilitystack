@@ -250,7 +250,6 @@ tempo:
 
 prometheus:
   enabled: true
-  fullnameOverride: prometheus
   rbac:
     create: true
 
@@ -308,6 +307,7 @@ prometheus:
       scrape_interval: 1m
       scrape_timeout: 10s
       evaluation_interval: 1m
+    fullnameOverride: "prometheus"
     ingress:
       enabled: false
       path: /
