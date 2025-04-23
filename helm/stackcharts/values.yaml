@@ -38,6 +38,7 @@ loki:
   chunksCache:
     # default is 500MB, with limited memory keep this smaller
     writebackSizeLimit: 10MB
+    allocatedMemory: 2048
   read:
     replicas: 0
   backend:
