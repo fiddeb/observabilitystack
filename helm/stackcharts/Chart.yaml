@@ -1,0 +1,25 @@
+# helm/umbrella-chart/Chart.yaml
+apiVersion: v2
+name: observability-stack
+version: 0.1.0
+dependencies:
+  - name: loki
+    version: "x.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: loki.enabled
+  - name: tempo
+    version: "x.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: tempo.enabled
+  - name: prometheus
+    version: "x.x.x"
+    repository: "https://prometheus-community.github.io/helm-charts"
+    condition: prometheus.enabled
+  - name: grafana
+    version: "x.x.x"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: grafana.enabled
+  - name: otel-collector
+    version: "x.x.x"
+    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
+    condition: otelCollector.enabled

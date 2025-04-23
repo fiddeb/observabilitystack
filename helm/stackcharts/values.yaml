@@ -1,0 +1,10 @@
+loki:
+  enabled: false
+tempo:
+  enabled: false
+prometheus:
+  enabled: false
+grafana:
+  enabled: true
+otelCollector:
+  enabled: false
