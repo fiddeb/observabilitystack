@@ -27,17 +27,17 @@ loki:
     resources:
       limits:
         cpu: 2
-        memory: 4Gi
+        memory: 2Gi
       requests:
         cpu: 2
         memory: 2Gi
     extraEnv:
       # Keep a little bit lower than memory limits
       - name: GOMEMLIMIT
-        value: 3750MiB
-  memcachedChunks:
-    # -- Specifies whether the Memcached chunks cache should be enabled
-    enabled: false
+        value: 2750MiB
+  chunksCache:
+    # default is 500MB, with limited memory keep this smaller
+    writebackSizeLimit: 10MB
   read:
     replicas: 0
   backend:
@@ -540,7 +540,7 @@ grafana:
         name: Prometheus
         type: prometheus
         uid: prometheus
-        url: http://prometheus-server
+        url: http://observability-stack-prometheus-server
       - editable: true
         isDefault: false
         name: loki
