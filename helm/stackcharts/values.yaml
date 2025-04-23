@@ -630,6 +630,64 @@ grafana:
     config: ""
 
   revisionHistoryLimit: 10
+minio:
+  enabled: true
+  fullnameOverride: minio
+  global:
+    imageRegistry: null
+    imagePullSecrets: []
+  rbac:
+    create: true
+    pspEnabled: false
+    pspUseAppArmor: false
+    namespaced: true
 
+  serviceAccount:
+    create: true
+    name:
+    nameTest:
+    labels: {}
+    automountServiceAccountToken: false
+
+  replicas: 1
+
+  headlessService: false
+
+  automountServiceAccountToken: true
+
+  autoscaling:
+    enabled: false
+
+  deploymentStrategy:
+    type: RollingUpdate
+
+  readinessProbe:
+    httpGet:
+  replicaCount: 1
+
+  image:
+    repository: minio/minio
+    tag: RELEASE.2023-04-01T02-39-41Z  # Använd en aktuell version
+    pullPolicy: IfNotPresent
+
+  # Standardkommandot för att starta MinIO-servern
+  command:
+    - server
+    - /data
+
+  # Autentisering - ange accessKey och secretKey
+  accessKey: minio
+  secretKey: minio123
+
+  service:
+    type: ClusterIP
+    port: 9000
+
+  persistence:
+    enabled: true
+    storageClass: ""      # Lämna tomt eller ange en lämplig StorageClass
+    size: 10Gi
+
+  resources: {}       
 #otelCollector:
 #  enabled: false
