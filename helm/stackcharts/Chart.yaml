@@ -4,22 +4,22 @@ name: observability-stack
 version: 0.1.0
 dependencies:
   - name: loki
-    version: "x.x.x"
+    version: "6.28.0"
     repository: "https://grafana.github.io/helm-charts"
     condition: loki.enabled
   - name: tempo
-    version: "x.x.x"
+    version: "1.18.3"
     repository: "https://grafana.github.io/helm-charts"
     condition: tempo.enabled
   - name: prometheus
-    version: "x.x.x"
+    version: "27.11.0"
     repository: "https://prometheus-community.github.io/helm-charts"
     condition: prometheus.enabled
   - name: grafana
-    version: "x.x.x"
+    version: "8.10.3"
     repository: "https://grafana.github.io/helm-charts"
     condition: grafana.enabled
   - name: otel-collector
-    version: "x.x.x"
+    version: "0.122.2"
     repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
     condition: otelCollector.enabled
