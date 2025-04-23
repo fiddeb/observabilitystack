@@ -19,7 +19,7 @@ dependencies:
     version: "8.10.3"
     repository: "https://grafana.github.io/helm-charts"
     condition: grafana.enabled
-  - name: otel-collector
-    version: "0.122.2"
-    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
-    condition: otelCollector.enabled
+#  - name: open-telemetry
+#    version: "0.122.2"
+#    repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
+#    condition: otelCollector.enabled

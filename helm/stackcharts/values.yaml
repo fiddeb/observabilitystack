@@ -6,5 +6,5 @@ prometheus:
   enabled: false
 grafana:
   enabled: true
-otelCollector:
-  enabled: false
+#otelCollector:
+#  enabled: false
