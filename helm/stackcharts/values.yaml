@@ -632,6 +632,7 @@ grafana:
   revisionHistoryLimit: 10
 minio:
   enabled: true
+  fullnameOverride: minio
   mode: standalone          # Välj single node läge istället för distribuerad installation
   replicas: 1               # Endast en instans körs
   persistence:
