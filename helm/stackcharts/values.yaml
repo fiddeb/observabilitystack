@@ -87,7 +87,7 @@ loki:
         - /prometheus/api/v1/alerts
     # -- Hosts configuration for the ingress, passed through the `tpl` function to allow templating
     hosts:
-      - loki.dev.local
+      - loki.k8s.test
   ingester:
     replicas: 0
   querier:
@@ -497,7 +497,7 @@ grafana:
     path: /
     pathType: Prefix
     hosts:
-      - grafana.dev.local
+      - grafana.k8s.test
     backend:
       service:
         name: grafana
