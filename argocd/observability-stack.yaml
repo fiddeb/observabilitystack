@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/fiddeb/observabilitystack.git'
-    targetRevision: auto   # branhnamn eller tag
+    targetRevision: auto   # branchnamn eller tag
     path: helm/stackcharts
   destination:
     server: 'https://kubernetes.default.svc'
