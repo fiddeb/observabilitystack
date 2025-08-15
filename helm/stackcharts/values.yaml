@@ -545,7 +545,7 @@ grafana:
         name: Prometheus
         type: prometheus
         uid: prometheus
-        url: http://observability-stack-prometheus-server
+        url: http://prometheus
       - editable: true
         isDefault: false
         name: loki
@@ -624,6 +624,9 @@ grafana:
       url: https://grafana.net
     server:
       domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"
+    feature_toggles:
+      alertingListViewV2: true
+      grafanaAdvisor: true
   ldap:
     enabled: false
     existingSecret: ""
