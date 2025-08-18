@@ -624,6 +624,10 @@ grafana:
       url: https://grafana.net
     server:
       domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"
+
+    profile:
+      enabled: false
+      
     feature_toggles:
       alertingListViewV2: true
       grafanaAdvisor: true
