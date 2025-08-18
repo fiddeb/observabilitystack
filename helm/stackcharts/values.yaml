@@ -631,6 +631,7 @@ grafana:
     feature_toggles:
       alertingListViewV2: true
       grafanaAdvisor: true
+      ProfileFeatureTogglePage: false
   ldap:
     enabled: false
     existingSecret: ""
