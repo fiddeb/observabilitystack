@@ -625,7 +625,7 @@ grafana:
     server:
       domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"
 
-    profile:
+    profiles:
       enabled: false
 
     feature_toggles:
