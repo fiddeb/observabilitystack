@@ -1,0 +1,656 @@
+loki:
+  enabled: true
+  fullnameOverride: loki
+  
+  loki:
+    commonConfig:
+      replication_factor: 1
+    storage:
+      type: 'filesystem'
+    schemaConfig:
+      configs:
+      - from: "2024-01-01"
+        store: tsdb
+        index:
+          prefix: loki_index_
+          period: 24h
+        object_store: filesystem # we're storing on filesystem so there's no real persistence here.
+        schema: v13
+    ingester:
+      chunk_encoding: snappy
+    tracing:
+      enabled: true
+    querier:
+      # Default is 4, if you have enough memory and CPU you can increase, reduce if OOMing
+      max_concurrent: 2
+  deploymentMode: SingleBinary
+  singleBinary:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 2
+        memory: 2Gi
+      requests:
+        cpu: 2
+        memory: 2Gi
+    extraEnv:
+      # Keep a little bit lower than memory limits
+      - name: GOMEMLIMIT
+        value: 2750MiB
+  chunksCache:
+    # default is 500MB, with limited memory keep this smaller
+    writebackSizeLimit: 10MB
+    allocatedMemory: 2048
+  read:
+    replicas: 0
+  backend:
+    replicas: 0
+  write:
+    replicas: 0
+  ingress:
+    enabled: true
+    ingressClassName: "traefik"
+    annotations: {}
+    labels: {}
+    paths:
+      distributor:
+        - /api/prom/push
+        - /loki/api/v1/push
+        - /otlp/v1/logs
+      queryFrontend:
+        - /api/prom/query
+        # this path covers labels and labelValues endpoints
+        - /api/prom/label
+        - /api/prom/series
+        - /api/prom/tail
+        - /loki/api/v1/query
+        - /loki/api/v1/query_range
+        - /loki/api/v1/tail
+        # this path covers labels and labelValues endpoints
+        - /loki/api/v1/label
+        - /loki/api/v1/labels
+        - /loki/api/v1/series
+        - /loki/api/v1/index/stats
+        - /loki/api/v1/index/volume
+        - /loki/api/v1/index/volume_range
+        - /loki/api/v1/format_query
+        - /loki/api/v1/detected_field
+        - /loki/api/v1/detected_fields
+        - /loki/api/v1/detected_labels
+        - /loki/api/v1/patterns
+      ruler:
+        - /api/prom/rules
+        - /api/prom/api/v1/rules
+        - /api/prom/api/v1/alerts
+        - /loki/api/v1/rules
+        - /prometheus/api/v1/rules
+        - /prometheus/api/v1/alerts
+    # -- Hosts configuration for the ingress, passed through the `tpl` function to allow templating
+    hosts:
+      - loki.k8s.test
+  ingester:
+    replicas: 0
+  querier:
+    replicas: 0
+  queryFrontend:
+    replicas: 0
+  queryScheduler:
+    replicas: 0
+  distributor:
+    replicas: 0
+  compactor:
+    replicas: 0
+  indexGateway:
+    replicas: 0
+  bloomCompactor:
+    replicas: 0
+  bloomGateway:
+    replicas: 0
+tempo:
+  enabled: false
+  global:
+    commonLabels: {}
+
+  nameOverride: ""
+  fullnameOverride: "tempo"
+
+  replicas: 1
+
+  tempo:
+    repository: grafana/tempo
+    pullPolicy: IfNotPresent
+    updateStrategy: RollingUpdate
+    memBallastSizeMbs: 1024
+    multitenancyEnabled: false
+    reportingEnabled: true
+    metricsGenerator:
+      enabled: false
+      remoteWriteUrl: "http://prometheus-server/api/v1/write"
+    retention: 24h
+    global_overrides:
+      per_tenant_override_config: /conf/overrides.yaml
+    server:
+      http_listen_port: 3100
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/traces
+        wal:
+          path: /var/tempo/wal
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: "0.0.0.0:4317"
+          http:
+            endpoint: "0.0.0.0:4318"
+    securityContext: {}
+    extraArgs: {}
+    extraEnv: []
+    extraEnvFrom: []
+    extraVolumeMounts: []
+
+  config: |
+      memberlist:
+        cluster_label: "{{ .Release.Name }}.{{ .Release.Namespace }}"
+      multitenancy_enabled: {{ .Values.tempo.multitenancyEnabled }}
+      usage_report:
+        reporting_enabled: {{ .Values.tempo.reportingEnabled }}
+      compactor:
+        compaction:
+          block_retention: {{ .Values.tempo.retention }}
+      distributor:
+        receivers:
+          {{- toYaml .Values.tempo.receivers | nindent 8 }}
+      ingester:
+        {{- toYaml .Values.tempo.ingester | nindent 6 }}
+      server:
+        {{- toYaml .Values.tempo.server | nindent 6 }}
+      storage:
+        {{- toYaml .Values.tempo.storage | nindent 6 }}
+      querier:
+        {{- toYaml .Values.tempo.querier | nindent 6 }}
+      query_frontend:
+        {{- toYaml .Values.tempo.queryFrontend | nindent 6 }}
+      overrides:
+        {{- toYaml .Values.tempo.global_overrides | nindent 6 }}
+        {{- if .Values.tempo.metricsGenerator.enabled }}
+            metrics_generator_processors:
+            - 'service-graphs'
+            - 'span-metrics'
+      metrics_generator:
+            storage:
+              path: "/tmp/tempo"
+              remote_write:
+                - url: {{ .Values.tempo.metricsGenerator.remoteWriteUrl }}
+        {{- end }}
+
+  tempoQuery:
+    repository: grafana/tempo-query
+    pullPolicy: IfNotPresent
+    enabled: false
+
+    service:
+      port: 16686
+
+    ingress:
+      enabled: false
+      path: /
+      pathType: Prefix
+
+    resources: {}
+    extraArgs: {}
+    extraEnv: []
+    extraVolumeMounts: []
+    securityContext: {}
+
+  securityContext:
+    runAsUser: 10001
+    runAsGroup: 10001
+    fsGroup: 10001
+    runAsNonRoot: true
+
+  serviceAccount:
+    create: true
+    automountServiceAccountToken: true
+
+  service:
+    type: ClusterIP
+
+  persistence:
+    enabled: false
+    enableStatefulSetAutoDeletePVC: false
+    accessModes:
+      - ReadWriteOnce
+    size: 10Gi
+
+  podAnnotations: {}
+  podLabels: {}
+  extraLabels: {}
+
+  extraVolumes: []
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  priorityClassName: null
+
+  networkPolicy:
+    enabled: false
+    ingress: true
+    allowExternal: true
+    explicitNamespacesSelector: {}
+    egress:
+      enabled: false
+      blockDNSResolution: false
+      ports: []
+      to: []
+
+prometheus:
+  enabled: true
+  rbac:
+    create: true
+
+  podSecurityPolicy:
+    enabled: false
+
+  serviceAccounts:
+    server:
+      create: true
+      name: ""
+
+  configmapReload:
+    reloadUrl: ""
+    prometheus:
+      enabled: true
+      name: configmap-reload
+      image:
+        repository: quay.io/prometheus-operator/prometheus-config-reloader
+        tag: v0.78.1
+        pullPolicy: IfNotPresent
+      containerPort: 8080
+      containerPortName: metrics
+      livenessProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+          scheme: HTTP
+        periodSeconds: 10
+        initialDelaySeconds: 2
+      readinessProbe:
+        httpGet:
+          path: /healthz
+          port: metrics
+          scheme: HTTP
+        periodSeconds: 10
+      startupProbe:
+        enabled: false
+        httpGet:
+          path: /healthz
+          port: metrics
+          scheme: HTTP
+        periodSeconds: 10
+
+  server:
+    name: server
+    releaseNamespace: false
+    image:
+      repository: quay.io/prometheus/prometheus
+      pullPolicy: IfNotPresent
+    enableServiceLinks: true
+    extraFlags:
+      - web.enable-lifecycle
+    configPath: /etc/config/prometheus.yml
+    global:
+      scrape_interval: 1m
+      scrape_timeout: 10s
+      evaluation_interval: 1m
+    fullnameOverride: "prometheus"
+    ingress:
+      enabled: false
+      path: /
+      pathType: Prefix
+    strategy:
+      type: Recreate
+    podAntiAffinityTopologyKey: kubernetes.io/hostname
+    persistentVolume:
+      enabled: true
+      accessModes:
+        - ReadWriteOnce
+      mountPath: /data
+      size: 8Gi
+    replicaCount: 1
+    readinessProbeInitialDelay: 30
+    readinessProbePeriodSeconds: 5
+    readinessProbeTimeout: 4
+    readinessProbeFailureThreshold: 3
+    readinessProbeSuccessThreshold: 1
+    livenessProbeInitialDelay: 30
+    livenessProbePeriodSeconds: 15
+    livenessProbeTimeout: 10
+    livenessProbeFailureThreshold: 3
+    livenessProbeSuccessThreshold: 1
+    startupProbe:
+      enabled: false
+      periodSeconds: 5
+      failureThreshold: 30
+      timeoutSeconds: 10
+    hostNetwork: false
+    dnsPolicy: ClusterFirst
+    securityContext:
+      runAsUser: 65534
+      runAsNonRoot: true
+      runAsGroup: 65534
+      fsGroup: 65534
+    service:
+      enabled: true
+      servicePort: 80
+      sessionAffinity: None
+      type: ClusterIP
+    terminationGracePeriodSeconds: 300
+    retention: "15d"
+
+  serverFiles:
+    prometheus.yml:
+      rule_files:
+        - /etc/config/recording_rules.yml
+        - /etc/config/alerting_rules.yml
+        - /etc/config/rules
+        - /etc/config/alerts
+      scrape_configs:
+        - job_name: prometheus
+          static_configs:
+            - targets:
+                - localhost:9090
+
+  alertmanager:
+    enabled: false
+
+  kube-state-metrics:
+    enabled: false
+
+  prometheus-node-exporter:
+    enabled: false
+
+  prometheus-pushgateway:
+    enabled: false
+
+grafana:
+  enabled: true
+  fullnameOverride: grafana
+  global:
+    imageRegistry: null
+    imagePullSecrets: []
+  rbac:
+    create: true
+    pspEnabled: false
+    pspUseAppArmor: false
+    namespaced: true
+
+  serviceAccount:
+    create: true
+    name:
+    nameTest:
+    labels: {}
+    automountServiceAccountToken: false
+
+  replicas: 1
+
+  headlessService: false
+
+  automountServiceAccountToken: true
+
+  autoscaling:
+    enabled: false
+
+  deploymentStrategy:
+    type: RollingUpdate
+
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 60
+    timeoutSeconds: 30
+    failureThreshold: 10
+
+  image:
+    registry: docker.io
+    repository: grafana/grafana
+    pullPolicy: IfNotPresent
+  
+  testFramework:
+    enabled: false
+    
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 472
+    runAsGroup: 472
+    fsGroup: 472
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    seccompProfile:
+      type: RuntimeDefault
+  createConfigmap: true
+  extraConfigmapMounts: []
+    # - name: certs-configmap
+    #   mountPath: /etc/grafana/ssl/
+    #   subPath: certificates.crt # (optional)
+    #   configMap: certs-configmap
+    #   readOnly: true
+    #   optional: false
+
+  extraLabels: {}
+
+
+  downloadDashboardsImage:
+    # -- The Docker registry
+    registry: docker.io
+    repository: curlimages/curl
+    tag: 7.85.0
+    sha: ""
+    pullPolicy: IfNotPresent
+
+  downloadDashboards:
+    env: {}
+    envFromSecret: ""
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    envValueFrom: {}
+
+  podPortName: grafana
+  gossipPortName: gossip
+
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+    annotations: {}
+    labels: {}
+    portName: service
+    appProtocol: ""
+
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations: {}
+    labels: {}
+    path: /
+    pathType: Prefix
+    hosts:
+      - grafana.k8s.test
+    backend:
+      service:
+        name: grafana
+        port:
+          number: 80
+
+
+  serviceMonitor:
+    enabled: false
+    path: /metrics
+    labels: {}
+    interval: 30s
+    scheme: http
+    tlsConfig: {}
+    scrapeTimeout: 30s
+    relabelings: []
+    metricRelabelings: []
+    targetLabels: []
+
+  extraExposePorts: []
+  resources: {}
+
+  persistence:
+    type: pvc
+    enabled: false
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    finalizers:
+      - kubernetes.io/pvc-protection
+    extraPvcLabels: {}
+    disableWarning: false
+
+  adminUser: admin
+
+  plugins: []
+    # - digrich-bubblechart-panel
+    # - grafana-clock-panel
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - editable: true
+        isDefault: true
+        name: Prometheus
+        type: prometheus
+        uid: prometheus
+        url: http://prometheus
+      - editable: true
+        isDefault: false
+        name: loki
+        type: loki
+        uid: loki
+        url: http://loki-gateway
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "foo"
+      - name: Tempo
+        type: tempo
+        uid: tempo
+        url: http://tempo:3100
+        jsonData:
+          tracesToLogsV2:
+            customQuery: true
+            datasourceUid: 'loki'
+            query: '{$${__tags}} | trace_id = "$${__trace.traceId}"'
+            tags:
+              - key: 'service.name'
+                value: 'service_name'
+  #    deleteDatasources: []
+  #    - name: Prometheus
+
+  alerting: {}
+  notifiers: {}
+  dashboardProviders: {}
+  dashboards: {}
+    # default:
+    #   some-dashboard:
+    #     json: |
+    #       $RAW_JSON
+    #   custom-dashboard:
+    #     file: dashboards/custom-dashboard.json
+    #   prometheus-stats:
+    #     gnetId: 2
+    #     revision: 2
+    #     datasource: Prometheus
+    #   local-dashboard:
+    #     url: https://example.com/repository/test.json
+    #     token: ''
+    #   local-dashboard-base64:
+    #     url: https://example.com/repository/test-b64.json
+    #     token: ''
+    #     b64content: true
+    #   local-dashboard-gitlab:
+    #     url: https://example.com/repository/test-gitlab.json
+    #     gitlabToken: ''
+    #   local-dashboard-bitbucket:
+    #     url: https://example.com/repository/test-bitbucket.json
+    #     bearerToken: ''
+    #   local-dashboard-azure:
+    #     url: https://example.com/repository/test-azure.json
+    #     basic: ''
+    #     acceptHeader: '*/*'
+
+  dashboardsConfigMaps: {}
+  #  default: ""
+  grafana.ini:
+    paths:
+      data: /var/lib/grafana/
+      logs: /var/log/grafana
+      plugins: /var/lib/grafana/plugins
+      provisioning: /etc/grafana/provisioning
+    analytics:
+      check_for_updates: true
+    log:
+      mode: console
+    auth:
+      disable_login: true
+    auth.anonymous:
+      enabled: true
+      org_role: "Admin"
+    grafana_net:
+      url: https://grafana.net
+    server:
+      domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"
+
+    profile:
+      enabled: false
+
+    feature_toggles:
+      alertingListViewV2: true
+      grafanaAdvisor: true
+      ProfileFeatureTogglePage: false
+  ldap:
+    enabled: false
+    existingSecret: ""
+    config: ""
+
+  revisionHistoryLimit: 10
+minio:
+  enabled: true
+  fullnameOverride: minio
+  mode: standalone          # Välj single node läge istället för distribuerad installation
+  replicas: 1               # Endast en instans körs
+  persistence:
+    enabled: false          # Inga PVC:er (för demo räcker det ofta utan persistens)
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+  accessKey: "minio"        # Demo credentials, byt ut om det behövs
+  secretKey: "minio123"
