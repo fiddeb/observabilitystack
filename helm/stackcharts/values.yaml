@@ -107,7 +107,7 @@ loki:
   bloomGateway:
     replicas: 0
 tempo:
-  enabled: true
+  enabled: false
   global:
     commonLabels: {}
 
