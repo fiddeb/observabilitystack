@@ -669,3 +669,10 @@ minio:
       memory: "256Mi"
   accessKey: "minio"        # Demo credentials, byt ut om det behövs
   secretKey: "minio123"
+  buckets:
+    - name: tempo-traces
+      policy: none
+      purge: false
+    - name: loki-chunks  
+      policy: none
+      purge: false
