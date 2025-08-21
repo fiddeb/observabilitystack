@@ -17,7 +17,7 @@ This repo is small by design. If some folders are not present yet, treat them as
     •	/scripts: helper scripts (e.g., [`manage_env.sh`](manage_env.sh) for install/update/uninstall, [`install_argo.sh`](scripts/install_argo.sh) for ArgoCD bootstrap)
     •	/helm: Helm charts and values organized by component
         ◦	/helm/stackcharts: umbrella chart for the entire observability stack ([`Chart.yaml`](helm/stackcharts/Chart.yaml), [`values.yaml`](helm/stackcharts/values.yaml))
-        ◦	/helm/tempo: Tempo-specific values ([`tempo_values.yaml`](helm/tempo/tempo_values.yaml))
+        ◦	/helm/tempo: legacy Tempo configurations (deprecated - use stackcharts umbrella chart)
         ◦	/helm/grafana, /helm/loki, /helm/opentelemetry, /helm/prometheus: component-specific configurations
     •	/argocd: ArgoCD application manifests ([`observability-stack.yaml`](argocd/observability-stack.yaml) for GitOps deployment)
     •	/app: demo applications with telemetry instrumentation

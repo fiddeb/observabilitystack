@@ -1,5 +1,9 @@
 #!/bin/bash
 
+# DEPRECATED: This script is deprecated in favor of ArgoCD GitOps deployment
+# Use ./scripts/install_argo.sh instead for production deployments
+# This script is kept for legacy/manual installations only
+
 # Manage installation, updating, and uninstallation of the test environment
 
 set -e
