@@ -21,8 +21,8 @@ dependencies:
     condition: grafana.enabled
 
   - name: minio
-    version: "5.4.0"
-    repository: "https://charts.min.io/"
+    version: "17.0.21"
+    repository: "https://charts.bitnami.com/bitnami"
     condition: minio.enabled
 #  - name: open-telemetry
 #    version: "0.122.2"

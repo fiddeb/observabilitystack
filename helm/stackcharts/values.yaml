@@ -107,7 +107,7 @@ loki:
   bloomGateway:
     replicas: 0
 tempo:
-  enabled: false
+  enabled: true
   global:
     commonLabels: {}
 
@@ -130,12 +130,17 @@ tempo:
     global_overrides:
       per_tenant_override_config: /conf/overrides.yaml
     server:
-      http_listen_port: 3100
+      http_listen_port: 3200
     storage:
       trace:
-        backend: local
-        local:
-          path: /var/tempo/traces
+        backend: s3
+        s3:
+          bucket: tempo-traces
+          endpoint: minio:9000
+          access_key: minio
+          secret_key: minio123
+          insecure: true
+          forcepathstyle: true
         wal:
           path: /var/tempo/wal
     receivers:
@@ -147,7 +152,17 @@ tempo:
             endpoint: "0.0.0.0:4318"
     securityContext: {}
     extraArgs: {}
-    extraEnv: []
+    extraEnv:
+      - name: MINIO_ROOT_USER
+        valueFrom:
+          secretKeyRef:
+            name: minio
+            key: root-user
+      - name: MINIO_ROOT_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: minio
+            key: root-password
     extraEnvFrom: []
     extraVolumeMounts: []
 
@@ -224,6 +239,17 @@ tempo:
     accessModes:
       - ReadWriteOnce
     size: 10Gi
+
+  ingress:
+    enabled: true
+    ingressClassName: "traefik"
+    annotations: {}
+    labels: {}
+    hosts:
+      - host: tempo.k8s.test
+        paths:
+          - path: /
+            pathType: Prefix
 
   podAnnotations: {}
   podLabels: {}
@@ -559,7 +585,7 @@ grafana:
       - name: Tempo
         type: tempo
         uid: tempo
-        url: http://tempo:3100
+        url: http://tempo:3200
         jsonData:
           tracesToLogsV2:
             customQuery: true
@@ -641,10 +667,12 @@ grafana:
 minio:
   enabled: true
   fullnameOverride: minio
-  mode: standalone          # Välj single node läge istället för distribuerad installation
-  replicas: 1               # Endast en instans körs
+  auth:
+    rootUser: "minio"
+    rootPassword: "minio123"
+  defaultBuckets: "tempo-traces,loki-chunks"
   persistence:
-    enabled: false          # Inga PVC:er (för demo räcker det ofta utan persistens)
+    enabled: false
   resources:
     requests:
       cpu: "100m"
@@ -652,5 +680,3 @@ minio:
     limits:
       cpu: "250m"
       memory: "256Mi"
-  accessKey: "minio"        # Demo credentials, byt ut om det behövs
-  secretKey: "minio123"
