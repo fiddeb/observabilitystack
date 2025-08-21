@@ -107,7 +107,7 @@ loki:
   bloomGateway:
     replicas: 0
 tempo:
-  enabled: false
+  enabled: true
   global:
     commonLabels: {}
 
@@ -137,8 +137,8 @@ tempo:
         s3:
           bucket: tempo-traces
           endpoint: minio:9000
-          access_key: minio
-          secret_key: minio123
+          access_key: ${MINIO_ROOT_USER}
+          secret_key: ${MINIO_ROOT_PASSWORD}
           insecure: true
         wal:
           path: /var/tempo/wal
@@ -151,7 +151,17 @@ tempo:
             endpoint: "0.0.0.0:4318"
     securityContext: {}
     extraArgs: {}
-    extraEnv: []
+    extraEnv:
+      - name: MINIO_ROOT_USER
+        valueFrom:
+          secretKeyRef:
+            name: minio
+            key: rootUser
+      - name: MINIO_ROOT_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: minio
+            key: rootPassword
     extraEnvFrom: []
     extraVolumeMounts: []
 
