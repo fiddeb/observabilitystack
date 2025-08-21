@@ -680,3 +680,68 @@ minio:
     limits:
       cpu: "250m"
       memory: "256Mi"
+
+otelCollector:
+  enabled: true
+  fullnameOverride: "otel-collector"
+  
+  mode: "deployment"
+  
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    
+    processors:
+      batch: {}
+      memory_limiter:
+        limit_mib: 128
+    
+    exporters:
+      # Traces to Tempo
+      otlp/tempo:
+        endpoint: http://tempo.observability-lab.svc.cluster.local:4317
+        tls:
+          insecure: true
+      
+      # Logs to Loki
+      loki:
+        endpoint: http://loki-gateway.observability-lab.svc.cluster.local/loki/api/v1/push
+        default_labels_enabled:
+          exporter: false
+          job: true
+      
+      # Metrics to Prometheus remote write
+      prometheusremotewrite:
+        endpoint: http://prometheus.observability-lab.svc.cluster.local:80/api/v1/write
+        tls:
+          insecure: true
+    
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlp/tempo]
+        
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [loki]
+        
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [prometheusremotewrite]
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
