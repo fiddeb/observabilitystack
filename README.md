@@ -1,14 +1,14 @@
 # ObservabilityStack
 
-A minimal observability stack leveraging **OpenTelemetry**, **Grafana**, **Loki**, **Prometheus**, and **Tempo** for testing.
+A complete observability stack leveraging **OpenTelemetry Collector**, **Grafana**, **Loki**, **Prometheus**, and **Tempo** for comprehensive telemetry collection and visualization.
 
 ## Features
-- **OpenTelemetry**: Vendor-agnostic way to receive, process and export telemetry data.
-- **Grafana**: Visualization of telemetry.
-- **Loki**: Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus
-- **Prometheus**: Metric collection and alerting.
-- **Tempo**: Grafana Tempo is an open source, easy-to-use, and high-scale distributed tracing backend.
-- **Minio**: S3-compatible object storage backend for Loki and Tempo traces/logs.
+- **OpenTelemetry Collector**: Vendor-agnostic telemetry data collection, processing, and routing
+- **Grafana**: Visualization of metrics, logs, and traces with integrated datasources
+- **Loki**: Horizontally scalable, highly available, multi-tenant log aggregation system
+- **Prometheus**: Metric collection, storage, and alerting with remote write support
+- **Tempo**: High-scale distributed tracing backend with S3 storage
+- **Minio**: S3-compatible object storage backend for Loki logs and Tempo traces
 
 ---
 
@@ -29,11 +29,51 @@ The observability stack is now deployed using **ArgoCD** for GitOps-based manage
    ```
 
 That's it! ArgoCD will automatically deploy and manage:
+- OpenTelemetry Collector (telemetry data collection and routing)
 - Loki (with Minio storage backend)
 - Tempo (with Minio storage backend) 
-- Prometheus (metrics collection)
+- Prometheus (metrics collection with remote write)
 - Grafana (visualization with all datasources)
 - Minio (S3-compatible object storage)
+
+---
+
+## Using OpenTelemetry Collector
+
+The OpenTelemetry Collector is configured to receive telemetry data via OTLP and route it to the appropriate backends:
+
+### Sending Telemetry Data
+
+**OTLP Endpoints:**
+- gRPC: `otel-collector.observability-lab.svc.cluster.local:4317`
+- HTTP: `otel-collector.observability-lab.svc.cluster.local:4318`
+
+**Data Flow:**
+- **Metrics** → OpenTelemetry Collector → Prometheus (via remote write)
+- **Logs** → OpenTelemetry Collector → Loki (with tenant ID: "foo")
+- **Traces** → OpenTelemetry Collector → Tempo (stored in Minio S3)
+
+### Testing the Complete Pipeline
+
+Run the included telemetry test jobs to verify end-to-end functionality:
+
+```bash
+kubectl apply -f telemetry-test-jobs.yaml
+```
+
+This creates three Kubernetes jobs that generate test telemetry data:
+- `telemetrygen-metrics`: Generates test metrics
+- `telemetrygen-logs`: Generates test logs  
+- `telemetrygen-traces`: Generates test traces
+
+Check job status:
+```bash
+kubectl get jobs -n observability-lab
+```
+
+All telemetry data should be visible in Grafana at `http://grafana.k8s.test`.
+
+---
 
 ### Legacy: Manual Installation Using Helm
 
@@ -130,10 +170,10 @@ If an ingress controller (e.g., Traefik) is configured, set up wildcard DNS reso
 
 This setup will allow you to access the services via:
 
-- Loki: `http://loki.k8s.test` to use logcli or push logs directly to loki
-- Grafana: `http://grafana.k8s.test` to visualize telemetry data
-- Tempo: `http://tempo.k8s.test` for distributed tracing queries
-- OpenTelemetry Collector: `http://otel.k8s.test` to send telemetry signals (not yet configured in [opentelemetry_values.yaml](opentelemetry_values.yaml))
+- **Grafana**: `http://grafana.k8s.test` - Main dashboard for visualizing metrics, logs, and traces
+- **Loki**: `http://loki.k8s.test` - Direct log ingestion and querying via logcli
+- **Tempo**: `http://tempo.k8s.test` - Distributed tracing queries and trace search
+- **OpenTelemetry Collector**: Available at `otel-collector.observability-lab.svc.cluster.local:4317/4318` for OTLP telemetry ingestion
 
 ---
 
