@@ -157,12 +157,12 @@ tempo:
         valueFrom:
           secretKeyRef:
             name: minio
-            key: rootUser
+            key: root-user
       - name: MINIO_ROOT_PASSWORD
         valueFrom:
           secretKeyRef:
             name: minio
-            key: rootPassword
+            key: root-password
     extraEnvFrom: []
     extraVolumeMounts: []
 
