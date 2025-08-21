@@ -8,85 +8,47 @@ A minimal observability stack leveraging **OpenTelemetry**, **Grafana**, **Loki*
 - **Loki**: Loki is a horizontally scalable, highly available, multi-tenant log aggregation system inspired by Prometheus
 - **Prometheus**: Metric collection and alerting.
 - **Tempo**: Grafana Tempo is an open source, easy-to-use, and high-scale distributed tracing backend.
+- **Minio**: S3-compatible object storage backend for Loki and Tempo traces/logs.
 
 ---
 
 ## Installation Instructions
 
-You can set up the observability stack in two ways:
+The observability stack is now deployed using **ArgoCD** for GitOps-based management.
 
-### Option 1: Manual Installation Using Helm
+### Prerequisites
 
-Install each component manually with Helm using the following commands:
-
-```bash
-# Traefik (reverse proxy)
-helm install traefik traefik/traefik
-
-# Loki (logging)
-helm install --values loki_values.yaml loki --namespace=observability-lab grafana/loki --create-namespace
-
-# Tempo (tracing)
-helm install --values tempo_values.yaml tempo --namespace=observability-lab grafana/tempo --create-namespace
-
-# Prometheus (metrics)
-helm install --values prometheus_values.yaml prometheus --namespace=observability-lab prometheus-community/prometheus --create-namespace
-
-# Grafana (visualization)
-helm install --values grafana_values.yaml grafana --namespace=observability-lab grafana/grafana --create-namespace
-
-# OpenTelemetry Collector
-helm install --values opentelemetry_values.yaml otel-collector --namespace=observability-lab open-telemetry/opentelemetry-collector --create-namespace
-```
-
-**Important**: Traefik must be installed manually using Helm, as it is not included in the script. Run the following command to install Traefik:
-
-```bash
-helm install traefik traefik/traefik
-```
-
----
-
-### Option 2: Automated Installation Using Script
-
-Use the `manage_env.sh` script to install, update, or uninstall the observability stack. This script handles the installation and configuration of Loki, Tempo, Prometheus, Grafana, and the OpenTelemetry Collector.
-
-#### Usage
-
-1. Ensure the script is executable:
-
+1. **Install Traefik** (Ingress Controller):
    ```bash
-   chmod +x manage_env.sh
+   helm install traefik traefik/traefik
    ```
 
-2. Run the script with one of the following commands:
-   - To **install** the stack:
+2. **Install ArgoCD and deploy the stack**:
+   ```bash
+   ./scripts/install_argo.sh
+   ```
 
-     ```bash
-     ./manage_env.sh install
-     ```
+That's it! ArgoCD will automatically deploy and manage:
+- Loki (with Minio storage backend)
+- Tempo (with Minio storage backend) 
+- Prometheus (metrics collection)
+- Grafana (visualization with all datasources)
+- Minio (S3-compatible object storage)
 
-   - To **update** the stack:
+### Legacy: Manual Installation Using Helm
 
-     ```bash
-     ./manage_env.sh update
-     ```
+For manual control, you can still deploy using the umbrella chart:
 
-   - To **uninstall** the stack:
+```bash
+# Add required Helm repositories
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo add minio https://charts.min.io/
+helm repo update
 
-     ```bash
-     ./manage_env.sh uninstall
-     ```
-
-**Note**: The script does not include Traefik. Make sure to install Traefik separately using the Helm command provided above.
-
----
-
-
-- Always install Traefik manually with Helm before proceeding with other components (or use another Ingress controller)
-- Use the manual installation method for complete control.
-- Use the script `manage_env.sh` for an easier and automated setup process.
-
+# Install the entire stack
+helm install observability-stack ./helm/stackcharts --namespace=observability-lab --create-namespace
+```
 
 ---
 
@@ -127,6 +89,21 @@ If everything is configured correctly, you should see your test log (`fizzbuzz`)
 ```bash
 2024-11-21T23:26:50+01:00 {} fizzbuzz
 ```
+
+## Testing Tempo Tracing
+
+You can test your Tempo installation by sending a test trace via OTLP:
+
+```bash
+# Send a test trace (requires otel CLI or similar)
+# Example using curl to send OTLP HTTP trace
+curl -X POST http://tempo.k8s.test:4318/v1/traces \
+  -H "Content-Type: application/x-protobuf" \
+  --data-binary @test-trace.pb
+```
+
+You can also access Tempo's query interface at `http://tempo.k8s.test` and search for traces by trace ID or service name.
+
 ## Using Ingress
 
 If an ingress controller (e.g., Traefik) is configured, set up wildcard DNS resolution using dnsmasq:
@@ -155,13 +132,14 @@ This setup will allow you to access the services via:
 
 - Loki: `http://loki.k8s.test` to use logcli or push logs directly to loki
 - Grafana: `http://grafana.k8s.test` to visualize telemetry data
+- Tempo: `http://tempo.k8s.test` for distributed tracing queries
 - OpenTelemetry Collector: `http://otel.k8s.test` to send telemetry signals (not yet configured in [opentelemetry_values.yaml](opentelemetry_values.yaml))
 
 ---
 
 ## Customization
 
-- Modify the `values.yaml` files for each service (`loki_values.yaml`, `tempo_values.yaml`, etc.) to customize configurations like resource limits, persistence, and authentication.
+- Modify the umbrella chart configuration in `helm/stackcharts/values.yaml` to customize configurations like resource limits, persistence, and authentication for all observability components.
 
 ---
 

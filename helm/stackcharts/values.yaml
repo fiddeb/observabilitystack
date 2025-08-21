@@ -107,7 +107,7 @@ loki:
   bloomGateway:
     replicas: 0
 tempo:
-  enabled: false
+  enabled: true
   global:
     commonLabels: {}
 
@@ -133,9 +133,13 @@ tempo:
       http_listen_port: 3100
     storage:
       trace:
-        backend: local
-        local:
-          path: /var/tempo/traces
+        backend: s3
+        s3:
+          bucket: tempo-traces
+          endpoint: minio:9000
+          access_key: minio
+          secret_key: minio123
+          insecure: true
         wal:
           path: /var/tempo/wal
     receivers:
@@ -224,6 +228,17 @@ tempo:
     accessModes:
       - ReadWriteOnce
     size: 10Gi
+
+  ingress:
+    enabled: true
+    ingressClassName: "traefik"
+    annotations: {}
+    labels: {}
+    hosts:
+      - host: tempo.k8s.test
+        paths:
+          - path: /
+            pathType: Prefix
 
   podAnnotations: {}
   podLabels: {}
