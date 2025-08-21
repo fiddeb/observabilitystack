@@ -724,7 +724,7 @@ opentelemetry-collector:
           exporter: false
           job: true
         headers:
-          "X-Scope-OrgID": "fake"
+          "X-Scope-OrgID": "foo"
       
       # Metrics to Prometheus remote write
       prometheusremotewrite:
