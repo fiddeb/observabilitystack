@@ -692,6 +692,9 @@ otelCollector:
     tag: "latest"
     pullPolicy: "IfNotPresent"
   
+  command:
+    name: "otelcol-contrib"
+  
   config:
     receivers:
       otlp:
