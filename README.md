@@ -96,7 +96,7 @@ You can test your Loki installation by sending a test log:
 
 ```bash
 curl -H "Content-Type: application/json" -XPOST -s \
-"http://loki.dev.local/loki/api/v1/push" \
+"http://loki.k8s.test/loki/api/v1/push" \
 --data-raw "{
   \"streams\": [
     {
@@ -113,11 +113,11 @@ curl -H "Content-Type: application/json" -XPOST -s \
 To verify that the log was successfully sent, use `logcli` to query Loki:
 
 ```bash
-logcli query --addr=http://loki.dev.local --org-id="foo" '{job="test"}' --limit=5000 --since=60m
+logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="test"}' --limit=5000 --since=60m
 ```
 
 #### Explanation of the Command:
-- `--addr=http://loki.dev.local`: Specifies the URL of your Loki instance.
+- `--addr=http://loki.k8s.test`: Specifies the URL of your Loki instance.
 - `--org-id="foo"`: Specifies the tenant ID if using multi-tenancy.
 - `'{job="test"}'`: Filters logs based on the label `job` with the value `test`.
 - `--since=60m`: Retrieves logs generated within the last 60 minutes.
@@ -129,17 +129,33 @@ If everything is configured correctly, you should see your test log (`fizzbuzz`)
 ```
 ## Using Ingress
 
-If an ingress controller (e.g., Traefik) is configured, update your `/etc/hosts` file to map domain names for the services. Add the following entries:
+If an ingress controller (e.g., Traefik) is configured, set up wildcard DNS resolution using dnsmasq:
 
-```plaintext
-127.0.0.1 loki.dev.local grafana.dev.local otel.dev.local
-```
+### Setup dnsmasq for wildcard DNS
+
+1. Configure dnsmasq to resolve `*.k8s.test` domains:
+   ```bash
+   # Add to /opt/homebrew/etc/dnsmasq.conf
+   listen-address=127.0.0.1
+   bind-interfaces
+   address=/.k8s.test/127.0.0.1
+   ```
+
+2. Setup resolver for the k8s.test domain:
+   ```bash
+   echo "nameserver 127.0.0.1" | sudo tee /etc/resolver/k8s.test
+   ```
+
+3. Restart dnsmasq:
+   ```bash
+   sudo brew services restart dnsmasq
+   ```
 
 This setup will allow you to access the services via:
 
-- Loki: `http://loki.dev.local` to use logcli or push logs directly to loki
-- Grafana: `http://grafana.dev.local` to visualize telemetry data
-- OpenTelemetry Collector: `http://otel.dev.local` to send telemetry signals (not yet configured in [opentelemetry_values.yaml](opentelemetry_values.yaml))
+- Loki: `http://loki.k8s.test` to use logcli or push logs directly to loki
+- Grafana: `http://grafana.k8s.test` to visualize telemetry data
+- OpenTelemetry Collector: `http://otel.k8s.test` to send telemetry signals (not yet configured in [opentelemetry_values.yaml](opentelemetry_values.yaml))
 
 ---
 
@@ -153,7 +169,7 @@ This setup will allow you to access the services via:
 
 Access **Grafana** to set up dashboards and visualize metrics, logs, and traces:
 
-1. Log in to Grafana (`http://grafana.dev.local` or the relevant address). No log in needed.
+1. Log in to Grafana (`http://grafana.k8s.test` or the relevant address). No log in needed.
 
 
 >To enable login:
