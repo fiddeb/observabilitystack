@@ -140,6 +140,7 @@ tempo:
           access_key: 00hFZkM5G1i5APbP7iWK
           secret_key: FVEsESCnI4A0ANsZs3xGkvZBaq3lS54DcVqLGXmu
           insecure: true
+          forcepathstyle: true
         wal:
           path: /var/tempo/wal
     receivers:
