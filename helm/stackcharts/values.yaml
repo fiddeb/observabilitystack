@@ -130,7 +130,7 @@ tempo:
     global_overrides:
       per_tenant_override_config: /conf/overrides.yaml
     server:
-      http_listen_port: 3100
+      http_listen_port: 3200
     storage:
       trace:
         backend: s3
@@ -585,7 +585,7 @@ grafana:
       - name: Tempo
         type: tempo
         uid: tempo
-        url: http://tempo:3100
+        url: http://tempo:3200
         jsonData:
           tracesToLogsV2:
             customQuery: true
