@@ -328,6 +328,7 @@ prometheus:
     enableServiceLinks: true
     extraFlags:
       - web.enable-lifecycle
+      - web.enable-remote-write-receiver
     configPath: /etc/config/prometheus.yml
     global:
       scrape_interval: 1m
@@ -722,6 +723,8 @@ opentelemetry-collector:
         default_labels_enabled:
           exporter: false
           job: true
+        headers:
+          "X-Scope-OrgID": "fake"
       
       # Metrics to Prometheus remote write
       prometheusremotewrite:
