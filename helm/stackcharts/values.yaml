@@ -756,3 +756,21 @@ opentelemetry-collector:
     limits:
       cpu: "250m"
       memory: "256Mi"
+
+  ingress:
+    enabled: true
+    ingressClassName: "traefik"
+    annotations: {}
+    labels: {}
+    hosts:
+      - host: otel-collector.k8s.test
+        paths:
+          - path: /v1/logs
+            pathType: Prefix
+            port: 4318
+          - path: /v1/metrics
+            pathType: Prefix
+            port: 4318
+          - path: /v1/traces
+            pathType: Prefix
+            port: 4318
