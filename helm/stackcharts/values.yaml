@@ -678,9 +678,8 @@ minio:
     limits:
       cpu: "250m"
       memory: "256Mi"
-  auth:
-    rootUser: "minio"
-    rootPassword: "minio123"
+  rootUser: "minio"
+  rootPassword: "minio123"
   buckets:
     - name: tempo-traces
       policy: none
