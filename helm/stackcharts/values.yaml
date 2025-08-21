@@ -687,6 +687,11 @@ otelCollector:
   
   mode: "deployment"
   
+  image:
+    repository: "otel/opentelemetry-collector-contrib"
+    tag: "latest"
+    pullPolicy: "IfNotPresent"
+  
   config:
     receivers:
       otlp:
