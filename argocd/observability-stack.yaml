@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/fiddeb/observabilitystack.git'
-    targetRevision: fix/enable-tempo-with-minio-storage   # branchnamn eller tag
+    targetRevision: main   # peka på main branch efter merge
     path: helm/stackcharts
   destination:
     server: 'https://kubernetes.default.svc'
