@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/fiddeb/observabilitystack.git'
-    targetRevision: feat/add-opentelemetry-collector   # testing OTel Collector integration
+    targetRevision: main   # production deployment from main branch
     path: helm/stackcharts
   destination:
     server: 'https://kubernetes.default.svc'
