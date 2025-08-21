@@ -761,16 +761,9 @@ opentelemetry-collector:
     enabled: true
     ingressClassName: "traefik"
     annotations: {}
-    labels: {}
     hosts:
       - host: otel-collector.k8s.test
         paths:
-          - path: /v1/logs
-            pathType: Prefix
-            port: 4318
-          - path: /v1/metrics
-            pathType: Prefix
-            port: 4318
-          - path: /v1/traces
+          - path: /
             pathType: Prefix
             port: 4318
