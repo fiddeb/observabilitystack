@@ -137,8 +137,8 @@ tempo:
         s3:
           bucket: tempo-traces
           endpoint: minio:9000
-          access_key: 00hFZkM5G1i5APbP7iWK
-          secret_key: FVEsESCnI4A0ANsZs3xGkvZBaq3lS54DcVqLGXmu
+          access_key: minio
+          secret_key: minio123
           insecure: true
           forcepathstyle: true
         wal:
@@ -678,8 +678,9 @@ minio:
     limits:
       cpu: "250m"
       memory: "256Mi"
-  accessKey: "minio"        # Demo credentials, byt ut om det behövs
-  secretKey: "minio123"
+  auth:
+    rootUser: "minio"
+    rootPassword: "minio123"
   buckets:
     - name: tempo-traces
       policy: none
