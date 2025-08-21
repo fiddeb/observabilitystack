@@ -681,7 +681,7 @@ minio:
       cpu: "250m"
       memory: "256Mi"
 
-otelCollector:
+opentelemetry-collector:
   enabled: true
   fullnameOverride: "otel-collector"
   

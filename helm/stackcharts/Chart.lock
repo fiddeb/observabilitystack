@@ -1,0 +1,21 @@
+dependencies:
+- name: loki
+  repository: https://grafana.github.io/helm-charts
+  version: 6.36.0
+- name: tempo
+  repository: https://grafana.github.io/helm-charts
+  version: 1.23.3
+- name: prometheus
+  repository: https://prometheus-community.github.io/helm-charts
+  version: 27.30.0
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 9.3.2
+- name: minio
+  repository: https://charts.bitnami.com/bitnami
+  version: 17.0.21
+- name: opentelemetry-collector
+  repository: https://open-telemetry.github.io/opentelemetry-helm-charts
+  version: 0.122.2
+digest: sha256:9c70b740639344ed9d6d22b4f3e674e4b5994e21815cda82e604cc2226c09e34
+generated: "2025-08-21T14:04:27.633193+02:00"
