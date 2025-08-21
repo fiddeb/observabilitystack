@@ -107,7 +107,7 @@ loki:
   bloomGateway:
     replicas: 0
 tempo:
-  enabled: true
+  enabled: false
   global:
     commonLabels: {}
 
@@ -667,10 +667,12 @@ grafana:
 minio:
   enabled: true
   fullnameOverride: minio
-  mode: standalone          # Välj single node läge istället för distribuerad installation
-  replicas: 1               # Endast en instans körs
+  auth:
+    rootUser: "minio"
+    rootPassword: "minio123"
+  defaultBuckets: "tempo-traces,loki-chunks"
   persistence:
-    enabled: false          # Inga PVC:er (för demo räcker det ofta utan persistens)
+    enabled: false
   resources:
     requests:
       cpu: "100m"
@@ -678,12 +680,3 @@ minio:
     limits:
       cpu: "250m"
       memory: "256Mi"
-  rootUser: "minio"
-  rootPassword: "minio123"
-  buckets:
-    - name: tempo-traces
-      policy: none
-      purge: false
-    - name: loki-chunks  
-      policy: none
-      purge: false
