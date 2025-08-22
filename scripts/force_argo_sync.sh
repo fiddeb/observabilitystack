@@ -17,6 +17,14 @@ ARGOCD_APP_MANIFEST="argocd/observability-stack.yaml"
 echo -e "${BLUE}🔄 Force ArgoCD Sync Script${NC}"
 echo "=================================="
 
+# Varning om vi inte är på main branch
+if [ "$current_branch" != "main" ]; then
+    echo -e "${YELLOW}⚠️  WARNING: You are on branch '$current_branch', not 'main'${NC}"
+    echo -e "${YELLOW}💡 Consider using main branch for production deployments${NC}"
+    echo -e "${YELLOW}   To merge properly: ./scripts/merge_feature.sh $current_branch${NC}"
+    echo ""
+fi
+
 # Steg 1: Kontrollera aktuell Git branch och ArgoCD targetRevision
 echo -e "${BLUE}🔍 Kontrollerar Git branch och ArgoCD targetRevision...${NC}"
 
