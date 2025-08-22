@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/fiddeb/observabilitystack.git'
-    targetRevision: feat/loki-s3-storage   # auto-synced with current branch
+    targetRevision: feat/loki-s3-storage   # testing Loki S3 storage configuration
     path: helm/stackcharts
   destination:
     server: 'https://kubernetes.default.svc'

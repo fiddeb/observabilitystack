@@ -12,9 +12,42 @@ NC='\033[0m' # No Color
 ARGOCD_NAMESPACE="argocd"
 APP_NAME="observability-stack"
 TARGET_NAMESPACE="observability-lab"
+ARGOCD_APP_MANIFEST="argocd/observability-stack.yaml"
 
 echo -e "${BLUE}🔄 Force ArgoCD Sync Script${NC}"
 echo "=================================="
+
+# Steg 1: Kontrollera aktuell Git branch och ArgoCD targetRevision
+echo -e "${BLUE}🔍 Kontrollerar Git branch och ArgoCD targetRevision...${NC}"
+
+# Hämta aktuell Git branch
+current_branch=$(git rev-parse --abbrev-ref HEAD)
+echo -e "Aktuell Git branch: ${YELLOW}$current_branch${NC}"
+
+# Hämta nuvarande targetRevision från ArgoCD application
+current_target=$(kubectl get application $APP_NAME -n $ARGOCD_NAMESPACE -o jsonpath='{.spec.source.targetRevision}' 2>/dev/null || echo "Unknown")
+echo -e "ArgoCD targetRevision: ${YELLOW}$current_target${NC}"
+
+# Kontrollera om targetRevision behöver uppdateras
+if [ "$current_branch" != "$current_target" ]; then
+    echo -e "${YELLOW}🔄 Uppdaterar ArgoCD targetRevision från '$current_target' till '$current_branch'${NC}"
+    
+    # Uppdatera targetRevision i YAML-filen
+    sed -i.bak "s|targetRevision: .*|targetRevision: $current_branch   # auto-synced with current branch|g" "$ARGOCD_APP_MANIFEST"
+    
+    # Applicera den uppdaterade manifestet
+    echo -e "${BLUE}📄 Applicerar uppdaterat ArgoCD application manifest...${NC}"
+    kubectl apply -f "$ARGOCD_APP_MANIFEST" -n $ARGOCD_NAMESPACE
+    
+    # Vänta lite på att uppdateringen ska registreras
+    sleep 3
+    
+    # Verifiera att targetRevision har uppdaterats
+    new_target=$(kubectl get application $APP_NAME -n $ARGOCD_NAMESPACE -o jsonpath='{.spec.source.targetRevision}')
+    echo -e "Ny targetRevision: ${GREEN}$new_target${NC}"
+else
+    echo -e "${GREEN}✅ ArgoCD targetRevision matchar redan aktuell branch${NC}"
+fi
 
 # Funktion för att vänta på sync
 wait_for_sync() {
@@ -42,7 +75,7 @@ wait_for_sync() {
     return 1
 }
 
-# Steg 1: Kolla att ArgoCD application finns
+# Steg 2: Kolla att ArgoCD application finns och visa status
 echo -e "${BLUE}📋 Kollar ArgoCD application status...${NC}"
 if ! kubectl get application $APP_NAME -n $ARGOCD_NAMESPACE &>/dev/null; then
     echo -e "${RED}❌ ArgoCD application '$APP_NAME' hittades inte i namespace '$ARGOCD_NAMESPACE'${NC}"
@@ -53,15 +86,15 @@ fi
 echo -e "${BLUE}📊 Nuvarande status:${NC}"
 kubectl get application $APP_NAME -n $ARGOCD_NAMESPACE -o wide
 
-# Steg 2: Tvinga refresh (hämta senaste från Git)
+# Steg 3: Tvinga refresh (hämta senaste från Git)
 echo -e "${BLUE}🔄 Tvingar refresh från Git repository...${NC}"
 kubectl annotate application $APP_NAME -n $ARGOCD_NAMESPACE argocd.argoproj.io/refresh=hard --overwrite
 
-# Steg 3: Vänta lite så refresh hinner göras
+# Steg 4: Vänta lite så refresh hinner göras
 echo -e "${YELLOW}⏳ Väntar på refresh...${NC}"
 sleep 5
 
-# Steg 4: Kolla om det finns ändringar som behöver synkas
+# Steg 5: Kolla om det finns ändringar som behöver synkas
 echo -e "${BLUE}📋 Kollar sync status efter refresh...${NC}"
 sync_status=$(kubectl get application $APP_NAME -n $ARGOCD_NAMESPACE -o jsonpath='{.status.sync.status}')
 echo "Sync status: $sync_status"
@@ -69,7 +102,7 @@ echo "Sync status: $sync_status"
 if [ "$sync_status" == "OutOfSync" ]; then
     echo -e "${YELLOW}🔄 Application är OutOfSync - tvingar synkronisering...${NC}"
     
-    # Steg 5: Tvinga sync
+    # Steg 6: Tvinga sync
     kubectl patch application $APP_NAME -n $ARGOCD_NAMESPACE --type='merge' -p='{
         "operation": {
             "sync": {
@@ -100,10 +133,10 @@ else
     echo -e "${YELLOW}ℹ️  Sync status: $sync_status${NC}"
 fi
 
-# Steg 6: Vänta på att sync ska slutföras
+# Steg 7: Vänta på att sync ska slutföras
 wait_for_sync
 
-# Steg 7: Visa slutresultat
+# Steg 8: Visa slutresultat
 echo -e "${BLUE}📊 Slutstatus:${NC}"
 kubectl get application $APP_NAME -n $ARGOCD_NAMESPACE -o wide
 
