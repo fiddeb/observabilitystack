@@ -259,10 +259,25 @@ update grafana_values.yaml under grafana.ini
 ```
 ---
 
+## Documentation
+
+### Comprehensive Guides
+- **[Troubleshooting Commands](docs/TROUBLESHOOTING_COMMANDS.md)** - Complete reference of all debugging, testing, and verification commands
+- **[Quick Troubleshooting](docs/QUICK_TROUBLESHOOTING.md)** - Fast checklists and emergency procedures  
+- **[Git Workflow](docs/GIT_WORKFLOW.md)** - Branch management and ArgoCD deployment procedures
+
+### Scripts
+- **[force_argo_sync.sh](scripts/force_argo_sync.sh)** - Automated ArgoCD synchronization with branch detection
+- **[merge_feature.sh](scripts/merge_feature.sh)** - Safe feature branch merging with automatic targetRevision management
+
+---
+
 ## Troubleshooting
 
-- **Port Forwarding**: Use `kubectl port-forward` if services are not exposed externally.
-- **Logs**: Check the logs of individual components using `kubectl logs` for debugging.
+- **Quick Health Check**: Run `./scripts/force_argo_sync.sh` to verify and sync deployment
+- **Emergency Access**: Use `kubectl port-forward` if ingress services are unavailable
+- **Complete Command Reference**: See [docs/TROUBLESHOOTING_COMMANDS.md](docs/TROUBLESHOOTING_COMMANDS.md)
+- **Fast Recovery**: Follow checklists in [docs/QUICK_TROUBLESHOOTING.md](docs/QUICK_TROUBLESHOOTING.md)
 
 ---
 
