@@ -75,6 +75,24 @@ kubectl get application observability-stack -n argocd -o jsonpath='{.status.sync
 kubectl get application observability-stack -n argocd -o jsonpath='{.status.health.status}'
 ```
 
+### ArgoCD Web Interface Access
+```bash
+# Hämta admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+
+# Port forward till ArgoCD UI
+kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+
+# Skapa ingress för ArgoCD (permanent access)
+kubectl apply -f argocd-ingress.yaml
+
+# Kontrollera ArgoCD server status
+kubectl get pods -n argocd | grep argocd-server
+
+# Restart ArgoCD server om nödvändigt
+kubectl delete pod -l app.kubernetes.io/name=argocd-server -n argocd
+```
+
 ### Force Sync Operations
 ```bash
 # Vårt automatiska sync-script

@@ -1,292 +1,138 @@
 # ObservabilityStack
 
-A complete observability stack leveraging **OpenTelemetry Collector**, **Grafana**, **Loki**, **Prometheus**, and **Tempo** for comprehensive telemetry collection and visualization.
+A **development and learning** observability platform built on **OpenTelemetry**, **Grafana**, **Loki**, **Prometheus**, and **Tempo**. Perfect for **local labs**, **learning**, and **proof-of-concepts**. Deployed via **ArgoCD** for GitOps management with **S3 storage** backend.
 
-## Features
-- **OpenTelemetry Collector**: Vendor-agnostic telemetry data collection, processing, and routing
-- **Grafana**: Visualization of metrics, logs, and traces with integrated datasources
-- **Loki**: Horizontally scalable, highly available, multi-tenant log aggregation system
-- **Prometheus**: Metric collection, storage, and alerting with remote write support
-- **Tempo**: High-scale distributed tracing backend with S3 storage
-- **Minio**: S3-compatible object storage backend for Loki logs and Tempo traces
+> ⚠️  **Not for Production**: This setup is designed for development, learning, and lab environments. For production deployments, additional security, scaling, and operational considerations are required.
 
----
+## 🚀 Quick Start
 
-## Installation Instructions
+```bash
+# Clone and install
+git clone https://github.com/fiddeb/observabilitystack.git
+cd observabilitystack
 
-The observability stack is now deployed using **ArgoCD** for GitOps-based management.
+# Install everything with one command
+./scripts/install_argo.sh
+```
 
-### Prerequisites
+**That's it!** Your observability stack is now running with:
+- 📊 **Grafana** at http://grafana.k8s.test (admin/admin)
+- � **ArgoCD** at http://argocd.k8s.test (admin/<password>)
+- �📈 **Prometheus** at http://prometheus.k8s.test  
+- 📝 **Loki** at http://loki.k8s.test
+- 🔍 **Tempo** at http://tempo.k8s.test
+- 🔄 **OpenTelemetry Collector** at http://otel-collector.k8s.test
 
-1. **Install Traefik** (Ingress Controller):
-   ```bash
-   helm install traefik traefik/traefik
-   ```
+## ✨ Features
 
-2. **Install ArgoCD and deploy the stack**:
-   ```bash
-   ./scripts/install_argo.sh
-   ```
+- **🔄 OpenTelemetry Collector** - Unified telemetry data collection and routing
+- **📊 Grafana** - Pre-configured dashboards with all data sources  
+- **📝 Loki** - Scalable log aggregation with S3 storage
+- **🔍 Tempo** - High-scale distributed tracing with S3 storage
+- **📈 Prometheus** - Metrics collection with remote write support
+- **💾 Minio** - S3-compatible storage for logs and traces
+- **🚀 ArgoCD** - GitOps deployment and management
+- **🧪 Lab-Friendly** - Easy setup for development, learning, and testing
+- **📚 Educational** - Great for understanding observability concepts
 
-That's it! ArgoCD will automatically deploy and manage:
-- OpenTelemetry Collector (telemetry data collection and routing)
-- Loki (with Minio storage backend)
-- Tempo (with Minio storage backend) 
-- Prometheus (metrics collection with remote write)
-- Grafana (visualization with all datasources)
-- Minio (S3-compatible object storage)
+## 📋 Architecture
 
----
-
-## Using OpenTelemetry Collector
-
-The OpenTelemetry Collector is configured to receive telemetry data via OTLP and route it to the appropriate backends:
-
-### Sending Telemetry Data
-
-**OTLP Endpoints:**
-- gRPC: `otel-collector.observability-lab.svc.cluster.local:4317` (internal)
-- HTTP: `otel-collector.observability-lab.svc.cluster.local:4318` (internal)
-- External HTTP: `http://otel-collector.k8s.test` (via ingress)
+```
+Applications → OpenTelemetry Collector → Grafana
+                      ↓
+        Loki ← → Tempo ← → Prometheus
+              ↓
+            Minio S3
+```
 
 **Data Flow:**
-- **Metrics** → OpenTelemetry Collector → Prometheus (via remote write)
-- **Logs** → OpenTelemetry Collector → Loki (with tenant ID: "foo")
-- **Traces** → OpenTelemetry Collector → Tempo (stored in Minio S3)
+- **📝 Logs** → OpenTelemetry Collector → Loki → S3 Storage → Grafana
+- **📈 Metrics** → OpenTelemetry Collector → Prometheus → Grafana  
+- **🔍 Traces** → OpenTelemetry Collector → Tempo → S3 Storage → Grafana
 
-### Testing the Complete Telemetry Pipeline
+## 🧪 Test the Pipeline
 
-The observability stack includes automated test jobs that verify all three telemetry signals work end-to-end through the OpenTelemetry Collector:
-
-#### Quick Test - Run All Signals
+Verify everything works end-to-end:
 
 ```bash
-# Run test jobs for metrics, logs, and traces
+# Run automated tests
 kubectl apply -f telemetry-test-jobs.yaml
 
-# Check job completion status
-kubectl get jobs -n observability-lab
-
-# Wait for jobs to complete (should take ~30 seconds)
-kubectl wait --for=condition=complete job/telemetrygen-metrics -n observability-lab --timeout=60s
-kubectl wait --for=condition=complete job/telemetrygen-logs -n observability-lab --timeout=60s  
-kubectl wait --for=condition=complete job/telemetrygen-traces -n observability-lab --timeout=60s
+# Check results in Grafana
+echo "📊 Metrics: Navigate to Prometheus → telemetrygen_tests_total"
+echo "📝 Logs: Navigate to Loki → {job=\"telemetrygen-logs\"}"  
+echo "🔍 Traces: Navigate to Tempo → {service.name=\"telemetrygen\"}"
 ```
 
-#### Verification in Grafana
+## 📖 Documentation
 
-Open Grafana at `http://grafana.k8s.test` and verify each signal:
+### Getting Started
+- **[Installation Guide](docs/INSTALLATION.md)** - Complete setup instructions
+- **[Usage Guide](docs/USAGE_GUIDE.md)** - How to send and query telemetry data
 
-**1. Metrics (Prometheus datasource):**
-- Navigate to Explore → Prometheus
-- Query: `telemetrygen_tests_total` or `{__name__=~"telemetrygen.*"}`
-- Should show test metrics generated by the telemetrygen-metrics job
+### Operations  
+- **[Git Workflow](docs/GIT_WORKFLOW.md)** - Branch management and deployment
+- **[Quick Troubleshooting](docs/QUICK_TROUBLESHOOTING.md)** - Emergency procedures
+- **[Troubleshooting Commands](docs/TROUBLESHOOTING_COMMANDS.md)** - Complete command reference
 
-**2. Logs (Loki datasource):**
-- Navigate to Explore → Loki  
-- Query: `{job="telemetrygen-logs"}` or `{service_name="telemetrygen"}`
-- Should show test log entries with body containing "This is a test log message"
+### Automation
+- **[force_argo_sync.sh](scripts/force_argo_sync.sh)** - Intelligent ArgoCD sync
+- **[merge_feature.sh](scripts/merge_feature.sh)** - Safe feature branch merging
 
-**3. Traces (Tempo datasource):**
-- Navigate to Explore → Tempo
-- Search by service name: `telemetrygen` 
-- Or query: `{service.name="telemetrygen"}`
-- Should show distributed traces from the telemetrygen-traces job
-
-#### Manual Testing
-
-You can also test individual signals manually:
-
-**Test Logs via OpenTelemetry Collector:**
-```bash
-# Send log via OTLP HTTP to OpenTelemetry Collector (external endpoint)
-curl -X POST http://otel-collector.k8s.test/v1/logs \
-  -H "Content-Type: application/json" \
-  -d '{
-    "resourceLogs": [{
-      "resource": {"attributes": [{"key": "service.name", "value": {"stringValue": "manual-test"}}]},
-      "scopeLogs": [{
-        "logRecords": [{
-          "timeUnixNano": "'$(date +%s)'000000000",
-          "body": {"stringValue": "Manual test log via OpenTelemetry Collector"},
-          "severityText": "INFO"
-        }]
-      }]
-    }]
-  }'
-```
-
-**Test Metrics via OpenTelemetry Collector:**
-```bash
-# Send metrics via OTLP HTTP to OpenTelemetry Collector (external endpoint)
-curl -X POST http://otel-collector.k8s.test/v1/metrics \
-  -H "Content-Type: application/json" \
-  -d '{
-    "resourceMetrics": [{
-      "resource": {"attributes": [{"key": "service.name", "value": {"stringValue": "manual-test"}}]},
-      "scopeMetrics": [{
-        "metrics": [{
-          "name": "manual_test_counter",
-          "unit": "1",
-          "sum": {
-            "dataPoints": [{
-              "timeUnixNano": "'$(date +%s)'000000000",
-              "asInt": "42",
-              "attributes": [{"key": "test", "value": {"stringValue": "manual"}}]
-            }],
-            "aggregationTemporality": 2,
-            "isMonotonic": true
-          }
-        }]
-      }]
-    }]
-  }'
-```
-
-**Test Traces via OpenTelemetry Collector:**
-```bash
-# Send trace via OTLP HTTP to OpenTelemetry Collector (external endpoint)
-curl -X POST http://otel-collector.k8s.test/v1/traces \
-  -H "Content-Type: application/json" \
-  -d '{
-    "resourceSpans": [{
-      "resource": {"attributes": [{"key": "service.name", "value": {"stringValue": "manual-test"}}]},
-      "scopeSpans": [{
-        "spans": [{
-          "traceId": "'$(openssl rand -hex 16)'",
-          "spanId": "'$(openssl rand -hex 8)'",
-          "name": "manual-test-span",
-          "kind": 1,
-          "startTimeUnixNano": "'$(date +%s)'000000000",
-          "endTimeUnixNano": "'$(($(date +%s) + 1))'000000000",
-          "attributes": [{"key": "test", "value": {"stringValue": "manual"}}]
-        }]
-      }]
-    }]
-  }'
-```
-
-**Legacy: Direct Loki Test (bypassing OpenTelemetry Collector):**
-```bash
-curl -H "Content-Type: application/json" -XPOST -s \
-"http://loki.k8s.test/loki/api/v1/push" \
---data-raw "{
-  \"streams\": [
-    {
-      \"stream\": { \"job\": \"direct-test\" },
-      \"values\": [
-        [\"$(date +%s)000000000\", \"Direct Loki test - bypassing OpenTelemetry Collector\"]
-      ]
-    }
-  ]
-}" \
--H "X-Scope-OrgId: foo"
-
-# Verify with logcli
-logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="direct-test"}' --limit=5000 --since=5m
-```
-
----
-
-### Legacy: Manual Installation Using Helm
-
-For manual control, you can still deploy using the umbrella chart:
+## 🔧 Quick Commands
 
 ```bash
-# Add required Helm repositories
-helm repo add grafana https://grafana.github.io/helm-charts
-helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
-helm repo add minio https://charts.min.io/
-helm repo update
+# Health check and sync
+./scripts/force_argo_sync.sh
 
-# Install the entire stack
-helm install observability-stack ./helm/stackcharts --namespace=observability-lab --create-namespace
+# Get ArgoCD admin password
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+
+# Send test log
+curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" \
+     -XPOST "http://loki.k8s.test/loki/api/v1/push" \
+     -d '{"streams":[{"stream":{"job":"test"},"values":[["'$(date +%s%N)'","Hello ObservabilityStack!"]]}]}'
+
+# Query logs  
+logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="test"}' --since=5m
+
+# Check S3 storage
+kubectl -n observability-lab exec $(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}') -- mc ls local/loki-chunks/
 ```
 
-## Using Ingress
+## 🆘 Troubleshooting
 
-If an ingress controller (e.g., Traefik) is configured, set up wildcard DNS resolution using dnsmasq:
+**Quick fixes:**
+```bash
+# Not working? Run the health check
+./scripts/force_argo_sync.sh
 
-### Setup dnsmasq for wildcard DNS
-
-1. Configure dnsmasq to resolve `*.k8s.test` domains:
-   ```bash
-   # Add to /opt/homebrew/etc/dnsmasq.conf
-   listen-address=127.0.0.1
-   bind-interfaces
-   address=/.k8s.test/127.0.0.1
-   ```
-
-2. Setup resolver for the k8s.test domain:
-   ```bash
-   echo "nameserver 127.0.0.1" | sudo tee /etc/resolver/k8s.test
-   ```
-
-3. Restart dnsmasq:
-   ```bash
-   sudo brew services restart dnsmasq
-   ```
-
-This setup will allow you to access the services via:
-
-- **Grafana**: `http://grafana.k8s.test` - Main dashboard for visualizing metrics, logs, and traces
-- **Loki**: `http://loki.k8s.test` - Direct log ingestion and querying via logcli
-- **Tempo**: `http://tempo.k8s.test` - Distributed tracing queries and trace search
-- **OpenTelemetry Collector**: `http://otel-collector.k8s.test` - OTLP telemetry ingestion endpoints (/v1/logs, /v1/metrics, /v1/traces)
-
----
-
-## Customization
-
-- Modify the umbrella chart configuration in `helm/stackcharts/values.yaml` to customize configurations like resource limits, persistence, and authentication for all observability components.
-
----
-
-## Dashboard and Visualization
-
-Access **Grafana** to set up dashboards and visualize metrics, logs, and traces:
-
-1. Log in to Grafana (`http://grafana.k8s.test` or the relevant address). No log in needed.
-
-
->To enable login:
-update grafana_values.yaml under grafana.ini
-```yaml
-  auth:
-    disable_login: false
-  auth.anonymous:
-    enabled: false
+# Still issues? Use port forwarding
+kubectl port-forward service/grafana 3000:80 -n observability-lab &
+kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 ```
----
 
-## Documentation
+**Need help?** Check [Quick Troubleshooting](docs/QUICK_TROUBLESHOOTING.md) for emergency procedures.
 
-### Comprehensive Guides
-- **[Troubleshooting Commands](docs/TROUBLESHOOTING_COMMANDS.md)** - Complete reference of all debugging, testing, and verification commands
-- **[Quick Troubleshooting](docs/QUICK_TROUBLESHOOTING.md)** - Fast checklists and emergency procedures  
-- **[Git Workflow](docs/GIT_WORKFLOW.md)** - Branch management and ArgoCD deployment procedures
+## 🤝 Contributing
 
-### Scripts
-- **[force_argo_sync.sh](scripts/force_argo_sync.sh)** - Automated ArgoCD synchronization with branch detection
-- **[merge_feature.sh](scripts/merge_feature.sh)** - Safe feature branch merging with automatic targetRevision management
+We welcome contributions! See our [Git Workflow](docs/GIT_WORKFLOW.md) for development practices.
 
----
+```bash
+# Create feature branch  
+git checkout -b feat/my-awesome-feature
 
-## Troubleshooting
+# Make changes and test
+./scripts/force_argo_sync.sh
 
-- **Quick Health Check**: Run `./scripts/force_argo_sync.sh` to verify and sync deployment
-- **Emergency Access**: Use `kubectl port-forward` if ingress services are unavailable
-- **Complete Command Reference**: See [docs/TROUBLESHOOTING_COMMANDS.md](docs/TROUBLESHOOTING_COMMANDS.md)
-- **Fast Recovery**: Follow checklists in [docs/QUICK_TROUBLESHOOTING.md](docs/QUICK_TROUBLESHOOTING.md)
+# Merge safely
+./scripts/merge_feature.sh feat/my-awesome-feature
+```
 
----
+## 📄 License
 
-## Contributions
-
-Contributions are welcome! Feel free to open an issue or submit a pull request.
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
 
 ---
 
-## License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+**⭐ Star this repo if you find it useful!**
