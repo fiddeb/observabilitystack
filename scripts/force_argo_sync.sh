@@ -8,6 +8,11 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
+# Säkerställ att vi är i rätt katalog (repo root)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+cd "$REPO_ROOT"
+
 # Konfiguration
 ARGOCD_NAMESPACE="argocd"
 APP_NAME="observability-stack"
@@ -16,6 +21,9 @@ ARGOCD_APP_MANIFEST="argocd/observability-stack.yaml"
 
 echo -e "${BLUE}🔄 Force ArgoCD Sync Script${NC}"
 echo "=================================="
+
+# Hämta aktuell Git branch (efter att vi säkerställt rätt katalog)
+current_branch=$(git rev-parse --abbrev-ref HEAD)
 
 # Varning om vi inte är på main branch
 if [ "$current_branch" != "main" ]; then
@@ -29,7 +37,6 @@ fi
 echo -e "${BLUE}🔍 Kontrollerar Git branch och ArgoCD targetRevision...${NC}"
 
 # Hämta aktuell Git branch
-current_branch=$(git rev-parse --abbrev-ref HEAD)
 echo -e "Aktuell Git branch: ${YELLOW}$current_branch${NC}"
 
 # Hämta nuvarande targetRevision från ArgoCD application
