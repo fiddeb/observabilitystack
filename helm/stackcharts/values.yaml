@@ -153,6 +153,7 @@ tempo:
       per_tenant_override_config: /conf/overrides.yaml
     server:
       http_listen_port: 3200
+      graceful_shutdown_timeout: 30s
     storage:
       trace:
         backend: s3
@@ -163,8 +164,15 @@ tempo:
           secret_key: minio123
           insecure: true
           forcepathstyle: true
+          # Improved connection settings for faster startup
+          region: "us-east-1"
+          # Add timeout settings to prevent hanging
+          timeout: 30s
         wal:
           path: /var/tempo/wal
+        pool:
+          max_workers: 100
+          queue_depth: 10000
     receivers:
       otlp:
         protocols:
@@ -172,6 +180,20 @@ tempo:
             endpoint: "0.0.0.0:4317"
           http:
             endpoint: "0.0.0.0:4318"
+    # Ingester configuration for better startup performance
+    ingester:
+      trace_idle_period: 10s
+      max_block_bytes: 1048576
+      max_block_duration: 5m
+    # Querier configuration for better performance
+    querier:
+      frontend_worker:
+        frontend_address: tempo-query-frontend:9095
+    # Query frontend configuration
+    queryFrontend:
+      search:
+        concurrent_jobs: 2000
+        target_bytes_per_job: 104857600
     securityContext: {}
     extraArgs: {}
     extraEnv:
@@ -254,6 +276,36 @@ tempo:
 
   service:
     type: ClusterIP
+
+  # Health checks for better startup timing
+  readinessProbe:
+    httpGet:
+      path: /ready
+      port: 3200
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+    failureThreshold: 6
+    successThreshold: 1
+
+  livenessProbe:
+    httpGet:
+      path: /ready
+      port: 3200
+    initialDelaySeconds: 60
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+    successThreshold: 1
+
+  # Resource limits to prevent memory issues
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "1Gi"
+      cpu: "1"
 
   persistence:
     enabled: false

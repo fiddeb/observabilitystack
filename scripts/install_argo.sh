@@ -5,7 +5,8 @@ set -e
 ARGOCD_NAMESPACE="argocd"
 OBS_NAMESPACE="observability-lab"
 ARGOCD_MANIFEST_URL="https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml"
-ARGOCD_APP_MANIFEST="../argocd/observability-stack.yaml"  # Relativ sökväg, justera om nödvändigt
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+ARGOCD_APP_MANIFEST="${SCRIPT_DIR}/../argocd/observability-stack.yaml"
 
 # Installera Argo CD
 echo "Skapar namespace $ARGOCD_NAMESPACE..."
