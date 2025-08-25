@@ -11,6 +11,10 @@ dependencies:
     version: "1.23.3"
     repository: "https://grafana.github.io/helm-charts"
     condition: tempo.enabled
+  - name: mimir-distributed
+    version: "5.7.0-weekly.328"
+    repository: "file://./charts/mimir-distributed"
+    condition: mimir.enabled
   - name: prometheus
     version: "27.30.0"
     repository: "https://prometheus-community.github.io/helm-charts"

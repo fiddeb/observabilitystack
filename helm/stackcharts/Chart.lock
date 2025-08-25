@@ -5,6 +5,9 @@ dependencies:
 - name: tempo
   repository: https://grafana.github.io/helm-charts
   version: 1.23.3
+- name: mimir-distributed
+  repository: file://./charts/mimir-distributed
+  version: 5.7.0-weekly.328
 - name: prometheus
   repository: https://prometheus-community.github.io/helm-charts
   version: 27.30.0
@@ -17,5 +20,5 @@ dependencies:
 - name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
   version: 0.122.2
-digest: sha256:9c70b740639344ed9d6d22b4f3e674e4b5994e21815cda82e604cc2226c09e34
-generated: "2025-08-21T14:04:27.633193+02:00"
+digest: sha256:4f61f5fd36a15b13a7d2625562b61bc5a08c8635d5ab027357797585819b5fac
+generated: "2025-08-25T21:23:55.755225+02:00"
