@@ -263,8 +263,11 @@ kubectl -n observability-lab exec tempo-0 -- wget -qO- http://localhost:3200/met
 
 ### Trace Testing
 ```bash
-# Skicka test trace (OTLP format)
-curl -X POST http://tempo.k8s.test:4318/v1/traces \
+# VIKTIGT: Tempo måste ha search aktiverat för search API:et att fungera
+# Nuvarande konfiguration har INTE search aktiverat
+
+# Skicka test trace via OpenTelemetry Collector (rekommenderat)
+curl -X POST http://otel-collector.k8s.test:4318/v1/traces \
   -H "Content-Type: application/json" \
   -d '{
     "resourceSpans": [{
@@ -287,8 +290,36 @@ curl -X POST http://tempo.k8s.test:4318/v1/traces \
     }]
   }'
 
-# Kontrollera traces via API
-kubectl -n observability-lab exec tempo-0 -- wget -qO- "http://localhost:3200/api/search?q=service.name=test-service"
+# Alternativt: Skicka direkt till Tempo (behöver port-forward)
+# kubectl port-forward service/tempo 3200:3200 -n observability-lab &
+curl -X POST http://localhost:3200/v1/traces \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceSpans": [{
+      "resource": {
+        "attributes": [{
+          "key": "service.name",
+          "value": {"stringValue": "direct-tempo-test"}
+        }]
+      },
+      "instrumentationLibrarySpans": [{
+        "spans": [{
+          "traceId": "'$(openssl rand -hex 16)'",
+          "spanId": "'$(openssl rand -hex 8)'",
+          "name": "direct-test-span",
+          "kind": 1,
+          "startTimeUnixNano": "'$(($(date +%s) * 1000000000))'",
+          "endTimeUnixNano": "'$((($(date +%s) + 1) * 1000000000))'"
+        }]
+      }]
+    }]
+  }'
+
+# Verifiera att traces skrivs till S3/Minio (istället för search API)
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/tempo-traces/ | tail -5
+
+# Kontrollera Tempo metrics för trace ingestion
+kubectl -n observability-lab exec tempo-0 -- wget -qO- "http://localhost:3200/metrics" | grep -E "tempo_distributor|tempo_ingester"
 ```
 
 ---
@@ -342,6 +373,50 @@ kubectl -n observability-lab exec -it <minio-pod-name> -- mc cp local/loki-chunk
 
 # Visa bucket policy
 kubectl -n observability-lab exec -it <minio-pod-name> -- mc policy get local/loki-chunks/
+```
+
+### S3 Bucket Testing och Verifiering
+```bash
+# Testa S3 anslutning genom att skriva testfil
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc mb local/test-bucket
+kubectl -n observability-lab exec -it <minio-pod-name> -- echo "Test S3 connectivity" | mc pipe local/test-bucket/test-file.txt
+
+# Verifiera att filen skapades
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls local/test-bucket/
+
+# Läs tillbaka filen för att testa read
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc cat local/test-bucket/test-file.txt
+
+# Rensa upp testbucket
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc rm --recursive --force local/test-bucket/
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc rb local/test-bucket
+
+# Testa bucket-anslutning utan att exec:a till pod (använd port-forward)
+# Först: kubectl port-forward service/minio 9000:9000 -n observability-lab &
+
+# Använd curl för att testa S3 API (kräver signering, enklare med mc)
+# Men för snabb test via API:
+curl -v http://localhost:9000/
+
+# Alternativt, testa med aws-cli om det finns:
+# aws --endpoint-url http://localhost:9000 s3 ls --no-verify-ssl
+```
+
+### Bucket Health Check
+```bash
+# Kontrollera att alla obligatoriska buckets finns
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls local/ | grep -E "loki-chunks|loki-ruler|tempo-traces"
+
+# Verifiera bucket-storlek och statistik
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc du local/loki-chunks/
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc du local/tempo-traces/
+
+# Kontrollera senaste aktivitet
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/loki-chunks/ | tail -10
+kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/tempo-traces/ | tail -10
+
+# Testa write/read performance (basic)
+kubectl -n observability-lab exec -it <minio-pod-name> -- time bash -c 'echo "Performance test data" | mc pipe local/loki-chunks/perf-test-$(date +%s).txt'
 ```
 
 ---

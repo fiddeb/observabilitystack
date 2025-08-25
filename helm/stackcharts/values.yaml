@@ -76,6 +76,7 @@ loki:
     labels: {}
     paths:
       distributor:
+        - /ready
         - /api/prom/push
         - /loki/api/v1/push
         - /otlp/v1/logs

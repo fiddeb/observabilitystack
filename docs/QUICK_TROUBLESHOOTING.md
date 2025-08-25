@@ -14,7 +14,7 @@ kubectl get application observability-stack -n argocd
 
 # Grundläggande connectivity
 curl -I http://loki.k8s.test/ready
-curl -I http://grafana.k8s.test
+curl -I http://grafana.k8s.test/api/health
 ```
 
 ### 2. Om Pods är Nere
@@ -32,7 +32,7 @@ kubectl delete pod <pod-name> -n observability-lab
 ### 3. Om Ingress inte Fungerar
 ```bash
 # 1. Kolla port forwards som backup
-kubectl port-forward service/grafana 3000:80 -n observability-lab &
+kubectl port-forward service/grafana 3000:3000 -n observability-lab &
 kubectl port-forward service/loki 3100:3100 -n observability-lab &
 
 # 2. Testa direkt till service

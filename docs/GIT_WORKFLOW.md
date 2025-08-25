@@ -4,7 +4,7 @@ Detta dokument beskriver hur vi säkerställer att `targetRevision` alltid är k
 
 ## Problem
 
-När vi arbetar med feature branches uppdateras `targetRevision` i ArgoCD-manifestet för att peka på feature branch. Vi måste komma ihåg att återställa den till `main` innan merge.
+När vi arbetar med feature branches uppdateras `targetRevision` i ArgoCD-manifestet för att peka på feature branch. Man måste komma ihåg att återställa den till `main` innan merge.
 
 ## Lösningar
 
@@ -85,7 +85,7 @@ git commit -m "fix: reset targetRevision to main before merge"
    git merge feat/my-new-feature
    ```
 
-4. **Deploy till produktion:**
+4. **Deploy från main:**
    ```bash
    git push origin main
    ./scripts/force_argo_sync.sh

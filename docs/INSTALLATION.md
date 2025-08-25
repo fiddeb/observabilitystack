@@ -11,12 +11,11 @@ A complete observability lab with:
 - **All-in-One**: Logs, metrics, traces, and visualization
 - **S3 Storage**: Persistent data storage with Minio
 - **GitOps**: ArgoCD-managed deployments
-- **Learning Focus**: Great for understanding observability concepts
 
 ## Prerequisites
 
 ### 1. Kubernetes Cluster
-Ensure you have a running Kubernetes cluster with `kubectl` configured. Grkubeat options for labs:
+Ensure you have a running Kubernetes cluster with `kubectl` configured:
 - **Rancher Desktop** (easiest for local development)
 - **Minikube** 
 - **k3s/k3d** (lightweight)
@@ -200,7 +199,6 @@ The installation deploys a complete observability stack:
 **Lab Features:**
 - Default credentials for easy access
 - Pre-configured data sources in Grafana
-- Sample dashboards and test data
 - S3 storage for data persistence across restarts
 
 ## Verification
@@ -242,19 +240,12 @@ kubectl apply -f telemetry-test-jobs.yaml
 kubectl wait --for=condition=complete job/telemetrygen-metrics -n observability-lab --timeout=60s
 kubectl wait --for=condition=complete job/telemetrygen-logs -n observability-lab --timeout=60s
 kubectl wait --for=condition=complete job/telemetrygen-traces -n observability-lab --timeout=60s
-
-# Verify in Grafana
-echo "🎯 Open Grafana and check:"
-echo "📊 Metrics: Explore → Prometheus → telemetrygen_tests_total"
-echo "📝 Logs: Explore → Loki → {job=\"telemetrygen-logs\"}"  
-echo "🔍 Traces: Explore → Tempo → {service.name=\"telemetrygen\"}"
 ```
-
-**Expected Results:**
-- Metrics show up in Prometheus datasource
-- Logs appear in Loki with test messages
-- Traces visible in Tempo with service map
-- Data persists in Minio S3 storage
+# Verify in Grafana
+Open Grafana and check:
+- Metrics: Explore → Prometheus → gen
+- Logs: Explore → Loki → {job="telemetrygen"}
+- Traces: Explore → Tempo → {resource.service.name="telemetrygen"}
 
 ## Troubleshooting Lab Setup
 
@@ -262,9 +253,9 @@ echo "🔍 Traces: Explore → Tempo → {service.name=\"telemetrygen\"}"
 **Solution 1 - Port Forwarding (Always Works)**
 ```bash
 # Access via localhost ports
-kubectl port-forward service/grafana 3000:80 -n observability-lab &
+kubectl port-forward service/grafana 3000:3000 -n observability-lab &
 kubectl port-forward service/loki 3100:3100 -n observability-lab &
-kubectl port-forward service/prometheus 9090:80 -n observability-lab &
+kubectl port-forward service/prometheus 9090:9090 -n observability-lab &
 kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 
 # Access at:
@@ -309,25 +300,9 @@ kubectl get events -n observability-lab --sort-by=.metadata.creationTimestamp | 
 
 ## Next Steps - Start Learning!
 
-### 1. **Explore Grafana**
-- Browse pre-configured dashboards
-- Try the Explore section for each datasource
-- Create your first custom dashboard
-
-### 2. **Send Custom Data**
+### **Send Custom Data**
 - Follow [Usage Guide](USAGE_GUIDE.md) to send your own logs, metrics, and traces
 - Use the OpenTelemetry Collector endpoints
-- Experiment with different data formats
-
-### 3. **Understand the Architecture**
-- Explore how data flows through the system
-- Check Minio console to see stored data
-- Monitor component metrics in Prometheus
-
-### 4. **Experiment and Learn**
-- Break things and fix them (it's a lab!)
-- Try different configurations in `helm/stackcharts/values.yaml`
-- Add your own dashboards and alerts
 
 ### Learning Resources
 - **[Usage Guide](USAGE_GUIDE.md)** - How to use the stack
