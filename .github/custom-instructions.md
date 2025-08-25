@@ -45,6 +45,33 @@ Coding Standards
 	•	Safety: use dry-runs by default (helm upgrade --install --dry-run --debug, kubectl apply --server-side --dry-run=client)
 	•	Prefer git add -u befor git add . if files only updates, and use git add filname if new file etc.
 
+⸻
+
+Documentation Standards
+
+	•	Structure: Use clear, hierarchical organization with consistent markdown formatting
+	•	Language: Write in clear, concise English or Swedish as appropriate for the target audience
+	•	Code examples: Always include working, tested command examples with expected output
+	•	File organization:
+		◦	/docs/INSTALLATION.md: Complete setup instructions from zero to working system
+		◦	/docs/USAGE_GUIDE.md: How to use the system once installed
+		◦	/docs/TROUBLESHOOTING_COMMANDS.md: Comprehensive command reference for debugging
+		◦	/docs/QUICK_TROUBLESHOOTING.md: Emergency procedures and fast recovery steps
+		◦	/docs/GIT_WORKFLOW.md: Git and development workflow guidelines
+	•	Cross-references: Always link between related documentation sections
+	•	Verification: Include verification steps and expected results for all procedures
+	•	Updates: Keep documentation current with code changes; update docs in same PR as feature changes
+
+Emoji Usage Policy
+
+	•	Functional only: Use emojis exclusively when they serve a clear functional purpose
+	•	Approved contexts:
+		◦	Status indicators: ✅ ❌ ⚠️ 🔄 (success, failure, warning, in-progress)
+		◦	Alert levels: ⚠️ 💡 (critical, warning, information)
+	•	Prohibited: Decorative or casual emojis that don't add functional value
+	•	Consistency: Use the same emoji for the same meaning across all documentation
+	•	Accessibility: Always pair emojis with clear text that conveys the same meaning
+
 Branching Policy
 
 	 •  No direct commits to `main` are allowed.
@@ -118,3 +145,15 @@ Design Notes
 	•	Minimal footprint and fast setup for local experimentation
 	•	Keep risky changes behind *-local.yaml overrides
 	•	Prefer small, well-explained PRs with a short test plan
+
+⸻
+
+Documentation Maintenance
+
+	•	Accuracy: All documented commands must be tested and verified to work
+	•	Completeness: Every feature and configuration change requires corresponding documentation updates
+	•	Target audience: Documentation should be accessible to developers setting up their first observability lab
+	•	Real-world testing: Include common error scenarios and their solutions
+	•	Version compatibility: Document which versions of tools/charts are tested and supported
+	•	Cleanup: Remove outdated or obsolete documentation promptly; maintain a clean information architecture
+

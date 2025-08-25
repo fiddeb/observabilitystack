@@ -2,7 +2,7 @@
 
 Detta dokument innehåller snabba checklists för vanliga felsökningsscenarier.
 
-## 🚨 Akut Felsökning - 5 Minuter Checklist
+## Akut Felsökning - 5 Minuter Checklist
 
 ### 1. Snabb Hälsokontroll
 ```bash
@@ -39,7 +39,7 @@ kubectl port-forward service/loki 3100:3100 -n observability-lab &
 kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I http://loki.observability-lab.svc.cluster.local:3100/ready
 ```
 
-## 📋 Deployment Checklist
+## Deployment Checklist
 
 ### Före Deployment
 - [ ] `git status` - inga uncommittade ändringar
@@ -72,7 +72,7 @@ curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" -XPOST "http://
 logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="deployment-test"}' --limit=5 --since=5m
 ```
 
-## 🔍 S3/Minio Checklist
+## S3/Minio Checklist
 
 ### Minio Health Check
 ```bash
@@ -102,7 +102,7 @@ kubectl -n observability-lab exec tempo-0 -- wget -qO- http://minio:9000/minio/h
 kubectl -n observability-lab exec loki-0 -- wget -qO- http://localhost:3100/config | grep -A 10 s3
 ```
 
-## 🌐 Network Troubleshooting
+## Network Troubleshooting
 
 ### DNS Resolution
 ```bash
@@ -151,7 +151,7 @@ kubectl get application observability-stack -n argocd -o jsonpath='{.spec.source
 ./scripts/force_argo_sync.sh
 ```
 
-## 🚀 Performance Quick Checks
+## Performance Quick Checks
 
 ### Resource Usage
 ```bash
@@ -179,7 +179,7 @@ time curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" -XPOST "ht
 time logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="perf-test"}' --limit=1 --since=1h
 ```
 
-## 🔄 Recovery Procedures
+## Recovery Procedures
 
 ### Complete Stack Restart
 ```bash
@@ -213,7 +213,7 @@ kubectl -n observability-lab exec -it $(kubectl get pod -n observability-lab -l 
 # Data should persist across pod restarts automatically
 ```
 
-## 📱 Emergency Contacts & Commands
+## Emergency Contacts & Commands
 
 ### Quick Access Commands
 ```bash
@@ -237,5 +237,3 @@ echo "=== Pod Status ===" && kubectl get pods -n observability-lab && echo "=== 
 ```
 
 ---
-
-*Quick Reference Guide - Spara som bookmark! 🔖*

@@ -615,6 +615,3 @@ alias pf-minio='kubectl port-forward service/minio-console 9090:9090 -n observab
 ```
 
 ---
-
-*Dokumentet uppdaterat: $(date)*
-*Alla kommandon testade mot observabilitystack miljön*
