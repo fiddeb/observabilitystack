@@ -1,0 +1,27 @@
+# Grafana Mimir Helm chart
+
+Helm chart for deploying [Grafana Mimir](https://grafana.com/docs/mimir/latest/) or optionally [Grafana Enterprise Metrics](https://grafana.com/docs/enterprise-metrics/latest/) to Kubernetes.
+
+For the full documentation, visit [Grafana mimir-distributed Helm chart documentation]({{ template "chart.homepage" . }}).
+
+> **Note:** The documentation version is derived from the Helm chart version which is {{ template "chart.version" . }}.
+
+When upgrading from Helm chart version 4.X, please see [Migrate the Helm chart from version 4.x to 5.0]({{ template "chart.homepage" . }}migration-guides/migrate-helm-chart-4.x-to-5.0/).
+When upgrading from Helm chart version 3.x, please see [Migrate from single zone to zone-aware replication with Helm]({{ template "chart.homepage" . }}migration-guides/migrate-from-single-zone-with-helm/).
+When upgrading from Helm chart version 2.1, please see [Upgrade the Grafana Mimir Helm chart from version 2.1 to 3.0]({{ template "chart.homepage" . }}migration-guides/migrate-helm-chart-2.x-to-3.0/) as well.
+
+**IMPORTANT**: Always consult the [CHANGELOG.md](./CHANGELOG.md) file and the deprecation list there to learn about breaking changes that require action during upgrade.
+
+{{ template "chart.header" . }}
+
+{{ template "chart.versionBadge" . }}{{ template "chart.typeBadge" . }}{{ template "chart.appVersionBadge" . }}
+
+{{ template "chart.description" . }}
+
+{{ template "chart.sourcesSection" . }}
+
+{{ template "chart.requirementsSection" . }}
+
+# Contributing and releasing
+
+Please see the dedicated "[Contributing to Grafana Mimir helm chart](https://github.com/grafana/mimir/tree/main/docs/internal/contributing/contributing-to-helm-chart.md)" page.

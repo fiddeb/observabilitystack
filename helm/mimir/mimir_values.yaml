@@ -1,0 +1,169 @@
+# Mimir Configuration for Official Grafana Charts
+# Configured for simplified deployment (as close to monolithic as possible)
+
+# Global configuration
+global:
+  clusterDomain: cluster.local
+
+# Image configuration
+image:
+  registry: quay.io
+  repository: mimir/mimir
+  tag: 2.10.0
+  pullPolicy: IfNotPresent
+
+# Simplified deployment - minimal distributed components
+# This is the closest we can get to monolithic mode with official charts
+
+# Ingester configuration (core component)
+ingester:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 200m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 2Gi
+  persistentVolume:
+    enabled: true
+    size: 5Gi
+
+# Distributor configuration
+distributor:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Querier configuration
+querier:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Query Frontend
+query_frontend:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+
+# Compactor (can be single replica for lab)
+compactor:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  persistentVolume:
+    enabled: true
+    size: 5Gi
+
+# Store Gateway
+store_gateway:
+  replicas: 1
+  resources:
+    requests:
+      cpu: 100m
+      memory: 256Mi
+    limits:
+      cpu: 500m
+      memory: 1Gi
+  persistentVolume:
+    enabled: true
+    size: 2Gi
+
+# Disable optional components for simplicity
+ruler:
+  enabled: false
+
+alertmanager:
+  enabled: false
+
+# Disable nginx for simplicity
+nginx:
+  enabled: false
+
+# Service configuration
+service:
+  type: ClusterIP
+
+# Mimir configuration
+mimir:
+  structuredConfig:
+    # Server configuration
+    server:
+      http_listen_port: 8080
+      grpc_listen_port: 9095
+      log_level: info
+      
+    # Common storage configuration
+    common:
+      storage:
+        backend: s3
+        s3:
+          endpoint: minio:9000
+          access_key_id: minio
+          secret_access_key: minio123
+          bucket_name: mimir-blocks
+          insecure: true
+    
+    # Blocks storage configuration
+    blocks_storage:
+      backend: s3
+      s3:
+        endpoint: minio:9000
+        access_key_id: minio
+        secret_access_key: minio123
+        bucket_name: mimir-blocks
+        insecure: true
+      tsdb:
+        retention_period: 24h
+    
+    # Limits configuration for lab environment
+    limits:
+      ingestion_rate: 10000
+      ingestion_burst_size: 100000
+      max_series_per_user: 1000000
+      max_global_series_per_user: 1000000
+    
+    # Memberlist configuration for small cluster
+    memberlist:
+      cluster_label: "mimir-lab"
+      
+    # Query scheduler configuration
+    query_scheduler:
+      max_outstanding_requests_per_tenant: 256
+
+# Service Monitor for Prometheus scraping
+serviceMonitor:
+  enabled: true
+  interval: 30s
+
+# Ingress configuration (disabled for now)
+ingress:
+  enabled: false
+
+# Environment variables for S3 credentials
+env:
+  - name: MINIO_ACCESS_KEY
+    value: "minio"
+  - name: MINIO_SECRET_KEY  
+    value: "minio123"
