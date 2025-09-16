@@ -16,31 +16,29 @@ loki:
         index:
           prefix: loki_index_
           period: 24h
-  object_store: filesystem
+        object_store: filesystem
         schema: v13
     ingester:
       chunk_encoding: snappy
-    storage:
-      trace:
-        backend: local
-        local:
-          path: /var/tempo/traces
-        wal:
-          path: /var/tempo/wal
-        pool:
-          max_workers: 100
-          queue_depth: 10000
-      # S3 credentials for Minio
-      - name: AWS_ACCESS_KEY_ID
-        valueFrom:
-          secretKeyRef:
-            name: minio
-            key: root-user
-      - name: AWS_SECRET_ACCESS_KEY
-        valueFrom:
-          secretKeyRef:
-            name: minio
-            key: root-password
+    tracing:
+      enabled: true
+    querier:
+      # Default is 4, if you have enough memory and CPU you can increase, reduce if OOMing
+      max_concurrent: 2
+  deploymentMode: SingleBinary
+  singleBinary:
+    replicas: 1
+    resources:
+      limits:
+        cpu: 2
+        memory: 2Gi
+      requests:
+        cpu: 2
+        memory: 2Gi
+    extraEnv:
+      # Keep a little bit lower than memory limits
+      - name: GOMEMLIMIT
+        value: 2750MiB
   chunksCache:
     # default is 500MB, with limited memory keep this smaller
     writebackSizeLimit: 10MB
