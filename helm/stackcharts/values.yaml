@@ -972,11 +972,8 @@ opentelemetry-collector:
           insecure: true
       
       # Logs to Loki
-      loki:
-        endpoint: http://loki-gateway.observability-lab.svc.cluster.local/loki/api/v1/push
-        default_labels_enabled:
-          exporter: false
-          job: true
+      otlphttp:
+        logs_endpoint: http://loki-gateway.observability-lab.svc.cluster.local/loki/api/v1/push
         headers:
           "X-Scope-OrgID": "foo"
       
@@ -996,7 +993,7 @@ opentelemetry-collector:
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [loki]
+          exporters: [otlphttp]
         
         metrics:
           receivers: [otlp]
