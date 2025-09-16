@@ -6,18 +6,9 @@ loki:
     commonConfig:
       replication_factor: 1
     storage:
-      type: 's3'
-      bucketNames:
-        chunks: loki-chunks
-        ruler: loki-ruler
-        admin: loki-admin
-      s3:
-        endpoint: minio:9000
-        bucketnames: loki-chunks
-        access_key_id: minio
-        secret_access_key: minio123
-        insecure: true
-        s3forcepathstyle: true
+      type: 'filesystem'
+      filesystem:
+        directory: /var/loki
     schemaConfig:
       configs:
       - from: "2024-01-01"
@@ -25,29 +16,20 @@ loki:
         index:
           prefix: loki_index_
           period: 24h
-        object_store: s3
+  object_store: filesystem
         schema: v13
     ingester:
       chunk_encoding: snappy
-    tracing:
-      enabled: true
-    querier:
-      # Default is 4, if you have enough memory and CPU you can increase, reduce if OOMing
-      max_concurrent: 2
-  deploymentMode: SingleBinary
-  singleBinary:
-    replicas: 1
-    resources:
-      limits:
-        cpu: 2
-        memory: 2Gi
-      requests:
-        cpu: 2
-        memory: 2Gi
-    extraEnv:
-      # Keep a little bit lower than memory limits
-      - name: GOMEMLIMIT
-        value: 2750MiB
+    storage:
+      trace:
+        backend: local
+        local:
+          path: /var/tempo/traces
+        wal:
+          path: /var/tempo/wal
+        pool:
+          max_workers: 100
+          queue_depth: 10000
       # S3 credentials for Minio
       - name: AWS_ACCESS_KEY_ID
         valueFrom:
