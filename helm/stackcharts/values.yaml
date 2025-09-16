@@ -157,18 +157,9 @@ tempo:
       graceful_shutdown_timeout: 30s
     storage:
       trace:
-        backend: s3
-        s3:
-          bucket: tempo-traces
-          endpoint: minio:9000
-          access_key: minio
-          secret_key: minio123
-          insecure: true
-          forcepathstyle: true
-          # Improved connection settings for faster startup
-          region: "us-east-1"
-          # Add timeout settings to prevent hanging
-          timeout: 30s
+        backend: local
+        local:
+          path: /var/tempo/traces
         wal:
           path: /var/tempo/wal
         pool:
