@@ -918,7 +918,7 @@ grafana:
 
   revisionHistoryLimit: 10
 minio:
-  enabled: true
+  enabled: false  # Disabled - using local filesystem storage instead
   fullnameOverride: minio
   auth:
     rootUser: "minio"
@@ -961,8 +961,19 @@ opentelemetry-collector:
       batch: {}
       memory_limiter:
         limit_mib: 128
-    
+    connectors:
+      routing:
+        default_pipelines: [logs/default]
+        table:
+          - context: log
+            condition: attributes["audit.*"] != ""
+            pipelines: [logs/audit]
+
     exporters:
+      debug/default:
+        verbosity: basic
+      debug/audit:
+        verbosity: detailed
       # Traces to Tempo
       otlp/tempo:
         endpoint: http://tempo.observability-lab.svc.cluster.local:4317
@@ -986,17 +997,26 @@ opentelemetry-collector:
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [otlp/tempo]
+          exporters: [otlp/tempo,routing]
         
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [otlphttp]
+          exporters: [otlphttp,routing]
         
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [prometheusremotewrite]
+          exporters: [prometheusremotewrite,routing]
+        logs/default:
+          receivers: [routing]
+          processors: [memory_limiter, batch]
+          exporters: [debug/default]
+        logs/audit:
+          receivers: [routing]
+          processors: [memory_limiter, batch]
+          exporters: [debug/audit]
+
 
   resources:
     requests:

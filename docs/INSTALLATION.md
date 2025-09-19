@@ -9,7 +9,7 @@ Complete installation instructions for the ObservabilityStack - a **development 
 A complete observability lab with:
 - **Quick Setup**: One-command installation  
 - **All-in-One**: Logs, metrics, traces, and visualization
-- **S3 Storage**: Persistent data storage with Minio
+- **Local Storage**: Persistent data storage with filesystem
 - **GitOps**: ArgoCD-managed deployments
 
 ## Prerequisites

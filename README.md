@@ -1,6 +1,6 @@
 # ObservabilityStack
 
-A **development and learning** observability platform built on **OpenTelemetry**, **Grafana**, **Loki**, **Prometheus**, and **Tempo**. Perfect for **local labs**, **learning**, and **proof-of-concepts**. Deployed via **ArgoCD** for GitOps management with **S3 storage** backend.
+A **development and learning** observability platform built on **OpenTelemetry**, **Grafana**, **Loki**, **Prometheus**, and **Tempo**. Perfect for **local labs**, **learning**, and **proof-of-concepts**. Deployed via **ArgoCD** for GitOps management with **local filesystem storage**.
 
 > ⚠️  **Not for Production**: This setup is designed for development, learning, and lab environments. For production deployments, additional security, scaling, and operational considerations are required.
 
@@ -27,19 +27,18 @@ cd observabilitystack
 
 - **OpenTelemetry Collector** - Unified telemetry data collection and routing
 - **Grafana** - Pre-configured dashboards with all data sources  
-- **Loki** - Scalable log aggregation with S3 storage
-- **Tempo** - High-scale distributed tracing with S3 storage
+- **Loki** - Scalable log aggregation with local filesystem storage
+- **Tempo** - High-scale distributed tracing with local filesystem storage
 - **Prometheus** - Metrics collection with remote write support
-- **Minio** - S3-compatible storage for logs and traces
 - **ArgoCD** - GitOps deployment and management
 - **Lab-Friendly** - Easy setup for development, learning, and testing
 - **Educational** - Great for understanding observability concepts
 
 
 **Data Flow:**
-- **Logs** → OpenTelemetry Collector → Loki → S3 Storage → Grafana
-- **Metrics** → OpenTelemetry Collector → Prometheus → Grafana  
-- **Traces** → OpenTelemetry Collector → Tempo → S3 Storage → Grafana
+- **Logs** → OpenTelemetry Collector → Loki → Local Storage → Grafana
+- **Metrics** → OpenTelemetry Collector → Prometheus → Local Storage → Grafana  
+- **Traces** → OpenTelemetry Collector → Tempo → Local Storage → Grafana
 
 ## Test the Pipeline
 
@@ -87,8 +86,8 @@ curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" \
 # Query logs  
 logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="test"}' --since=5m
 
-# Check S3 storage
-kubectl -n observability-lab exec $(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}') -- mc ls local/loki-chunks/
+# Check persistent volumes
+kubectl get pv,pvc -n observability-lab
 ```
 
 ## Troubleshooting

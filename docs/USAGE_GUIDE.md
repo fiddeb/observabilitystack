@@ -8,11 +8,10 @@ How to use the ObservabilityStack for learning and experimenting with telemetry 
 
 The ObservabilityStack provides a complete learning platform with:
 - **OpenTelemetry Collector** as the central telemetry ingestion point
-- **Loki** for log storage and querying
-- **Tempo** for distributed tracing  
+- **Loki** for log storage and querying (local filesystem)
+- **Tempo** for distributed tracing (local filesystem)
 - **Prometheus** for metrics collection
 - **Grafana** for unified visualization
-- **Minio** for S3-compatible storage
 
 ## Data Flow
 
@@ -21,9 +20,9 @@ Applications → OpenTelemetry Collector → Backends → Grafana
 ```
 
 **Detailed Flow:**
-- **Logs** → OpenTelemetry Collector → Loki (S3 storage) → Grafana
+- **Logs** → OpenTelemetry Collector → Loki (local filesystem) → Grafana
 - **Metrics** → OpenTelemetry Collector → Prometheus → Grafana  
-- **Traces** → OpenTelemetry Collector → Tempo (S3 storage) → Grafana
+- **Traces** → OpenTelemetry Collector → Tempo (local filesystem) → Grafana
 
 ## Sending Telemetry Data
 
@@ -236,16 +235,19 @@ curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" \
 logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="test"}' --limit=10 --since=5m
 ```
 
-#### Check S3 Storage
+#### Check Local Storage
 ```bash
-# Get Minio pod name
-MINIO_POD=$(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}')
+# Check Loki persistent volume data
+kubectl get pv -l app.kubernetes.io/name=loki
 
-# Check Loki data in S3
-kubectl -n observability-lab exec $MINIO_POD -- mc ls local/loki-chunks/
+# Check Tempo persistent volume data  
+kubectl get pv -l app.kubernetes.io/name=tempo
 
-# Check Tempo data in S3  
-kubectl -n observability-lab exec $MINIO_POD -- mc ls local/tempo-traces/
+# Check actual data in Loki pod
+kubectl -n observability-lab exec -it deployment/loki -- ls -la /var/loki/
+
+# Check actual data in Tempo pod
+kubectl -n observability-lab exec -it deployment/tempo -- ls -la /var/tempo/
 ```
 
 ## Application Integration
@@ -290,20 +292,25 @@ spec:
 
 ## Storage and Retention
 
-### S3 Storage (Minio)
-- **Loki logs**: Stored in `loki-chunks` bucket
-- **Tempo traces**: Stored in `tempo-traces` bucket  
-- **Persistence**: Data persists across pod restarts
+### Local Filesystem Storage
+- **Loki logs**: Stored on local filesystem in persistent volumes  
+- **Tempo traces**: Stored on local filesystem in persistent volumes
+- **Persistence**: Data persists across pod restarts via PersistentVolumes
+- **Simplified Setup**: No S3 configuration required for lab environment
 
-### Access Minio Console
+### Check Storage Usage
 ```bash
-# Port forward to Minio console
-kubectl port-forward service/minio-console 9090:9090 -n observability-lab &
+# Check persistent volume claims
+kubectl get pvc -n observability-lab
 
-# Get admin password
-kubectl get secret minio -n observability-lab -o jsonpath='{.data.root-password}' | base64 -d
+# Check persistent volumes
+kubectl get pv
 
-# Access: http://localhost:9090 (minio / <password>)
+# Get storage usage for Loki
+kubectl -n observability-lab exec deployment/loki -- df -h /var/loki
+
+# Get storage usage for Tempo  
+kubectl -n observability-lab exec deployment/tempo -- df -h /var/tempo
 ```
 
 ## Monitoring and Alerts
