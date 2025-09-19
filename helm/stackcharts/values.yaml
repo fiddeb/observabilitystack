@@ -997,7 +997,7 @@ opentelemetry-collector:
         traces:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [otlp/tempo,routing]
+          exporters: [otlp/tempo]
         
         logs:
           receivers: [otlp]
@@ -1007,7 +1007,7 @@ opentelemetry-collector:
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [prometheusremotewrite,routing]
+          exporters: [prometheusremotewrite]
         logs/default:
           receivers: [routing]
           processors: [memory_limiter, batch]
