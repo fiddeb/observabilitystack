@@ -4,25 +4,6 @@ A **development and learning** observability platform built on **OpenTelemetry**
 
 > ⚠️  **Not for Production**: This setup is designed for development, learning, and lab environments. For production deployments, additional security, scaling, and operational considerations are required.
 
-## Quick Start
-
-```bash
-# Clone and install
-git clone https://github.com/fiddeb/observabilitystack.git
-cd observabilitystack
-
-# Install everything with one command
-./scripts/install_argo.sh
-```
-
-**That's it!** Your observability stack is now running with:
-- **Grafana** at http://grafana.k8s.test (admin/admin)
-- **ArgoCD** at http://argocd.k8s.test (admin/<password>)
-- **Prometheus** at http://prometheus.k8s.test  
-- **Loki** at http://loki.k8s.test
-- **Tempo** at http://tempo.k8s.test
-- **OpenTelemetry Collector** at http://otel-collector.k8s.test
-
 ## Features
 
 - **OpenTelemetry Collector** - Unified telemetry data collection with intelligent routing
@@ -35,6 +16,43 @@ cd observabilitystack
 - **Resource Optimized** - Runs efficiently on local development machines
 - **Lab-Friendly** - Easy setup for development, learning, and testing
 - **Educational** - Great for understanding observability and multi-tenancy concepts
+
+## Quick Start
+
+### Option 1: Direct Clone (Read-Only)
+```bash
+# Clone and install (read-only setup)
+git clone https://github.com/fiddeb/observabilitystack.git
+cd observabilitystack
+./scripts/install_argo.sh
+```
+
+### Option 2: Fork for Customization (Recommended)
+**Perfect for learning and experimentation:**
+
+```bash
+# 1. Fork this repository on GitHub (click Fork button)
+# 2. Clone your fork (replace YOUR_USERNAME)
+git clone https://github.com/YOUR_USERNAME/observabilitystack.git
+cd observabilitystack
+
+# 3. Setup ArgoCD to use your repository
+./scripts/setup_argocd.sh
+
+# 4. Install everything
+./scripts/install_argo.sh
+```
+
+**Why fork?** Customize configurations, experiment safely, and contribute back via pull requests.
+
+**That's it!** Your observability stack is now running with:
+- **Grafana** at http://grafana.k8s.test (admin/admin)
+- **ArgoCD** at http://argocd.k8s.test (admin/<password>)
+- **Prometheus** at http://prometheus.k8s.test  
+- **Loki** at http://loki.k8s.test
+- **Tempo** at http://tempo.k8s.test
+- **OpenTelemetry Collector** at http://otel-collector.k8s.test
+
 
 
 **Data Flow:**
@@ -85,7 +103,7 @@ observabilitystack/
 ## Documentation
 
 ### Architecture & Concepts
-- **[Architecture Guide](docs/ARCHITECTURE.md)** - 🏗️ **Design decisions, patterns, and customization concepts**
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - **Design decisions, patterns, and customization concepts**
 
 ### Getting Started
 - **[Installation Guide](docs/INSTALLATION.md)** - Complete setup instructions

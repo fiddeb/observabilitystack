@@ -2,16 +2,15 @@
 
 Complete installation instructions for the ObservabilityStack - a **development and learning** environment.
 
-> 💡 **New to the Stack?** Read the [Architecture Guide](ARCHITECTURE.md) first to understand the design decisions and configuration patterns.
+> **New to the Stack?** Read the [Architecture Guide](ARCHITECTURE.md) first to understand the design decisions and configuration patterns.
 
-> ⚠️  **Lab Environment**: This setup is optimized for local development, learning, and experimentation. It uses simplified configurations and default credentials that are **not suitable for production** use.
+> **Lab Environment**: This setup is optimized for local development, learning, and experimentation. It uses simplified configurations and default credentials that are **not suitable for production** use.
 
 ## What You'll Get
 
 A complete observability lab with:
 - **Quick Setup**: One-command installation  
 - **All-in-One**: Logs, metrics, traces, and visualization
-- **Local Storage**: Persistent data storage with filesystem
 - **GitOps**: ArgoCD-managed deployments
 
 ## Prerequisites
@@ -98,13 +97,43 @@ The stack is optimized for development environments:
 
 ## Installation
 
+### Fork the Repository (Recommended)
+
+**Important**: If you plan to make changes to the configuration or experiment with customizations, create a fork first:
+
+1. **Fork the repository** on GitHub:
+   - Go to https://github.com/fiddeb/observabilitystack
+   - Click the "Fork" button in the top-right corner
+   - This creates your own copy that you can modify
+
+2. **Clone your fork** (replace `YOUR_USERNAME` with your GitHub username):
+   ```bash
+   git clone https://github.com/YOUR_USERNAME/observabilitystack.git
+   cd observabilitystack
+   ```
+
+3. **Add upstream remote** (to get updates from the original repo):
+   ```bash
+   git remote add upstream https://github.com/fiddeb/observabilitystack.git
+   ```
+   This creates a connection to the original repository so you can pull in updates and new features later.
+
+**Why fork?**
+- **Customization**: Modify configurations for your specific needs
+- **Learning**: Experiment with changes without affecting the original
+- **Contributions**: Create pull requests to contribute improvements
+- **GitOps**: ArgoCD can monitor your fork for automatic deployments
+
 ### Quick Lab Setup
 The fastest way to get your observability lab running:
 
 ```bash
-# Clone the repository
+# Clone the repository (or your fork - see above)
 git clone https://github.com/fiddeb/observabilitystack.git
 cd observabilitystack
+
+# Setup ArgoCD application (automatically detects your repository)
+./scripts/setup_argocd.sh
 
 # One-command installation
 ./scripts/install_argo.sh
@@ -164,35 +193,6 @@ The installation script automatically configures ArgoCD with:
 - **HTTP access** (insecure mode for lab use)
 - **Ingress setup** for web access via http://argocd.k8s.test
 - **Observability stack application** for GitOps management
-cat <<EOF > argocd-ingress.yaml
-apiVersion: networking.k8s.io/v1
-kind: Ingress
-metadata:
-  name: argocd-server-ingress
-  namespace: argocd
-  annotations:
-    traefik.ingress.kubernetes.io/router.tls: "false"
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
-spec:
-  rules:
-  - host: argocd.k8s.test
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: argocd-server
-            port:
-              number: 80
-EOF
-
-# Apply the ingress
-kubectl apply -f argocd-ingress.yaml
-
-# Access: http://argocd.k8s.test
-```
 
 #### Get ArgoCD Credentials
 ```bash
@@ -205,6 +205,58 @@ kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.pas
 argocd account update-password --current-password <current-admin-password> --new-password <new-password>
 ```
 
+### Using Your Fork with ArgoCD
+
+If you forked the repository, the setup automatically detects your repository URL:
+
+```bash
+# Setup ArgoCD application with correct repository (automatically detects fork)
+./scripts/setup_argocd.sh
+```
+
+**What this script does:**
+- Automatically detects your git remote URL (original repo or fork)
+- Updates the ArgoCD application manifest with the correct `repoURL`
+- Applies the configuration to your cluster
+- Works with both HTTPS and SSH git URLs
+
+**When to run this script:**
+- **Before installing ArgoCD** - Sets up the correct repository URL from the start
+- **After forking** - Updates the configuration to use your fork instead of the original
+- **When switching between repositories** - If you change your git remote URL
+- **After cloning a different fork** - Automatically adapts to the new repository
+
+**How to run:**
+```bash
+# From project root directory (recommended)
+./scripts/setup_argocd.sh
+
+# Or from any directory within the project
+cd scripts && ./setup_argocd.sh
+cd /path/to/project && ./scripts/setup_argocd.sh
+```
+
+**Prerequisites:**
+- Must be run from within the git repository
+- Git remote 'origin' must be configured
+- kubectl access to your cluster (optional - for automatic application)
+
+**Manual method** (if you prefer to edit manually):
+```bash
+# Edit the ArgoCD application manifest
+vim argocd/observability-stack.yaml
+
+# Change the repoURL to your fork:
+# spec:
+#   source:
+#     repoURL: https://github.com/YOUR_USERNAME/observabilitystack.git
+
+# Apply the updated application
+kubectl apply -f argocd/observability-stack.yaml -n argocd
+```
+
+This allows ArgoCD to automatically sync changes from your fork when you push updates.
+
 ### Manual ArgoCD Setup
 If you prefer manual setup:
 
@@ -213,7 +265,7 @@ If you prefer manual setup:
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
 
-# Create the observability application
+# Create the observability application (use your fork if you have one)
 kubectl apply -f argocd/observability-stack.yaml -n argocd
 ```
 
@@ -260,7 +312,7 @@ After installation, your observability lab is available at:
 - **Tempo** (Traces): http://tempo.k8s.test
 - **OpenTelemetry Collector**: http://otel-collector.k8s.test
 
-> 💡 **First Visit**: Start with Grafana to explore the pre-configured dashboards, then check ArgoCD to see how GitOps deployment works
+> **First Visit**: Start with Grafana to explore the pre-configured dashboards, then check ArgoCD to see how GitOps deployment works
 
 ### Test Your Lab Setup
 Verify everything works with built-in tests:
@@ -281,9 +333,49 @@ Open Grafana and check:
 - **Logs (bazz tenant)**: Explore → Loki-bazz → `{job="audit-logs"}` 
 - **Traces**: Explore → Tempo → `{service.name="telemetrygen"}`
 
-> 🔍 **Multi-Tenant Testing**: Test both Loki datasources in Grafana to see tenant isolation in action. Send logs with `dev.audit.category` attribute to see automatic routing to the bazz tenant.
+> **Multi-Tenant Testing**: Test both Loki datasources in Grafana to see tenant isolation in action. Send logs with `dev.audit.category` attribute to see automatic routing to the bazz tenant.
 
 ## Troubleshooting Lab Setup
+
+### Repository Setup Issues?
+
+**Error: "No such file or directory: argocd/observability-stack.yaml"**
+```bash
+# Make sure you're in the project root directory
+cd /path/to/observabilitystack
+./scripts/setup_argocd.sh
+```
+
+**Error: "No git remote 'origin' found"**
+```bash
+# Add git remote if missing
+git remote add origin https://github.com/YOUR_USERNAME/observabilitystack.git
+
+# Or check existing remotes
+git remote -v
+```
+
+**Script detects wrong repository**
+```bash
+# Check your git remote
+git remote get-url origin
+
+# Update to your fork if needed
+git remote set-url origin https://github.com/YOUR_USERNAME/observabilitystack.git
+
+# Run setup script again
+./scripts/setup_argocd.sh
+```
+
+**ArgoCD application not updating**
+```bash
+# Force refresh in ArgoCD UI or CLI
+kubectl patch app observability-stack -n argocd --type merge -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
+
+# Or delete and recreate
+kubectl delete app observability-stack -n argocd
+./scripts/setup_argocd.sh
+```
 
 ### DNS Not Working?
 **Solution 1 - Port Forwarding (Always Works)**
@@ -337,7 +429,7 @@ kubectl get events -n observability-lab --sort-by=.metadata.creationTimestamp | 
 ## Next Steps - Start Learning!
 
 ### **Understand the Architecture**
-- **[Architecture Guide](ARCHITECTURE.md)** - 🏗️ **Why** the stack is built this way and **how** to customize it
+- **[Architecture Guide](ARCHITECTURE.md)** - **Why** the stack is built this way and **how** to customize it
 
 ### **Send Custom Data**
 - Follow [Usage Guide](USAGE_GUIDE.md) to send your own logs, metrics, and traces

@@ -13,8 +13,8 @@ kubectl get pods -n observability-lab
 kubectl get application observability-stack -n argocd
 
 # Basic connectivity
-curl -I http://loki.k8s.test/ready
-curl -I http://grafana.k8s.test/api/health
+curl -s http://loki.k8s.test/ready
+curl -s http://grafana.k8s.test/api/health
 ```
 
 ### 2. If Pods Are Down
@@ -36,7 +36,7 @@ kubectl port-forward service/grafana 3000:3000 -n observability-lab &
 kubectl port-forward service/loki 3100:3100 -n observability-lab &
 
 # 2. Test directly to service
-kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I http://loki.observability-lab.svc.cluster.local:3100/ready
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -s http://loki.observability-lab.svc.cluster.local:3100/ready
 ```
 
 ## Deployment Checklist
@@ -44,14 +44,12 @@ kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I ht
 ### Before Deployment
 - [ ] `git status` - no uncommitted changes
 - [ ] `targetRevision: main` in argocd/observability-stack.yaml
-- [ ] All tests pass locally
 
 ### After Deployment
 - [ ] `kubectl get pods -n observability-lab` - all pods Running
 - [ ] `kubectl get application observability-stack -n argocd` - Synced + Healthy
 - [ ] Ingress endpoints respond: loki.k8s.test, grafana.k8s.test
 - [ ] Send test log to Loki
-- [ ] Check S3 buckets have data
 
 ### Verification Commands
 ```bash
@@ -62,8 +60,8 @@ kubectl get pods -n observability-lab
 kubectl get application observability-stack -n argocd
 
 # Service endpoints
-curl -I http://loki.k8s.test/ready
-curl -I http://grafana.k8s.test
+curl -s http://loki.k8s.test/ready
+curl -s http://grafana.k8s.test
 
 # Test log ingestion
 curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" -XPOST "http://loki.k8s.test/loki/api/v1/push" -d '{"streams":[{"stream":{"job":"deployment-test"},"values":[["'$(date +%s%N)'","Deployment verification test"]]}]}'
@@ -103,7 +101,7 @@ kubectl exec -it -n observability-lab deployment/grafana -- wget -qO- "http://lo
 - [ ] Other logs go to foo tenant (default)
 - [ ] Routing processor works: `kubectl logs -n observability-lab deployment/otel-collector | grep routing`
 
-## S3/Minio Checklist
+## S3/Minio Checklist (Not in use)
 
 ### Minio Health Check
 ```bash
@@ -149,26 +147,13 @@ nslookup grafana.k8s.test
 ### Service Connectivity
 ```bash
 # Test internal service connectivity
-kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I http://loki.observability-lab.svc.cluster.local:3100/ready
+kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -s http://loki.observability-lab.svc.cluster.local:3100/ready
 
 # Test cross-service connectivity
 kubectl -n observability-lab exec grafana-$(kubectl get pod -n observability-lab -l app.kubernetes.io/name=grafana -o jsonpath='{.items[0].metadata.name}' | cut -d'-' -f2-) -- wget -qO- http://loki:3100/ready
 ```
 
-## 🔧 Configuration Verification
-
-### Quick Config Checks
-```bash
-# Loki using S3?
-kubectl -n observability-lab exec loki-0 -- wget -qO- http://localhost:3100/config | grep -E "s3|minio"
-
-# Tempo using S3?
-kubectl -n observability-lab exec tempo-0 -- cat /etc/tempo/tempo.yaml | grep -E "s3|minio"
-
-# Environment variables correct?
-kubectl -n observability-lab exec loki-0 -- env | grep -E "MINIO|S3"
-kubectl -n observability-lab exec tempo-0 -- env | grep -E "MINIO|S3"
-```
+## Configuration Verification
 
 ### ArgoCD Branch Verification
 ```bash
@@ -200,7 +185,7 @@ kubectl -n observability-lab exec $(kubectl get pod -n observability-lab -l app=
 ### Application Performance
 ```bash
 # Response times
-time curl -I http://loki.k8s.test/ready
+time curl -s http://loki.k8s.test/ready
 time curl -I http://grafana.k8s.test
 
 # Log ingestion performance
@@ -235,14 +220,6 @@ kubectl delete application observability-stack -n argocd
 kubectl apply -f argocd/observability-stack.yaml -n argocd
 ```
 
-### Data Recovery (from S3)
-```bash
-# Check what data exists in S3
-kubectl -n observability-lab exec -it $(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}') -- mc ls --recursive local/loki-chunks/
-kubectl -n observability-lab exec -it $(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}') -- mc ls --recursive local/tempo-traces/
-
-# Data should persist across pod restarts automatically
-```
 
 ## Emergency Contacts & Commands
 
@@ -259,12 +236,11 @@ kubectl logs -l app.kubernetes.io/name=grafana -n observability-lab --tail=50
 
 ### Links When Port Forward Is Running
 - Grafana: http://localhost:3000 (admin/admin)
-- Minio Console: http://localhost:9090 (minio/minio-password)
 - Direct Loki: http://localhost:3100
 
 ### One-Liner Status Check
 ```bash
-echo "=== Pod Status ===" && kubectl get pods -n observability-lab && echo "=== ArgoCD Status ===" && kubectl get application observability-stack -n argocd && echo "=== Endpoints ===" && curl -sI http://loki.k8s.test/ready | head -1 && curl -sI http://grafana.k8s.test | head -1
+echo "=== Pod Status ===" && kubectl get pods -n observability-lab && echo "=== ArgoCD Status ===" && kubectl get application observability-stack -n argocd && echo "=== Endpoints ===" && curl -s http://loki.k8s.test/ready | head -1 && curl -sI http://grafana.k8s.test | head -1
 ```
 
 ---
