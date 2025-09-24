@@ -1,5 +1,5 @@
 loki:
-  enabled: false
+  enabled: true
   fullnameOverride: loki
   
   loki:
@@ -8,7 +8,8 @@ loki:
     storage:
       type: 'filesystem'
       filesystem:
-        directory: /var/loki
+        chunks_directory: /var/loki/chunks
+        rules_directory: /var/loki/rules
     schemaConfig:
       configs:
       - from: "2024-01-01"
@@ -30,19 +31,19 @@ loki:
     replicas: 1
     resources:
       limits:
-        cpu: 2
-        memory: 2Gi
+        cpu: 500m
+        memory: 1Gi
       requests:
-        cpu: 2
-        memory: 2Gi
+        cpu: 200m
+        memory: 512Mi
     extraEnv:
       # Keep a little bit lower than memory limits
       - name: GOMEMLIMIT
-        value: 2750MiB
+        value: 1100MiB
   chunksCache:
     # default is 500MB, with limited memory keep this smaller
     writebackSizeLimit: 10MB
-    allocatedMemory: 2048
+    allocatedMemory: 512
   read:
     replicas: 0
   backend:
@@ -835,6 +836,16 @@ grafana:
           httpHeaderName1: "X-Scope-OrgID"
         secureJsonData:
           httpHeaderValue1: "foo"
+      - editable: true
+        isDefault: false
+        name: loki-bazz
+        type: loki
+        uid: loki-bazz
+        url: http://loki-gateway
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "bazz"
       - name: Tempo
         type: tempo
         uid: tempo
@@ -968,14 +979,14 @@ opentelemetry-collector:
           - context: log
             statement: |
               route() where
-                attributes["svs.audit.category"] != nil
+                attributes["dev.audit.category"] != nil
             pipelines: [logs/audit]
 
     exporters:
       debug/default:
         verbosity: basic
       
-      debug/audit:
+      debug/audit: 
         verbosity: detailed
       # Traces to Tempo
       otlp/tempo:
@@ -984,11 +995,15 @@ opentelemetry-collector:
           insecure: true
       
       # Logs to Loki
-      otlphttp:
-        logs_endpoint: http://loki-gateway.observability-lab.svc.cluster.local/loki/api/v1/push
+      otlphttp/default:
+        logs_endpoint: http://loki-gateway.observability-lab.svc.cluster.local/otlp/v1/logs
         headers:
-          "X-Scope-OrgID": "foo"
-      
+          "X-Scope-OrgID": foo
+      # Logs to Loki
+      otlphttp/bazz:
+        logs_endpoint: http://loki-gateway.observability-lab.svc.cluster.local/otlp/v1/logs
+        headers:
+          "X-Scope-OrgID": bazz
       # Metrics to Prometheus remote write
       prometheusremotewrite:
         endpoint: http://prometheus.observability-lab.svc.cluster.local:80/api/v1/write
@@ -1005,7 +1020,7 @@ opentelemetry-collector:
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [otlphttp,routing]
+          exporters: [routing]
         
         metrics:
           receivers: [otlp]
@@ -1014,11 +1029,11 @@ opentelemetry-collector:
         logs/default:
           receivers: [routing]
           processors: [memory_limiter, batch]
-          exporters: [debug/default]
+          exporters: [otlphttp/default]
         logs/audit:
           receivers: [routing]
           processors: [memory_limiter, batch]
-          exporters: [debug/audit]
+          exporters: [otlphttp/bazz, debug/audit]
 
 
   resources:
