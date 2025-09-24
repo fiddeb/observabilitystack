@@ -14,7 +14,7 @@ Folder Structure
 
 This repo is small by design. If some folders are not present yet, treat them as recommendations.
 
-    •	/scripts: helper scripts (e.g., [`manage_env.sh`](manage_env.sh) for install/update/uninstall, [`install_argo.sh`](scripts/install_argo.sh) for ArgoCD bootstrap)
+    •	/scripts: helper scripts (e.g., [`install_argo.sh`](scripts/install_argo.sh) for ArgoCD bootstrap, [`force_argo_sync.sh`](scripts/force_argo_sync.sh) for manual syncing)
     •	/helm: Helm charts and values organized by component
         ◦	/helm/stackcharts: umbrella chart for the entire observability stack ([`Chart.yaml`](helm/stackcharts/Chart.yaml), [`values.yaml`](helm/stackcharts/values.yaml))
         ◦	/helm/tempo: legacy Tempo configurations (deprecated - use stackcharts umbrella chart)
@@ -25,7 +25,7 @@ This repo is small by design. If some folders are not present yet, treat them as
     •	/docs (optional): extra notes, runbooks, and troubleshooting guides  
     •	/dashboards (optional): Grafana dashboard JSON models and provisioning
     •	/manifests (optional): any raw Kubernetes manifests used alongside Helm
-    •	project root: [`README.md`](README.md), [`LICENSE`](LICENSE), [`manage_env.sh`](manage_env.sh)
+    •	project root: [`README.md`](README.md), [`LICENSE`](LICENSE), [`manifests/`](manifests/) for Kubernetes manifests
 
 ⸻
 
@@ -86,8 +86,8 @@ Branching Policy
 ⸻
 
 Operations Guidelines
-	•	Install (manual): install Traefik first, then each component with its *_values.yaml via Helm, all in namespace observability-lab.
-	•	Install (script): ./scripts/manage_env.sh install (does not install Traefik).
+	•	Install (GitOps): ./scripts/install_argo.sh - installs ArgoCD and deploys the complete observability stack
+	•	Manual sync: ./scripts/force_argo_sync.sh - forces ArgoCD to sync changes from Git
 	•	Ingress/Hosts: configure dnsmasq for wildcard DNS resolution:
 		◦	Configure dnsmasq: address=/.k8s.test/127.0.0.1 in /opt/homebrew/etc/dnsmasq.conf
 		◦	Setup resolver: echo "nameserver 127.0.0.1" > /etc/resolver/k8s.test
