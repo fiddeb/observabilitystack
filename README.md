@@ -51,9 +51,9 @@ Verify everything works end-to-end:
 kubectl apply -f telemetry-test-jobs.yaml
 
 # Check results in Grafana
-echo "Metrics: Navigate to Prometheus → telemetrygen_tests_total"
-echo "Logs: Navigate to Loki → {job=\"telemetrygen-logs\"}"  
-echo "Traces: Navigate to Tempo → {service.name=\"telemetrygen\"}"
+"Metrics: Navigate to Prometheus → gen{}"
+"Logs: Navigate to Loki → {job=\"telemetrygen-logs\"}"  
+"Traces: Navigate to Tempo → {service.name=\"telemetrygen\"}"
 ```
 
 ## Documentation
