@@ -9,7 +9,7 @@ Complete installation instructions for the ObservabilityStack - a **development 
 A complete observability lab with:
 - **Quick Setup**: One-command installation  
 - **All-in-One**: Logs, metrics, traces, and visualization
-- **S3 Storage**: Persistent data storage with Minio
+- **Local Storage**: Persistent data storage with filesystem
 - **GitOps**: ArgoCD-managed deployments
 
 ## Prerequisites
@@ -96,7 +96,7 @@ cd observabilitystack
 1. Installs ArgoCD in your cluster
 2. Deploys the complete observability stack
 3. Configures all components with lab-friendly defaults
-4. Sets up S3 storage backend with Minio
+4. Sets up local filesystem storage for persistence
 
 **Time:** ~5-10 minutes for complete deployment
 
@@ -190,16 +190,16 @@ kubectl apply -f argocd/observability-stack.yaml -n argocd
 The installation deploys a complete observability stack:
 
 - **OpenTelemetry Collector** - Central telemetry ingestion point
-- **Loki** - Log aggregation and storage (with S3 backend)  
-- **Tempo** - Distributed tracing storage (with S3 backend)
+- **Loki** - Log aggregation and storage (with local filesystem)
+- **Tempo** - Distributed tracing storage (with local filesystem) 
 - **Prometheus** - Metrics collection and storage
 - **Grafana** - Unified visualization dashboard (pre-configured datasources)
-- **Minio** - S3-compatible object storage for persistence
 
 **Lab Features:**
 - Default credentials for easy access
 - Pre-configured data sources in Grafana
-- S3 storage for data persistence across restarts
+- Local filesystem storage for data persistence across restarts
+- Simplified setup without S3 complexity
 
 ## Verification
 

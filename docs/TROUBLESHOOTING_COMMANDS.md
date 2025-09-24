@@ -238,8 +238,8 @@ kubectl -n observability-lab exec loki-0 -- wget -qO- http://localhost:3100/metr
 kubectl -n observability-lab exec loki-0 -- wget -qO- http://localhost:3100/ready
 
 # Visa Loki loggar med filtering
-kubectl logs loki-0 -n observability-lab --tail=20 | grep -E "(error|warn|chunk|s3|flush)"
-kubectl logs loki-0 -n observability-lab --tail=50 | grep -E "(s3|minio|storage)"
+kubectl logs loki-0 -n observability-lab --tail=20 | grep -E "(error|warn|chunk|flush|filesystem)"
+kubectl logs loki-0 -n observability-lab --tail=50 | grep -E "(storage|filesystem|local)"
 ```
 
 ---

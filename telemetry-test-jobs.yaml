@@ -15,6 +15,10 @@ spec:
           - --otlp-insecure
           - --rate=10
           - --duration=30s
+          - --telemetry-attributes
+          - 'collector="default"'
+          - --telemetry-attributes
+          - 'env="test"'
         resources:
           limits:
             memory: "100Mi"

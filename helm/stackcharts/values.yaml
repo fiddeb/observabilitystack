@@ -1,23 +1,14 @@
 loki:
-  enabled: true
+  enabled: false
   fullnameOverride: loki
   
   loki:
     commonConfig:
       replication_factor: 1
     storage:
-      type: 's3'
-      bucketNames:
-        chunks: loki-chunks
-        ruler: loki-ruler
-        admin: loki-admin
-      s3:
-        endpoint: minio:9000
-        bucketnames: loki-chunks
-        access_key_id: minio
-        secret_access_key: minio123
-        insecure: true
-        s3forcepathstyle: true
+      type: 'filesystem'
+      filesystem:
+        directory: /var/loki
     schemaConfig:
       configs:
       - from: "2024-01-01"
@@ -25,7 +16,7 @@ loki:
         index:
           prefix: loki_index_
           period: 24h
-        object_store: s3
+        object_store: filesystem
         schema: v13
     ingester:
       chunk_encoding: snappy
@@ -48,17 +39,6 @@ loki:
       # Keep a little bit lower than memory limits
       - name: GOMEMLIMIT
         value: 2750MiB
-      # S3 credentials for Minio
-      - name: AWS_ACCESS_KEY_ID
-        valueFrom:
-          secretKeyRef:
-            name: minio
-            key: root-user
-      - name: AWS_SECRET_ACCESS_KEY
-        valueFrom:
-          secretKeyRef:
-            name: minio
-            key: root-password
   chunksCache:
     # default is 500MB, with limited memory keep this smaller
     writebackSizeLimit: 10MB
@@ -132,85 +112,175 @@ loki:
 tempo:
   enabled: true
   global:
+    # -- Common labels for all object directly managed by this chart.
     commonLabels: {}
 
+  # -- Overrides the chart's name
   nameOverride: ""
+
+  # -- Overrides the chart's computed fullname
   fullnameOverride: "tempo"
 
+  # -- Define the amount of instances
   replicas: 1
+
+  # -- Number of old history to retain to allow rollback (If not set, default Kubernetes value is set to 10)
+  # revisionHistoryLimit: 1
+
+  # -- labels for tempo
+  labels: {}
+
+  # -- Annotations for the StatefulSet
+  annotations: {}
 
   tempo:
     repository: grafana/tempo
+    tag: ""
     pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+
     updateStrategy: RollingUpdate
+    resources: {}
+    #  requests:
+    #    cpu: 1000m
+    #    memory: 4Gi
+    #  limits:
+    #    cpu: 2000m
+    #    memory: 6Gi
+
     memBallastSizeMbs: 1024
     multitenancyEnabled: false
+    # -- If true, Tempo will report anonymous usage data about the shape of a deployment to Grafana Labs
     reportingEnabled: true
     metricsGenerator:
+      # -- If true, enables Tempo's metrics generator (https://grafana.com/docs/tempo/next/metrics-generator/)
       enabled: false
-      remoteWriteUrl: "http://prometheus-server/api/v1/write"
+      remoteWriteUrl: "http://prometheus:9090/api/v1/write"
+    # -- Configuration options for the ingester.
+    # Refers to: https://grafana.com/docs/tempo/latest/configuration/#ingester
+    ingester: {}
+    #  flush_check_period: 10s
+    #  trace_idle_period: 10s
+    #  max_block_duration: 30m
+    #  complete_block_timeout: 1h
+    # -- Configuration options for the querier.
+    # Refers to: https://grafana.com/docs/tempo/latest/configuration/#querier
+    querier: {}
+    #  max_concurrent_queries: 20
+    # -- Configuration options for the query-fronted.
+    # Refers to: https://grafana.com/docs/tempo/latest/configuration/#query-frontend
+    queryFrontend: {}
+    #  search:
+    #    concurrent_jobs: 2000
     retention: 24h
-    global_overrides:
+    # -- The standard overrides configuration section. This can include a `defaults` object for applying to all tenants (not to be confused with the `global` property of the same name, which overrides `max_byte_per_trace` for all tenants). For an example on how to enable the metrics generator using the `overrides` object, see the 'Activate metrics generator' section below. Refer to [Standard overrides](https://grafana.com/docs/tempo/latest/configuration/#standard-overrides) for more details.
+    overrides:
+      # -- Default config values for all tenants, can be overridden by per-tenant overrides. If a tenant's specific overrides are not found in the `per_tenant_overrides` block, the values in this `default` block will be used. Configs inside this block should follow the new overrides indentation format
+      defaults: {}
+      #  metrics_generator:
+      #    processors:
+      #      - service-graphs
+      #      - span-metrics
+
+      # -- Path to the per tenant override config file. The values of the `per_tenant_overrides` config below will be written to the default path `/conf/overrides.yaml`. Users can set tenant-specific overrides settings in a separate file and point per_tenant_override_config to it if not using the per_tenant_overrides block below.
       per_tenant_override_config: /conf/overrides.yaml
+    # -- The `per tenant` aka `tenant-specific` runtime overrides. This allows overriding values set in the configuration on a per-tenant basis. Note that *all* values must be given for each per-tenant configuration block. Refer to [Runtime overrides](https://grafana.com/docs/tempo/latest/configuration/#runtime-overrides) and [Tenant-Specific overrides](https://grafana.com/docs/tempo/latest/configuration/#tenant-specific-overrides) documentation for more details.
+    per_tenant_overrides: {}
+      # 'tenant-id':
+      #  metrics_generator:
+      #    processors:
+      #      - service-graphs
+      #      - span-metrics
+
+    # Tempo server configuration.
+    # Refers to: https://grafana.com/docs/tempo/latest/configuration/#server
     server:
+      # -- HTTP server listen port
       http_listen_port: 3200
-      graceful_shutdown_timeout: 30s
+    # Readiness and Liveness Probe Configuration Options
+    livenessProbe:
+      httpGet:
+        path: /ready
+        port: 3200
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+      successThreshold: 1
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: 3200
+      initialDelaySeconds: 20
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+      successThreshold: 1
     storage:
       trace:
-        backend: s3
-        s3:
-          bucket: tempo-traces
-          endpoint: minio:9000
-          access_key: minio
-          secret_key: minio123
-          insecure: true
-          forcepathstyle: true
-          # Improved connection settings for faster startup
-          region: "us-east-1"
-          # Add timeout settings to prevent hanging
-          timeout: 30s
+        # tempo storage backend.
+        # Refers to: https://grafana.com/docs/tempo/latest/configuration/#storage
+        ## Use s3 for example
+        # backend: s3
+        # store traces in s3
+        # s3:
+        #   bucket: <your s3 bucket>                        # store traces in this bucket
+        #   endpoint: s3.dualstack.us-east-2.amazonaws.com  # api endpoint
+        #   access_key: ...                                 # optional. access key when using static credentials.
+        #   secret_key: ...                                 # optional. secret key when using static credentials.
+        #   insecure: false                                 # optional. enable if endpoint is http
+        backend: local
+        local:
+          path: /var/tempo/traces
         wal:
           path: /var/tempo/wal
-        pool:
-          max_workers: 100
-          queue_depth: 10000
+    # this configuration will listen on all ports and protocols that tempo is capable of.
+    # the receives all come from the OpenTelemetry collector.  more configuration information can
+    # be found there: https://github.com/open-telemetry/opentelemetry-collector/tree/master/receiver
     receivers:
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:14250
+          thrift_binary:
+            endpoint: 0.0.0.0:6832
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+      opencensus:
       otlp:
         protocols:
           grpc:
             endpoint: "0.0.0.0:4317"
           http:
             endpoint: "0.0.0.0:4318"
-    # Ingester configuration for better startup performance
-    ingester:
-      trace_idle_period: 10s
-      max_block_bytes: 1048576
-      max_block_duration: 5m
-    # Querier configuration for better performance
-    querier:
-      frontend_worker:
-        frontend_address: tempo-query-frontend:9095
-    # Query frontend configuration
-    queryFrontend:
-      search:
-        concurrent_jobs: 2000
-        target_bytes_per_job: 104857600
     securityContext: {}
+      # allowPrivilegeEscalation: false
+      #  capabilities:
+      #    drop:
+      #    - ALL
+      # readOnlyRootFilesystem: true
+    ## Additional container arguments
     extraArgs: {}
-    extraEnv:
-      - name: MINIO_ROOT_USER
-        valueFrom:
-          secretKeyRef:
-            name: minio
-            key: root-user
-      - name: MINIO_ROOT_PASSWORD
-        valueFrom:
-          secretKeyRef:
-            name: minio
-            key: root-password
+    # -- Environment variables to add
+    extraEnv: []
+    # -- Environment variables from secrets or configmaps to add to the ingester pods
     extraEnvFrom: []
+    # -- Volume mounts to add
     extraVolumeMounts: []
+    # - name: extra-volume
+    #   mountPath: /mnt/volume
+    #   readOnly: true
+    #   existingClaim: volume-claim
 
+  # -- Tempo configuration file contents
+  # @default -- Dynamically generated tempo configmap
   config: |
       memberlist:
         cluster_label: "{{ .Release.Name }}.{{ .Release.Namespace }}"
@@ -234,21 +304,29 @@ tempo:
       query_frontend:
         {{- toYaml .Values.tempo.queryFrontend | nindent 6 }}
       overrides:
-        {{- toYaml .Values.tempo.global_overrides | nindent 6 }}
+        {{- toYaml .Values.tempo.overrides | nindent 6 }}
         {{- if .Values.tempo.metricsGenerator.enabled }}
-            metrics_generator_processors:
-            - 'service-graphs'
-            - 'span-metrics'
       metrics_generator:
             storage:
               path: "/tmp/tempo"
               remote_write:
                 - url: {{ .Values.tempo.metricsGenerator.remoteWriteUrl }}
+            traces_storage:
+              path: "/tmp/traces"
         {{- end }}
 
   tempoQuery:
     repository: grafana/tempo-query
+    tag: null
     pullPolicy: IfNotPresent
+    ## Optionally specify an array of imagePullSecrets.
+    ## Secrets must be manually created in the namespace.
+    ## Refers to: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
+    ##
+    # pullSecrets:
+    #   - myRegistryKeySecretName
+
+    # -- if False the tempo-query container is not deployed
     enabled: false
 
     service:
@@ -256,15 +334,68 @@ tempo:
 
     ingress:
       enabled: false
+      # For Kubernetes >= 1.18 you should specify the ingress-controller via the field ingressClassName
+      # See https://kubernetes.io/blog/2020/04/02/improvements-to-the-ingress-api-in-kubernetes-1.18/#specifying-the-class-of-an-ingress
+      # ingressClassName: nginx
+      # Values can be templated
+      annotations: {}
+      # kubernetes.io/ingress.class: nginx
+      # kubernetes.io/tls-acme: "true"
+      labels: {}
       path: /
+
+      # pathType is only for k8s >= 1.1=
       pathType: Prefix
 
-    resources: {}
-    extraArgs: {}
-    extraEnv: []
-    extraVolumeMounts: []
-    securityContext: {}
+      hosts:
+        - query.tempo.example.com
+      ## Extra paths to prepend to every host configuration. This is useful when working with annotation based services.
+      extraPaths: []
+      # - path: /*
+      #   backend:
+      #     serviceName: ssl-redirect
+      #     servicePort: use-annotation
+      ## Or for k8s > 1.19
+      # - path: /*
+      #   pathType: Prefix
+      #   backend:
+      #     service:
+      #       name: ssl-redirect
+      #       port:
+      #         name: use-annotation
 
+
+      tls: []
+      #  - secretName: tempo-query-tls
+      #    hosts:
+      #      - query.tempo.example.com
+
+    resources: {}
+    #  requests:
+    #    cpu: 1000m
+    #    memory: 4Gi
+    #  limits:
+    #    cpu: 2000m
+    #    memory: 6Gi
+
+    ## Additional container arguments
+    extraArgs: {}
+    # -- Environment variables to add
+    extraEnv: []
+    # -- Volume mounts to add
+    extraVolumeMounts: []
+    # - name: extra-volume
+    #   mountPath: /mnt/volume
+    #   readOnly: true
+    #   existingClaim: volume-claim
+    securityContext: {}
+      # allowPrivilegeEscalation: false
+      #  capabilities:
+      #    drop:
+      #    - ALL
+      # readOnlyRootFilesystem: false # fails if true, do not enable
+
+  # -- securityContext for container
   securityContext:
     runAsUser: 10001
     runAsGroup: 10001
@@ -272,83 +403,129 @@ tempo:
     runAsNonRoot: true
 
   serviceAccount:
+    # -- Specifies whether a ServiceAccount should be created
     create: true
+    # -- The name of the ServiceAccount to use.
+    # If not set and create is true, a name is generated using the fullname template
+    name: null
+    # -- Image pull secrets for the service account
+    imagePullSecrets: []
+    # -- Annotations for the service account
+    annotations: {}
+    # -- Labels for the service account
+    labels: {}
     automountServiceAccountToken: true
 
   service:
     type: ClusterIP
+    clusterIP: ""
+    # -- (string) IP address, in case of 'type: LoadBalancer'
+    loadBalancerIP:
+    # -- If service type is LoadBalancer, the exposed protocol can either be "UDP", "TCP" or "UDP,TCP"
+    protocol: "TCP"
 
-  # Health checks for better startup timing
-  readinessProbe:
-    httpGet:
-      path: /ready
-      port: 3200
-    initialDelaySeconds: 30
-    periodSeconds: 10
-    timeoutSeconds: 5
-    failureThreshold: 6
-    successThreshold: 1
+    annotations: {}
+    labels: {}
+    targetPort: ""
 
-  livenessProbe:
-    httpGet:
-      path: /ready
-      port: 3200
-    initialDelaySeconds: 60
-    periodSeconds: 30
-    timeoutSeconds: 10
-    failureThreshold: 3
-    successThreshold: 1
-
-  # Resource limits to prevent memory issues
-  resources:
-    requests:
-      memory: "256Mi"
-      cpu: "100m"
-    limits:
-      memory: "1Gi"
-      cpu: "1"
+  serviceMonitor:
+    enabled: false
+    interval: ""
+    additionalLabels: {}
+    annotations: {}
+    # scrapeTimeout: 10s
 
   persistence:
     enabled: false
+      # -- Enable StatefulSetAutoDeletePVC feature
     enableStatefulSetAutoDeletePVC: false
+    # storageClassName: local-path
     accessModes:
       - ReadWriteOnce
     size: 10Gi
 
-  ingress:
-    enabled: true
-    ingressClassName: "traefik"
-    annotations: {}
-    labels: {}
-    hosts:
-      - host: tempo.k8s.test
-        paths:
-          - path: /
-            pathType: Prefix
-
+  # -- Pod Annotations
   podAnnotations: {}
+
+  # -- Pod (extra) Labels
   podLabels: {}
+
+  # Apply extra labels to common labels.
   extraLabels: {}
 
+  # -- Volumes to add
   extraVolumes: []
 
+  # -- Node labels for pod assignment. See: https://kubernetes.io/docs/user-guide/node-selection/
   nodeSelector: {}
+
+  # -- Tolerations for pod assignment. See: https://kubernetes.io/docs/concepts/configuration/taint-and-toleration/
   tolerations: []
+
+  # -- Affinity for pod assignment. See: https://kubernetes.io/docs/concepts/configuration/assign-pod-node/#affinity-and-anti-affinity
   affinity: {}
 
+  # -- The name of the PriorityClass
   priorityClassName: null
-
+  # -- hostAliases to add
+  hostAliases: []
+  #  - ip: 1.2.3.4
+  #    hostnames:
+  #      - domain.tld
   networkPolicy:
+    ## @param networkPolicy.enabled Enable creation of NetworkPolicy resources. Only Ingress traffic is filtered for now.
+    ##
     enabled: false
+    ## @param networkPolicy.allowExternal Don't require client label for connections
+    ## The Policy model to apply. When set to false, only pods with the correct
+    ## client label will have network access to  tempo port defined.
+    ## When true, tempo will accept connections from any source
+    ## (with the correct destination port).
+    ##
     ingress: true
+    ## @param networkPolicy.ingress When true enables the creation
+    ## an ingress network policy
+    ##
     allowExternal: true
+    ## @param networkPolicy.explicitNamespacesSelector A Kubernetes LabelSelector to explicitly select namespaces from which traffic could be allowed
+    ## If explicitNamespacesSelector is missing or set to {}, only client Pods that are in the networkPolicy's namespace
+    ## and that match other criteria, the ones that have the good label, can reach the tempo.
+    ## But sometimes, we want the tempo to be accessible to clients from other namespaces, in this case, we can use this
+    ## LabelSelector to select these namespaces, note that the networkPolicy's namespace should also be explicitly added.
+    ##
+    ## Example:
+    ## explicitNamespacesSelector:
+    ##   matchLabels:
+    ##     role: frontend
+    ##   matchExpressions:
+    ##    - {key: role, operator: In, values: [frontend]}
+    ##
     explicitNamespacesSelector: {}
+    ##
     egress:
+      ## @param networkPolicy.egress.enabled When enabled, an egress network policy will be
+      ## created allowing tempo to connect to external data sources from kubernetes cluster.
       enabled: false
+      ##
+      ## @param networkPolicy.egress.blockDNSResolution When enabled, DNS resolution will be blocked
+      ## for all pods in the tempo namespace.
       blockDNSResolution: false
+      ##
+      ## @param networkPolicy.egress.ports Add individual ports to be allowed by the egress
       ports: []
+      ## Add ports to the egress by specifying - port: <port number>
+      ## E.X.
+      ## - port: 80
+      ## - port: 443
+      ##
+      ## @param networkPolicy.egress.to Allow egress traffic to specific destinations
       to: []
-
+      ## Add destinations to the egress by specifying - ipBlock: <CIDR>
+      ## E.X.
+      ## to:
+      ##  - namespaceSelector:
+      ##    matchExpressions:
+    ##    - {key: role, operator: In, values: [tempo]}
 prometheus:
   enabled: true
   rbac:
@@ -741,7 +918,7 @@ grafana:
 
   revisionHistoryLimit: 10
 minio:
-  enabled: true
+  enabled: false  # Disabled - using local filesystem storage instead
   fullnameOverride: minio
   auth:
     rootUser: "minio"
@@ -784,8 +961,22 @@ opentelemetry-collector:
       batch: {}
       memory_limiter:
         limit_mib: 128
-    
+    connectors:
+      routing:
+        default_pipelines: [logs/default]
+        table:
+          - context: log
+            statement: |
+              route() where
+                attributes["svs.audit.category"] != nil
+            pipelines: [logs/audit]
+
     exporters:
+      debug/default:
+        verbosity: basic
+      
+      debug/audit:
+        verbosity: detailed
       # Traces to Tempo
       otlp/tempo:
         endpoint: http://tempo.observability-lab.svc.cluster.local:4317
@@ -793,11 +984,8 @@ opentelemetry-collector:
           insecure: true
       
       # Logs to Loki
-      loki:
-        endpoint: http://loki-gateway.observability-lab.svc.cluster.local/loki/api/v1/push
-        default_labels_enabled:
-          exporter: false
-          job: true
+      otlphttp:
+        logs_endpoint: http://loki-gateway.observability-lab.svc.cluster.local/loki/api/v1/push
         headers:
           "X-Scope-OrgID": "foo"
       
@@ -817,12 +1005,21 @@ opentelemetry-collector:
         logs:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [loki]
+          exporters: [otlphttp,routing]
         
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
           exporters: [prometheusremotewrite]
+        logs/default:
+          receivers: [routing]
+          processors: [memory_limiter, batch]
+          exporters: [debug/default]
+        logs/audit:
+          receivers: [routing]
+          processors: [memory_limiter, batch]
+          exporters: [debug/audit]
+
 
   resources:
     requests:
