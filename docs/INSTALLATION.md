@@ -110,11 +110,18 @@ cd observabilitystack
 
 **What happens:**
 1. Installs ArgoCD in your cluster
-2. Deploys the complete observability stack
-3. Configures all components with lab-friendly defaults
-4. Sets up local filesystem storage for persistence
+2. Configures ArgoCD for HTTP access (insecure mode)
+3. Installs ArgoCD ingress for web access
+4. Deploys the complete observability stack
+5. Configures all components with lab-friendly defaults
+6. Sets up local filesystem storage for persistence
 
 **Time:** ~5-10 minutes for complete deployment
+
+**After installation, ArgoCD is immediately accessible at:**
+- **URL:** http://argocd.k8s.test
+- **Username:** admin  
+- **Password:** `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
 
 ## ArgoCD Management Interface
 
@@ -122,32 +129,39 @@ ArgoCD provides a web interface to monitor and manage your deployments.
 
 ### Access ArgoCD Web UI
 
-#### Option 1: Port Forwarding (Quick Access)
+ArgoCD ingress is automatically installed and configured during setup.
+
+#### Primary Access (Recommended)
 ```bash
-# Forward ArgoCD server to local port
-kubectl port-forward svc/argocd-server -n argocd 8080:443 &
+# Access ArgoCD via ingress
+open http://argocd.k8s.test
 
 # Get admin password
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
+```
 
-# Access: https://localhost:8080
+**Login credentials:**
+- **Username:** admin
+- **Password:** (from command above)
+
+#### Backup Access (Port Forwarding)
+If DNS/ingress doesn't work, use port forwarding:
+
+```bash
+# Forward ArgoCD server to local port
+kubectl port-forward svc/argocd-server -n argocd 8080:80 &
+
+# Access: http://localhost:8080
 # Username: admin
-# Password: (from command above)
+# Password: (same as above)
 ```
 
-#### Option 2: Ingress Setup (Recommended for Labs)
-Add ArgoCD to your DNS configuration and create an ingress:
+### ArgoCD Configuration
 
-```bash
-# Add to /etc/hosts (if using static hosts)
-echo "127.0.0.1 argocd.k8s.test" | sudo tee -a /etc/hosts
-
-# Or for dnsmasq users, ArgoCD will automatically resolve via *.k8s.test
-```
-
-Create ArgoCD ingress:
-```bash
-# Create argocd-ingress.yaml
+The installation script automatically configures ArgoCD with:
+- **HTTP access** (insecure mode for lab use)
+- **Ingress setup** for web access via http://argocd.k8s.test
+- **Observability stack application** for GitOps management
 cat <<EOF > argocd-ingress.yaml
 apiVersion: networking.k8s.io/v1
 kind: Ingress
@@ -251,7 +265,7 @@ Verify everything works with built-in tests:
 
 ```bash
 # Run automated test suite
-kubectl apply -f telemetry-test-jobs.yaml
+kubectl apply -f manifests/telemetry-test-jobs.yaml
 
 # Wait for tests to complete (~30 seconds)
 kubectl wait --for=condition=complete job/telemetrygen-metrics -n observability-lab --timeout=60s

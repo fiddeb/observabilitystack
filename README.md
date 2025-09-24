@@ -48,12 +48,37 @@ Verify everything works end-to-end:
 
 ```bash
 # Run automated tests
-kubectl apply -f telemetry-test-jobs.yaml
+kubectl apply -f manifests/telemetry-test-jobs.yaml
 
 # Check results in Grafana
-"Metrics: Navigate to Prometheus → gen{}"
+"Metrics: Navigate to Prometheus → telemetrygen_tests_total"
 "Logs: Navigate to Loki → {job=\"telemetrygen-logs\"}"  
 "Traces: Navigate to Tempo → {service.name=\"telemetrygen\"}"
+```
+
+## Project Structure
+
+```
+observabilitystack/
+├── argocd/                    # ArgoCD application definitions
+│   └── observability-stack.yaml
+├── docs/                      # Documentation
+│   ├── INSTALLATION.md
+│   ├── USAGE_GUIDE.md
+│   └── ...
+├── helm/stackcharts/          # Helm charts for the observability stack
+│   ├── Chart.yaml
+│   ├── values.yaml
+│   └── charts/
+├── manifests/                 # Kubernetes manifests
+│   ├── argocd-ingress.yaml    # ArgoCD web access
+│   └── telemetry-test-jobs.yaml # Test workloads
+├── scripts/                   # Automation scripts
+│   ├── install_argo.sh        # Complete installation
+│   ├── force_argo_sync.sh     # ArgoCD sync management
+│   └── merge_feature.sh       # Git workflow
+└── app/                       # Example applications
+    └── src/demo/
 ```
 
 ## Documentation

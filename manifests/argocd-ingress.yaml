@@ -4,9 +4,11 @@ metadata:
   name: argocd-server-ingress
   namespace: argocd
   annotations:
+    # Disable TLS/HTTPS redirects for HTTP-only access
     traefik.ingress.kubernetes.io/router.tls: "false"
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    traefik.ingress.kubernetes.io/redirect-scheme: ""
+    # Backend expects HTTP traffic on port 8080
+    traefik.ingress.kubernetes.io/service.serversscheme: http
 spec:
   rules:
   - host: argocd.k8s.test

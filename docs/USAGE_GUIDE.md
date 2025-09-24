@@ -322,7 +322,7 @@ Run the complete test suite:
 
 ```bash
 # Deploy test jobs
-kubectl apply -f telemetry-test-jobs.yaml
+kubectl apply -f manifests/telemetry-test-jobs.yaml
 
 # Wait for completion
 kubectl wait --for=condition=complete job/telemetrygen-metrics -n observability-lab --timeout=60s
