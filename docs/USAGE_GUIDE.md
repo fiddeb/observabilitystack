@@ -7,11 +7,19 @@ How to use the ObservabilityStack for learning and experimenting with telemetry 
 ## Overview
 
 The ObservabilityStack provides a complete learning platform with:
-- **OpenTelemetry Collector** as the central telemetry ingestion point
-- **Loki** for log storage and querying (local filesystem)
+- **OpenTelemetry Collector** as the central telemetry ingestion point with intelligent routing
+- **Loki** for log storage and querying (local filesystem) with **multi-tenant support**
 - **Tempo** for distributed tracing (local filesystem)
 - **Prometheus** for metrics collection
-- **Grafana** for unified visualization
+- **Grafana** for unified visualization with tenant-specific datasources
+
+### Multi-Tenant Architecture
+
+The platform supports multiple tenants for log isolation:
+- **'foo' tenant** - Default tenant for general logs
+- **'bazz' tenant** - Separate tenant for audit logs
+- Automatic routing based on log attributes via OpenTelemetry Collector
+- Separate Grafana datasources for each tenant
 
 ## Data Flow
 
@@ -64,7 +72,9 @@ curl -X POST http://otel-collector.k8s.test/v1/logs \
   }'
 ```
 
-#### Direct to Loki (bypass OTEL)
+#### Direct to Loki (Multi-Tenant)
+
+**Send to 'foo' tenant:**
 ```bash
 curl -H "Content-Type: application/json" \
      -H "X-Scope-OrgID: foo" \
@@ -77,7 +87,26 @@ curl -H "Content-Type: application/json" \
            "service": "my-service"
          },
          "values": [
-           ["'$(date +%s%N)'", "Direct log message to Loki"]
+           ["'$(date +%s%N)'", "Log message to foo tenant"]
+         ]
+       }]
+     }'
+```
+
+**Send to 'bazz' tenant:**
+```bash
+curl -H "Content-Type: application/json" \
+     -H "X-Scope-OrgID: bazz" \
+     -XPOST "http://loki.k8s.test/loki/api/v1/push" \
+     -d '{
+       "streams": [{
+         "stream": {
+           "job": "audit-service",
+           "level": "info", 
+           "category": "audit"
+         },
+         "values": [
+           ["'$(date +%s%N)'", "Audit log message to bazz tenant"]
          ]
        }]
      }'
@@ -152,6 +181,64 @@ curl -X POST http://otel-collector.k8s.test/v1/traces \
   }'
 ```
 
+### Automatic Tenant Routing via OpenTelemetry
+
+The OpenTelemetry Collector automatically routes logs to different tenants based on attributes:
+
+**Route to 'bazz' tenant (audit logs):**
+```bash
+curl -X POST http://otel-collector.k8s.test/v1/logs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceLogs": [{
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "audit-service"}}
+        ]
+      },
+      "scopeLogs": [{
+        "logRecords": [{
+          "timeUnixNano": "'$(date +%s)'000000000",
+          "body": {"stringValue": "User login successful"},
+          "severityText": "INFO",
+          "attributes": [
+            {"key": "dev.audit.category", "value": {"stringValue": "authentication"}},
+            {"key": "user.id", "value": {"stringValue": "user123"}}
+          ]
+        }]
+      }]
+    }]
+  }'
+```
+
+**Route to 'foo' tenant (default logs):**
+```bash
+curl -X POST http://otel-collector.k8s.test/v1/logs \
+  -H "Content-Type: application/json" \
+  -d '{
+    "resourceLogs": [{
+      "resource": {
+        "attributes": [
+          {"key": "service.name", "value": {"stringValue": "web-service"}}
+        ]
+      },
+      "scopeLogs": [{
+        "logRecords": [{
+          "timeUnixNano": "'$(date +%s)'000000000",
+          "body": {"stringValue": "HTTP request processed"},
+          "severityText": "INFO",
+          "attributes": [
+            {"key": "http.method", "value": {"stringValue": "GET"}},
+            {"key": "http.status_code", "value": {"intValue": 200}}
+          ]
+        }]
+      }]
+    }]
+  }'
+```
+
+> 📝 **Routing Logic**: Logs with `dev.audit.category` attribute are routed to 'bazz' tenant. All other logs go to 'foo' tenant.
+
 ## Using Grafana
 
 ### Access Grafana
@@ -162,8 +249,11 @@ curl -X POST http://otel-collector.k8s.test/v1/traces \
 All data sources are automatically configured:
 
 1. **Prometheus** - Metrics from OpenTelemetry Collector
-2. **Loki** - Logs with multi-tenancy support
-3. **Tempo** - Distributed traces with service map
+2. **Loki (foo tenant)** - Default logs from 'foo' tenant
+3. **Loki (bazz tenant)** - Audit logs from 'bazz' tenant  
+4. **Tempo** - Distributed traces with service map
+
+> 💡 **Multi-Tenant Logs**: Each Loki datasource connects to a specific tenant using the `X-Scope-OrgID` header, providing complete data isolation.
 
 ### Querying Data
 
@@ -180,6 +270,8 @@ telemetrygen_tests_total
 ```
 
 #### Loki Queries
+
+**From 'foo' tenant datasource:**
 ```logql
 # All logs from a service
 {service_name="my-service"}
@@ -187,12 +279,29 @@ telemetrygen_tests_total
 # Error logs only
 {service_name="my-service"} |= "error"
 
-# Logs with specific labels
-{job="my-application", level="error"}
+# Web service logs
+{job="my-application", level="info"}
 
-# Count errors per minute  
-sum(count_over_time({service_name="my-service"} |= "error" [1m])) by (service_name)
+# Count requests per minute
+sum(count_over_time({service_name="web-service"} |~ "HTTP request" [1m])) by (service_name)
 ```
+
+**From 'bazz' tenant datasource (audit logs):**
+```logql
+# All audit logs
+{job="audit-service"}
+
+# Authentication events
+{job="audit-service"} |= "login"
+
+# Failed authentication attempts
+{category="audit"} |= "failed"
+
+# Count audit events per hour
+sum(count_over_time({category="audit"} [1h])) by (category)
+```
+
+> 📊 **Tenant Isolation**: Switch between datasources in Grafana to view logs from different tenants. Each tenant's data is completely isolated.
 
 #### Tempo Queries
 ```

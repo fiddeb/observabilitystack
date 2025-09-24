@@ -1,64 +1,64 @@
-# Snabb Felsökningsguide - Checklists
+# Quick Troubleshooting Guide - Checklists
 
-Detta dokument innehåller snabba checklists för vanliga felsökningsscenarier.
+This document contains quick checklists for common troubleshooting scenarios.
 
-## Akut Felsökning - 5 Minuter Checklist
+## Emergency Troubleshooting - 5 Minute Checklist
 
-### 1. Snabb Hälsokontroll
+### 1. Quick Health Check
 ```bash
-# Är alla pods igång?
+# Are all pods running?
 kubectl get pods -n observability-lab
 
-# Är ArgoCD synkad?
+# Is ArgoCD synced?
 kubectl get application observability-stack -n argocd
 
-# Grundläggande connectivity
+# Basic connectivity
 curl -I http://loki.k8s.test/ready
 curl -I http://grafana.k8s.test/api/health
 ```
 
-### 2. Om Pods är Nere
+### 2. If Pods Are Down
 ```bash
-# 1. Kolla events
+# 1. Check events
 kubectl get events -n observability-lab --sort-by=.metadata.creationTimestamp | tail -10
 
-# 2. Restart problematiska pods
+# 2. Restart problematic pods
 kubectl delete pod <pod-name> -n observability-lab
 
 # 3. Force ArgoCD sync
 ./scripts/force_argo_sync.sh
 ```
 
-### 3. Om Ingress inte Fungerar
+### 3. If Ingress Doesn't Work
 ```bash
-# 1. Kolla port forwards som backup
+# 1. Use port forwards as backup
 kubectl port-forward service/grafana 3000:3000 -n observability-lab &
 kubectl port-forward service/loki 3100:3100 -n observability-lab &
 
-# 2. Testa direkt till service
+# 2. Test directly to service
 kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I http://loki.observability-lab.svc.cluster.local:3100/ready
 ```
 
 ## Deployment Checklist
 
-### Före Deployment
-- [ ] `git status` - inga uncommittade ändringar
-- [ ] `targetRevision: main` i argocd/observability-stack.yaml
-- [ ] Alla tester passerar lokalt
+### Before Deployment
+- [ ] `git status` - no uncommitted changes
+- [ ] `targetRevision: main` in argocd/observability-stack.yaml
+- [ ] All tests pass locally
 
-### Efter Deployment
-- [ ] `kubectl get pods -n observability-lab` - alla pods Running
+### After Deployment
+- [ ] `kubectl get pods -n observability-lab` - all pods Running
 - [ ] `kubectl get application observability-stack -n argocd` - Synced + Healthy
-- [ ] Ingress endpoints svarar: loki.k8s.test, grafana.k8s.test
-- [ ] Skicka testlogg till Loki
-- [ ] Kontrollera S3 buckets har data
+- [ ] Ingress endpoints respond: loki.k8s.test, grafana.k8s.test
+- [ ] Send test log to Loki
+- [ ] Check S3 buckets have data
 
-### Verifiering Commands
+### Verification Commands
 ```bash
 # Pod status
 kubectl get pods -n observability-lab
 
-# ArgoCD status  
+# ArgoCD status
 kubectl get application observability-stack -n argocd
 
 # Service endpoints
@@ -71,6 +71,37 @@ curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" -XPOST "http://
 # Verify log arrived
 logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="deployment-test"}' --limit=5 --since=5m
 ```
+
+## Multi-Tenant Troubleshooting
+
+### Loki Tenant Checklist
+```bash
+# 1. Test both tenants
+curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" -XPOST "http://loki.k8s.test/loki/api/v1/push" -d '{"streams":[{"stream":{"job":"foo-test"},"values":[["'$(date +%s%N)'","Test from foo tenant"]]}]}'
+
+curl -H "Content-Type: application/json" -H "X-Scope-OrgID: bazz" -XPOST "http://loki.k8s.test/loki/api/v1/push" -d '{"streams":[{"stream":{"job":"bazz-test"},"values":[["'$(date +%s%N)'","Test from bazz tenant"]]}]}'
+
+# 2. Verify tenant isolation
+logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="foo-test"}' --limit=5 --since=5m
+logcli query --addr=http://loki.k8s.test --org-id="bazz" '{job="bazz-test"}' --limit=5 --since=5m
+
+# 3. Check automatic routing via OTEL
+kubectl logs -n observability-lab deployment/otel-collector | grep -i routing
+```
+
+### Grafana Datasource Checklist
+```bash
+# Check that both datasources are configured
+kubectl get configmap grafana -n observability-lab -o yaml | grep -A5 "loki\|bazz"
+
+# Test datasource connectivity from Grafana pod
+kubectl exec -it -n observability-lab deployment/grafana -- wget -qO- "http://loki-gateway:80/ready"
+```
+
+### OTEL Routing Checklist
+- [ ] Logs with `dev.audit.category` attribute go to bazz tenant
+- [ ] Other logs go to foo tenant (default)
+- [ ] Routing processor works: `kubectl logs -n observability-lab deployment/otel-collector | grep routing`
 
 ## S3/Minio Checklist
 
@@ -95,7 +126,7 @@ kubectl get secret minio -n observability-lab -o jsonpath='{.data.root-password}
 # Test S3 connectivity from Loki
 kubectl -n observability-lab exec loki-0 -- wget -qO- http://minio:9000/minio/health/live
 
-# Test S3 connectivity from Tempo  
+# Test S3 connectivity from Tempo
 kubectl -n observability-lab exec tempo-0 -- wget -qO- http://minio:9000/minio/health/live
 
 # Check S3 config in runtime
@@ -120,7 +151,7 @@ nslookup grafana.k8s.test
 # Test internal service connectivity
 kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I http://loki.observability-lab.svc.cluster.local:3100/ready
 
-# Test cross-service connectivity  
+# Test cross-service connectivity
 kubectl -n observability-lab exec grafana-$(kubectl get pod -n observability-lab -l app.kubernetes.io/name=grafana -o jsonpath='{.items[0].metadata.name}' | cut -d'-' -f2-) -- wget -qO- http://loki:3100/ready
 ```
 
@@ -204,7 +235,7 @@ kubectl delete application observability-stack -n argocd
 kubectl apply -f argocd/observability-stack.yaml -n argocd
 ```
 
-### Data Recovery (från S3)
+### Data Recovery (from S3)
 ```bash
 # Check what data exists in S3
 kubectl -n observability-lab exec -it $(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}') -- mc ls --recursive local/loki-chunks/
@@ -217,7 +248,7 @@ kubectl -n observability-lab exec -it $(kubectl get pod -n observability-lab -l 
 
 ### Quick Access Commands
 ```bash
-# Port forwards för emergency access
+# Port forwards for emergency access
 kubectl port-forward service/grafana 3000:80 -n observability-lab &
 kubectl port-forward service/minio-console 9090:9090 -n observability-lab &
 
@@ -226,7 +257,7 @@ kubectl logs -l app.kubernetes.io/name=loki -n observability-lab --tail=50
 kubectl logs -l app.kubernetes.io/name=grafana -n observability-lab --tail=50
 ```
 
-### Links när Port Forward är Igång
+### Links When Port Forward Is Running
 - Grafana: http://localhost:3000 (admin/admin)
 - Minio Console: http://localhost:9090 (minio/minio-password)
 - Direct Loki: http://localhost:3100

@@ -78,6 +78,22 @@ sudo brew services start dnsmasq
 #### Option 3: No DNS (Port Forwarding Only)
 If you prefer not to configure DNS, you can access everything via port forwarding (see Troubleshooting section).
 
+### 4. Resource Requirements
+
+**Minimum Requirements:**
+- **CPU:** 2 cores (recommended: 4 cores)
+- **Memory:** 4GB RAM (recommended: 8GB RAM)
+- **Storage:** 10GB available disk space
+
+**Resource Optimization:**
+The stack is optimized for development environments:
+- **Loki:** 200m CPU request, 500m CPU limit, 512Mi-1Gi memory
+- **Prometheus:** Default resource limits  
+- **Grafana:** Minimal resource usage
+- **OpenTelemetry Collector:** 100m CPU, 128Mi memory
+
+
+
 ## Installation
 
 ### Quick Lab Setup
@@ -217,7 +233,8 @@ After installation, your observability lab is available at:
 
 - **Grafana** (Main Dashboard): http://grafana.k8s.test 
   - **Credentials**: admin/admin (default lab credentials)
-  - **Features**: Pre-configured datasources, sample dashboards
+  - **Features**: Pre-configured datasources with multi-tenant support, sample dashboards
+  - **Data Sources**: Prometheus, Loki (foo tenant), Loki (bazz tenant), Tempo
 - **ArgoCD** (GitOps Management): http://argocd.k8s.test
   - **Username**: admin
   - **Password**: `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
@@ -243,9 +260,12 @@ kubectl wait --for=condition=complete job/telemetrygen-traces -n observability-l
 ```
 # Verify in Grafana
 Open Grafana and check:
-- Metrics: Explore → Prometheus → gen
-- Logs: Explore → Loki → {job="telemetrygen"}
-- Traces: Explore → Tempo → {resource.service.name="telemetrygen"}
+- **Metrics**: Explore → Prometheus → `telemetrygen_tests_total`
+- **Logs (foo tenant)**: Explore → Loki → `{job="telemetrygen"}`
+- **Logs (bazz tenant)**: Explore → Loki-bazz → `{job="audit-logs"}` 
+- **Traces**: Explore → Tempo → `{service.name="telemetrygen"}`
+
+> 🔍 **Multi-Tenant Testing**: Test both Loki datasources in Grafana to see tenant isolation in action. Send logs with `dev.audit.category` attribute to see automatic routing to the bazz tenant.
 
 ## Troubleshooting Lab Setup
 

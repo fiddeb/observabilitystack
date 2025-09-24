@@ -1,6 +1,6 @@
 # ObservabilityStack
 
-A **development and learning** observability platform built on **OpenTelemetry**, **Grafana**, **Loki**, **Prometheus**, and **Tempo**. Perfect for **local labs**, **learning**, and **proof-of-concepts**. Deployed via **ArgoCD** for GitOps management with **local filesystem storage**.
+A **development and learning** observability platform built on **OpenTelemetry**, **Grafana**, **Loki**, **Prometheus**, and **Tempo**. Perfect for **local labs**, **learning**, and **proof-of-concepts**. Deployed via **ArgoCD** for GitOps management with **local filesystem storage** and **multi-tenant support**.
 
 > ⚠️  **Not for Production**: This setup is designed for development, learning, and lab environments. For production deployments, additional security, scaling, and operational considerations are required.
 
@@ -25,14 +25,16 @@ cd observabilitystack
 
 ## Features
 
-- **OpenTelemetry Collector** - Unified telemetry data collection and routing
-- **Grafana** - Pre-configured dashboards with all data sources  
-- **Loki** - Scalable log aggregation with local filesystem storage
+- **OpenTelemetry Collector** - Unified telemetry data collection with intelligent routing
+- **Grafana** - Pre-configured dashboards with multi-tenant data sources  
+- **Loki** - Scalable log aggregation with **multi-tenant support** and optimized resource usage
 - **Tempo** - High-scale distributed tracing with local filesystem storage
 - **Prometheus** - Metrics collection with remote write support
 - **ArgoCD** - GitOps deployment and management
+- **Multi-Tenant Architecture** - Separate data isolation with 'foo' and 'bazz' tenants
+- **Resource Optimized** - Runs efficiently on local development machines
 - **Lab-Friendly** - Easy setup for development, learning, and testing
-- **Educational** - Great for understanding observability concepts
+- **Educational** - Great for understanding observability and multi-tenancy concepts
 
 
 **Data Flow:**
@@ -78,13 +80,19 @@ echo "Traces: Navigate to Tempo → {service.name=\"telemetrygen\"}"
 # Get ArgoCD admin password
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
 
-# Send test log
+# Send test log to 'foo' tenant
 curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" \
      -XPOST "http://loki.k8s.test/loki/api/v1/push" \
-     -d '{"streams":[{"stream":{"job":"test"},"values":[["'$(date +%s%N)'","Hello ObservabilityStack!"]]}]}'
+     -d '{"streams":[{"stream":{"job":"test"},"values":[["'$(date +%s%N)'","Hello from foo tenant!"]]}]}'
 
-# Query logs  
+# Send test log to 'bazz' tenant  
+curl -H "Content-Type: application/json" -H "X-Scope-OrgID: bazz" \
+     -XPOST "http://loki.k8s.test/loki/api/v1/push" \
+     -d '{"streams":[{"stream":{"job":"test"},"values":[["'$(date +%s%N)'","Hello from bazz tenant!"]]}]}'
+
+# Query logs from specific tenant
 logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="test"}' --since=5m
+logcli query --addr=http://loki.k8s.test --org-id="bazz" '{job="test"}' --since=5m
 
 # Check persistent volumes
 kubectl get pv,pvc -n observability-lab
