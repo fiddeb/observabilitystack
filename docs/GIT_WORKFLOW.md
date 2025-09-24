@@ -1,56 +1,56 @@
-# Git Workflow och ArgoCD Branch Management
+# Git Workflow and ArgoCD Branch Management
 
-Detta dokument beskriver hur vi säkerställer att `targetRevision` alltid är korrekt innan merge till main.
+This document describes how we ensure that `targetRevision` is always correct before merging to main.
 
 ## Problem
 
-När vi arbetar med feature branches uppdateras `targetRevision` i ArgoCD-manifestet för att peka på feature branch. Man måste komma ihåg att återställa den till `main` innan merge.
+When working with feature branches, `targetRevision` in the ArgoCD manifest is updated to point to the feature branch. You must remember to reset it to `main` before merging.
 
-## Lösningar
+## Solutions
 
-### 1. Automatiskt Merge Script
+### 1. Automatic Merge Script
 
-Använd `scripts/merge_feature.sh` för att automatiskt hantera hela merge-processen:
+Use `scripts/merge_feature.sh` to automatically handle the entire merge process:
 
 ```bash
-# Exempel: Merga feat/loki-s3-storage till main
+# Example: Merge feat/loki-s3-storage to main
 ./scripts/merge_feature.sh feat/loki-s3-storage
 ```
 
-Scriptet gör följande automatiskt:
-1. Committar eventuella ändringar på feature branch
-2. Återställer `targetRevision` till `main`
-3. Byter till main branch och uppdaterar från remote
-4. Mergar feature branch
-5. Erbjuder att ta bort feature branch
+The script automatically:
+1. Commits any changes on the feature branch
+2. Resets `targetRevision` to `main`
+3. Switches to main branch and updates from remote
+4. Merges the feature branch
+5. Offers to delete the feature branch
 
 ### 2. Git Pre-Merge Hook
 
-En Git hook i `.git/hooks/pre-merge-commit` kontrollerar automatiskt att `targetRevision` är `main` innan merge:
+A Git hook in `.git/hooks/pre-merge-commit` automatically checks that `targetRevision` is `main` before merge:
 
 ```bash
-# Hooken aktiveras automatiskt vid merge
+# The hook activates automatically during merge
 git merge feat/my-feature
-# Om targetRevision inte är 'main' så avbryts merge med felmeddelande
+# If targetRevision is not 'main', merge is aborted with error message
 ```
 
-### 3. Manuell Kontroll
+### 3. Manual Check
 
-Om du mergar manuellt, kontrollera alltid `targetRevision` först:
+If you merge manually, always check `targetRevision` first:
 
 ```bash
-# Kontrollera nuvarande targetRevision
+# Check current targetRevision
 grep "targetRevision:" argocd/observability-stack.yaml
 
-# Återställ till main om nödvändigt
+# Reset to main if necessary
 sed -i 's|targetRevision: .*|targetRevision: main   # auto-synced with current branch|g' argocd/observability-stack.yaml
 git add argocd/observability-stack.yaml
 git commit -m "fix: reset targetRevision to main before merge"
 ```
 
-### 4. Force ArgoCD Sync Varningar
+### 4. Force ArgoCD Sync Warnings
 
-`scripts/force_argo_sync.sh` visar nu varningar när du inte är på main branch:
+`scripts/force_argo_sync.sh` now shows warnings when you're not on the main branch:
 
 ```bash
 ./scripts/force_argo_sync.sh
@@ -58,55 +58,55 @@ git commit -m "fix: reset targetRevision to main before merge"
 # 💡 Consider using main branch for production deployments
 ```
 
-## Rekommenderat Workflow
+## Recommended Workflow
 
-1. **Skapa feature branch:**
+1. **Create feature branch:**
    ```bash
    git checkout -b feat/my-new-feature
    ```
 
-2. **Utveckla och testa:**
+2. **Develop and test:**
    ```bash
-   # Gör ändringar
+   # Make changes
    git add .
    git commit -m "feat: implement new feature"
    
-   # Testa med ArgoCD
+   # Test with ArgoCD
    ./scripts/force_argo_sync.sh
    ```
 
-3. **Merga till main:**
+3. **Merge to main:**
    ```bash
-   # Använd automatiska merge-scriptet
+   # Use automatic merge script
    ./scripts/merge_feature.sh feat/my-new-feature
    
-   # Eller manuellt (med Git hook-skydd)
+   # Or manually (with Git hook protection)
    git checkout main
    git merge feat/my-new-feature
    ```
 
-4. **Deploy från main:**
+4. **Deploy from main:**
    ```bash
    git push origin main
    ./scripts/force_argo_sync.sh
    ```
 
-## Säkerhetsåtgärder
+## Safety Measures
 
-- **Git Hook**: Förhindrar merge om `targetRevision` inte är `main`
-- **Merge Script**: Automatisk återställning innan merge
-- **Sync Script**: Varnar när du inte är på main branch
-- **Backup**: `.bak` filer skapas vid automatiska ändringar
+- **Git Hook**: Prevents merge if `targetRevision` is not `main`
+- **Merge Script**: Automatic reset before merge
+- **Sync Script**: Warns when you're not on main branch
+- **Backup**: `.bak` files are created during automatic changes
 
-## Felsökning
+## Troubleshooting
 
-Om merge avbryts av Git hook:
+If merge is aborted by Git hook:
 ```bash
-# Återställ targetRevision manuellt
+# Reset targetRevision manually
 sed -i 's|targetRevision: .*|targetRevision: main   # auto-synced with current branch|g' argocd/observability-stack.yaml
 git add argocd/observability-stack.yaml
 git commit -m "fix: reset targetRevision to main before merge"
 
-# Försök merge igen
+# Try merge again
 git merge feat/my-feature
 ```
