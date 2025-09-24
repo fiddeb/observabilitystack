@@ -2,7 +2,7 @@
 
 This document explains the **design decisions**, **architectural patterns**, and **configuration philosophy** behind the ObservabilityStack.
 
-> 🎯 **Goal**: Help you understand **why** the stack is structured the way it is, and **how** to customize it for your needs.
+> **Goal**: Help you understand **why** the stack is structured the way it is, and **how** to customize it for your needs.
 
 ## Table of Contents
 
@@ -15,76 +15,58 @@ This document explains the **design decisions**, **architectural patterns**, and
 - [Configuration Patterns](#configuration-patterns)
 - [Customization Guide](#customization-guide)
 
-## Design Philosophy
+## Stack Configuration
 
-### 🎓 **Learning-First Design**
-The ObservabilityStack prioritizes **learning and understanding** over production complexity:
-
-- **Single source of truth** - One `values.yaml` file instead of scattered configurations
-- **Transparent configuration** - All settings visible and documented in one place
-- **Minimal abstractions** - Direct Helm chart usage without custom operators
-- **GitOps workflow** - Industry-standard deployment pattern you'll use in real projects
-
-### 🔧 **Development Environment Optimized**
-Designed for **local development** and **proof-of-concepts**:
-
-- **Resource efficient** - Optimized for laptop/desktop environments
-- **Fast iteration** - Quick configuration changes and deployments
-- **Local storage** - No external dependencies like S3 or cloud databases
-- **Easy reset** - Simple to tear down and rebuild
-
-### 🏗️ **Production Patterns**
-Despite being for learning, it follows **production-ready patterns**:
-
-- **Helm charts** - Industry standard for Kubernetes packaging
-- **GitOps** - Declarative configuration management
-- **Namespace isolation** - Proper resource separation
-- **Ingress configuration** - Real-world networking setup
+### Configuration Structure
+- **Single values.yaml** - All component configurations in one file
+- **Umbrella chart pattern** - All components managed as subcharts
+- **GitOps deployment** - Changes managed through Git commits
+- **Local filesystem storage** - No external storage dependencies
 
 ## Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    ObservabilityStack                       │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐   │
-│  │   ArgoCD     │    │  Traefik     │    │   Storage    │   │
-│  │  (GitOps)    │    │  (Ingress)   │    │(Filesystem)  │   │
-│  └──────────────┘    └──────────────┘    └──────────────┘   │
-│                                                             │
-│  ┌─────────────────────────────────────────────────────────┤
-│  │              Observability Components                   │
-│  ├─────────────────────────────────────────────────────────┤
-│  │                                                         │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐  │
-│  │  │   Loki   │  │  Tempo   │  │Prometheus│  │ Grafana │  │
-│  │  │ (Logs)   │  │(Traces)  │  │(Metrics) │  │  (UI)   │  │
-│  │  └──────────┘  └──────────┘  └──────────┘  └─────────┘  │
-│  │                                                         │
+┌──────────────────────────────────────────────────────────────┐
+│                    ObservabilityStack                        │
+├──────────────────────────────────────────────────────────────┤
+│                                                              │
+│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐    │
+│  │   ArgoCD     │    │  Traefik     │    │   Storage    │    │
+│  │  (GitOps)    │    │  (Ingress)   │    │(Filesystem)  │    │
+│  └──────────────┘    └──────────────┘    └──────────────┘    │
+│                                                              │
+│  ┌───────────────────────────────────────────────────────────┤
+│  │              Observability Components                     │
+│  ├───────────────────────────────────────────────────────────┤
+│  │                                                           │
+│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐    │
+│  │  │   Loki   │  │  Tempo   │  │Prometheus│  │ Grafana │    │
+│  │  │ (Logs)   │  │(Traces)  │  │(Metrics) │  │  (UI)   │    │
+│  │  └──────────┘  └──────────┘  └──────────┘  └─────────┘    │
+│  │                                                           │
 │  │  ┌─────────────────────────────────────────────────────┐  │
 │  │  │        OpenTelemetry Collector                      │  │
 │  │  │         (Telemetry Pipeline)                        │  │
 │  │  └─────────────────────────────────────────────────────┘  │
-│  └─────────────────────────────────────────────────────────┘
-└─────────────────────────────────────────────────────────────┘
+│  └───────────────────────────────────────────────────────────┤
+└──────────────────────────────────────────────────────────────┘
 ```
 
 ### Component Responsibilities
 
-| Component | Role | Why This Choice |
-|-----------|------|----------------|
-| **ArgoCD** | GitOps Controller | Industry standard, declarative deployments |
-| **Traefik** | Ingress Controller | Simple, automatic service discovery |
-| **Loki** | Log Aggregation | Lightweight, Prometheus-like queries |
-| **Tempo** | Trace Storage | Cost-effective, integrates well with Grafana |
-| **Prometheus** | Metrics Collection | De facto standard for Kubernetes metrics |
-| **Grafana** | Visualization | Unified view of logs, metrics, and traces |
-| **OTEL Collector** | Telemetry Pipeline | Vendor-neutral, future-proof data routing |
+| Component | Role | Function |
+|-----------|------|----------|
+| **ArgoCD** | GitOps Controller | Manages deployments from Git repository |
+| **Traefik** | Ingress Controller | Routes external traffic to services |
+| **Loki** | Log Aggregation | Stores and queries log data |
+| **Tempo** | Trace Storage | Stores and queries distributed traces |
+| **Prometheus** | Metrics Collection | Collects and stores time-series metrics |
+| **Grafana** | Visualization | Provides dashboards for logs, metrics, and traces |
+| **OTEL Collector** | Telemetry Pipeline | Receives, processes, and routes telemetry data |
 
 ## Helm Umbrella Chart Pattern
 
-### Why Umbrella Charts?
+### Umbrella Chart Structure
 
 The `helm/stackcharts/` directory contains an **umbrella chart** that packages all components together:
 
@@ -100,20 +82,20 @@ helm/stackcharts/
     └── ...
 ```
 
-#### ✅ **Benefits of Umbrella Pattern**
+#### How the Umbrella Pattern Works
 
-**Single Deployment Unit**
+**Single Deployment Command**
 ```bash
 # Deploy entire stack with one command
 helm install observability-stack ./helm/stackcharts -n observability-lab
 ```
 
-**Version Consistency**
-- All components deployed with compatible versions
-- `Chart.lock` ensures reproducible deployments
-- Easy to upgrade entire stack atomically
+**Version Management**
+- `Chart.yaml` defines specific versions for all components
+- `Chart.lock` locks exact versions for reproducible deployments
+- `helm dependency update` downloads and packages all components
 
-**Simplified Dependencies**
+**Dependency Definition**
 ```yaml
 # Chart.yaml automatically handles component relationships
 dependencies:
@@ -125,140 +107,152 @@ dependencies:
     repository: "https://grafana.github.io/helm-charts"
 ```
 
-#### 🔄 **Alternative: Individual Charts**
+### Understanding Subcharts
 
-You *could* install each component separately:
-```bash
-# More complex, harder to manage
-helm install grafana grafana/grafana -f grafana-values.yaml
-helm install loki grafana/loki -f loki-values.yaml
-helm install prometheus prometheus-community/prometheus -f prometheus-values.yaml
-# ... repeat for each component
+Each dependency becomes a **subchart** within the umbrella chart:
+
+```
+helm/stackcharts/
+├── Chart.yaml              # Parent chart definition
+├── values.yaml            # Values for parent + ALL subcharts
+├── Chart.lock             # Locked subchart versions
+└── charts/                # Downloaded subcharts
+    ├── grafana-9.3.2.tgz     # Subchart: Grafana
+    ├── loki-6.36.0.tgz       # Subchart: Loki  
+    ├── prometheus-27.30.0.tgz # Subchart: Prometheus
+    └── ...
 ```
 
-**Why we chose umbrella approach:**
-- ✅ Single configuration file
-- ✅ Atomic deployments/rollbacks
-- ✅ Easier version management
-- ✅ Better for learning (less complexity)
+#### **How Subcharts Work**
 
-## Single values.yaml Strategy
+**Value Inheritance**
+```yaml
+# values.yaml structure maps to subcharts
+grafana:                    # ← Passed to grafana subchart
+  adminPassword: secretpwd
+  datasources: [...]
+  
+loki:                      # ← Passed to loki subchart  
+  enabled: true
+  singleBinary:
+    replicas: 1
+    
+prometheus:                # ← Passed to prometheus subchart
+  server:
+    persistentVolume:
+      size: 8Gi
+```
 
-### The Monolithic Configuration Approach
+**Subchart Templates**
+Each subchart has its own templates that get rendered:
+```
+grafana subchart templates → grafana-deployment.yaml, grafana-service.yaml
+loki subchart templates    → loki-statefulset.yaml, loki-configmap.yaml  
+prometheus subchart templates → prometheus-deployment.yaml, etc.
+```
 
-All component configurations live in **one file**: `helm/stackcharts/values.yaml`
+**Dependency Management**
+```bash
+# Download/update all subcharts
+helm dependency update helm/stackcharts/
+
+# This downloads:
+# - grafana-9.3.2.tgz from https://grafana.github.io/helm-charts  
+# - loki-6.36.0.tgz from https://grafana.github.io/helm-charts
+# - etc.
+```
+
+#### **Subchart Configuration Patterns**
+
+**Global Values**
+```yaml
+# Shared across all subcharts
+global:
+  storageClass: "local-path"
+  imagePullSecrets: []
+  
+# Each subchart can access global values
+grafana:
+  # Uses global.storageClass automatically
+  persistence:
+    enabled: true
+    
+loki:  
+  # Also uses global.storageClass
+  persistence:
+    enabled: true
+```
+
+**Conditional Subcharts**
+The `condition` field in `Chart.yaml` determines which subcharts are installed:
 
 ```yaml
-# helm/stackcharts/values.yaml
+# Chart.yaml - Defines the conditions
+dependencies:
+  - name: loki
+    version: "6.36.0" 
+    repository: "https://grafana.github.io/helm-charts"
+    condition: loki.enabled        # ← Controls if this subchart installs
+  
+  - name: grafana
+    version: "9.3.2"
+    repository: "https://grafana.github.io/helm-charts" 
+    condition: grafana.enabled     # ← Controls if this subchart installs
+```
+
+```yaml
+# values.yaml - Sets the condition values
+loki:
+  enabled: true    # ← This value is checked by "condition: loki.enabled"
+  # ... rest of loki configuration
+
+grafana:
+  enabled: true    # ← This value is checked by "condition: grafana.enabled"  
+  # ... rest of grafana configuration
+
+tempo:
+  enabled: false   # ← Setting to false will skip tempo installation
+```
+
+**How It Works:**
+- Helm checks `values.yaml` for the condition path (e.g., `loki.enabled`)
+- If `true`, the subchart is included in deployment
+- If `false` or missing, the subchart is skipped entirely
+- This allows selective component installation from the same umbrella chart
+
+**Practical Examples:**
+```bash
+# Deploy only logs and visualization (no metrics or tracing)
+# In values.yaml:
 loki:
   enabled: true
-  # ... loki configuration
-
-grafana:  
-  # ... grafana configuration
-
+grafana: 
+  enabled: true
 prometheus:
-  # ... prometheus configuration
-
+  enabled: false   # Skip metrics collection
+tempo:
+  enabled: false   # Skip tracing
 opentelemetry-collector:
-  # ... otel configuration
+  enabled: true    # Keep collector for log processing
 ```
 
-### Why Single File vs Multiple Files?
-
-#### ✅ **Benefits of Single values.yaml**
-
-**Learning & Understanding**
-- See all configurations in one place
-- Understand component relationships
-- Easy to search and modify
-
-**Configuration Consistency**  
-- Cross-component settings (like tenant names) defined once
-- Shared values can be referenced between components
-- Reduces configuration drift
-
-**GitOps Friendly**
-- Single file to track in Git
-- Clear diff when making changes  
-- Atomic configuration updates
-
-**Debugging Simplified**
-- All settings visible during troubleshooting
-- No need to hunt across multiple files
-- Easy to share complete configuration
-
-#### ⚠️ **Trade-offs**
-
-**File Size**
-- Can become large (1000+ lines)
-- Solution: Good documentation and sections
-
-**Merge Conflicts**
-- Multiple people editing same file
-- Solution: Feature branches and proper Git workflow
-
-**Component Coupling**
-- Changes to one component in same file as others
-- Solution: Clear section boundaries and comments
-
-### Alternative Approaches & Why We Didn't Choose Them
-
-#### 📁 **Split Configuration Pattern**
-```
-values/
-├── grafana.yaml
-├── loki.yaml  
-├── prometheus.yaml
-└── otel.yaml
-```
-
-**Pros:** Smaller files, less merge conflicts  
-**Cons:** Harder to see cross-component configuration, more complex templating
-
-#### 🎛️ **ConfigMap Pattern**
-```
-configmaps/
-├── grafana-config.yaml
-├── loki-config.yaml
-└── ...
-```
-
-**Pros:** Native Kubernetes resources  
-**Cons:** Loses Helm templating benefits, harder to manage
-
-#### 🔧 **Custom Operator Pattern**
+**Cross-Subchart References**
 ```yaml
-apiVersion: observability.io/v1
-kind: ObservabilityStack
-spec:
-  components: [grafana, loki, prometheus]
+# Grafana subchart references other subcharts
+grafana:
+  datasources:
+    datasources.yaml:
+      datasources:
+      - name: Prometheus
+        # Reference to prometheus subchart service
+        url: http://{{ include "prometheus.fullname" . }}:{{ .Values.prometheus.server.service.port }}
+      - name: Loki  
+        # Reference to loki subchart service
+        url: http://{{ include "loki.serviceName" . }}:{{ .Values.loki.service.port }}
 ```
 
-**Pros:** Kubernetes-native, sophisticated lifecycle management  
-**Cons:** Additional complexity, custom code to maintain, harder to understand
 
-## GitOps with ArgoCD
-
-### Why GitOps + Umbrella Chart?
-
-```
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│    Git      │───▶│   ArgoCD    │───▶│ Kubernetes  │
-│ (Source)    │    │(Controller) │    │ (Target)    │
-└─────────────┘    └─────────────┘    └─────────────┘
-     │                     │                 │
-     ▼                     ▼                 ▼
-┌─────────────┐    ┌─────────────┐    ┌─────────────┐
-│values.yaml  │    │Helm Release │    │  Running    │
-│Chart.yaml   │    │Sync Status  │    │   Pods      │  
-│Chart.lock   │    │Health Check │    │ Services    │
-└─────────────┘    └─────────────┘    └─────────────┘
-```
-
-#### Benefits for Learning
-
-**Declarative Infrastructure**
+#### Declarative Infrastructure
 ```yaml
 # argocd/observability-stack.yaml
 apiVersion: argoproj.io/v1alpha1
@@ -274,225 +268,10 @@ spec:
 **Change Workflow**
 1. Edit `values.yaml` 
 2. Commit to Git
-3. ArgoCD automatically syncs
+3. Sync ArgoCD or use scripts/force_argo_sync.sh
 4. See changes in ArgoCD UI
 
-**Rollback Safety**
-```bash
-# Easy rollback via Git
-git revert <commit-hash>
-git push
-# ArgoCD automatically rolls back
-```
-
-## Multi-Tenant Architecture  
-
-### Tenant Isolation Strategy
-
-The stack implements **soft multi-tenancy** for learning purposes:
-
-```yaml
-# OpenTelemetry Collector routing
-processors:
-  routing:
-    from_attribute: dev.audit.category
-    table:
-      - statement: route() where attributes["dev.audit.category"] != nil
-        pipelines: [logs/audit]  # Routes to 'bazz' tenant
-```
-
-#### Data Flow by Tenant
-
-```
-Application Logs
-      │
-      ▼
-┌─────────────┐
-│ OTEL        │
-│ Collector   │  ◄─── Intelligent routing based on attributes
-└─────────────┘
-      │
-      ├─── logs with dev.audit.category ──▶ Loki 'bazz' tenant
-      │
-      └─── all other logs ──▶ Loki 'foo' tenant
-                             
-┌─────────────┐              ┌─────────────┐
-│ Grafana     │◄─────────────┤ Separate    │
-│ Datasources │              │ Loki        │
-│             │              │ Tenants     │
-│ • loki-foo  │              │             │
-│ • loki-bazz │              │ • X-Scope-  │
-└─────────────┘              │   OrgID:foo │
-                             │ • X-Scope-  │
-                             │   OrgID:bazz│
-                             └─────────────┘
-```
-
-### Why This Multi-Tenant Approach?
-
-**Learning Value**
-- Understand tenant isolation concepts
-- See how headers control data routing  
-- Practice with realistic data separation
-
-**Practical Implementation**
-- Uses standard Loki multi-tenancy features
-- No custom authentication needed
-- Easy to add more tenants
-
-**Real-World Preparation**
-- Same patterns used in production
-- Prepares for proper RBAC implementation
-- Understanding of data isolation challenges
-
-## Configuration Patterns
-
-### Common Customization Scenarios
-
-#### 1. **Resource Adjustment**
-```yaml
-loki:
-  singleBinary:
-    resources:
-      limits:
-        cpu: 1000m      # Increase for better performance  
-        memory: 2Gi     # Increase for larger datasets
-      requests:
-        cpu: 500m       # Minimum guaranteed resources
-        memory: 1Gi
-```
-
-#### 2. **Storage Configuration**  
-```yaml
-loki:
-  loki:
-    storage:
-      type: 'filesystem'                    # For local development
-      # type: 's3'                         # For production
-      filesystem:
-        chunks_directory: /var/loki/chunks  
-        rules_directory: /var/loki/rules
-```
-
-#### 3. **Ingress Customization**
-```yaml  
-grafana:
-  ingress:
-    enabled: true
-    hosts: ['grafana.yourdomain.com']      # Change domain
-    annotations:
-      cert-manager.io/cluster-issuer: letsencrypt  # Add TLS
-```
-
-#### 4. **Adding New Tenants**
-```yaml
-# 1. Add OTEL routing rule
-opentelemetry-collector:
-  config:
-    processors:
-      routing:
-        table:
-          - statement: route() where attributes["my.tenant.id"] == "newtenant"
-            pipelines: [logs/newtenant]
-
-# 2. Add exporter  
-    exporters:
-      otlphttp/newtenant:
-        logs_endpoint: http://loki-gateway.../otlp/v1/logs
-        headers:
-          "X-Scope-OrgID": newtenant
-
-# 3. Add Grafana datasource
-grafana:
-  datasources:
-    datasources.yaml:
-      datasources:
-      - name: loki-newtenant
-        type: loki  
-        url: http://loki-gateway
-        jsonData:
-          httpHeaderName1: "X-Scope-OrgID"
-        secureJsonData:
-          httpHeaderValue1: "newtenant"
-```
-
-### Configuration Best Practices
-
-#### **Resource Planning**
-```yaml
-# Development (laptop)
-resources:
-  requests: { cpu: 100m, memory: 256Mi }
-  limits:   { cpu: 500m, memory: 1Gi }
-
-# Staging (small cluster)  
-resources:
-  requests: { cpu: 500m, memory: 1Gi }
-  limits:   { cpu: 2, memory: 4Gi }
-
-# Production (dedicated nodes)
-resources:  
-  requests: { cpu: 2, memory: 4Gi }
-  limits:   { cpu: 4, memory: 8Gi }
-```
-
-#### **Environment-Specific Overrides**
-```yaml
-# Base configuration in values.yaml
-loki:
-  enabled: true
-  
-# Override for production (via ArgoCD or Helm)
-# values-prod.yaml
-loki:
-  singleBinary:
-    replicas: 3
-  storage:
-    type: s3
-```
-
-## Customization Guide
-
-### Getting Started with Changes
-
-#### 1. **Local Development Workflow**
-```bash
-# 1. Create feature branch
-git checkout -b feat/customize-grafana
-
-# 2. Edit configuration
-vim helm/stackcharts/values.yaml
-
-# 3. Test changes
-./scripts/force_argo_sync.sh
-
-# 4. Commit and merge
-git add . && git commit -m "feat: customize Grafana dashboards"
-./scripts/merge_feature.sh feat/customize-grafana
-```
-
-#### 2. **Understanding Component Dependencies**
-
-**Startup Order** (handled automatically by Kubernetes):
-1. Storage (PVCs)
-2. Loki, Tempo, Prometheus (data stores)  
-3. OpenTelemetry Collector (depends on endpoints)
-4. Grafana (depends on datasources)
-
-**Network Dependencies**:
-```yaml  
-# Grafana needs to reach these services
-grafana:
-  datasources:
-    - name: prometheus
-      url: http://prometheus.observability-lab.svc.cluster.local
-    - name: loki  
-      url: http://loki-gateway.observability-lab.svc.cluster.local
-    - name: tempo
-      url: http://tempo.observability-lab.svc.cluster.local:3200
-```
-
-#### 3. **Adding New Components**
+#### **Adding New Components**
 
 To add a new component (e.g., Jaeger for tracing):
 
@@ -515,121 +294,13 @@ helm dependency update helm/stackcharts/
 git add . && git commit -m "feat: add Jaeger tracing"
 ```
 
-### Advanced Customizations
-
-#### **Custom Dashboards**
-```yaml
-grafana:
-  dashboardProviders:
-    dashboardproviders.yaml:
-      providers:
-      - name: 'custom'
-        type: file
-        folder: '/var/lib/grafana/dashboards/custom'
-        
-  dashboards:
-    custom:
-      my-dashboard:
-        gnetId: 12345  # Grafana.com dashboard ID
-        datasource: Prometheus
-```
-
-#### **Custom OTEL Processing**
-```yaml
-opentelemetry-collector:
-  config:
-    processors:
-      attributes:
-        actions:
-        - action: insert
-          key: environment  
-          value: development
-        - action: update
-          key: service.name
-          from_attribute: k8s.deployment.name
-```
-
-#### **External Integrations**
-```yaml
-# Send metrics to external Prometheus
-opentelemetry-collector:
-  config:
-    exporters:
-      prometheusremotewrite/external:
-        endpoint: https://prometheus.external.com/api/v1/write
-        headers:
-          Authorization: "Bearer ${EXTERNAL_TOKEN}"
-```
-
-## Troubleshooting Architecture Issues
-
-### Common Problems & Solutions
-
-#### **"Single values.yaml is too large"**
-**Symptoms**: Difficult to navigate, merge conflicts  
-**Solutions**:
-- Use YAML anchors for repeated configs
-- Split into logical sections with clear comments
-- Consider splitting only if team >5 people
-
-#### **"Resource conflicts between components"**  
-**Symptoms**: Pods pending, OOM kills  
-**Solutions**:
-```yaml
-# Add resource quotas per component
-loki:
-  resources:
-    requests: {cpu: 200m, memory: 512Mi}
-    limits:   {cpu: 500m, memory: 1Gi}
-    
-grafana:  
-  resources:
-    requests: {cpu: 100m, memory: 128Mi}
-    limits:   {cpu: 200m, memory: 256Mi}
-```
-
-#### **"Configuration drift between environments"**
-**Symptoms**: Different behavior in dev vs prod  
-**Solutions**:
-- Use ArgoCD ApplicationSets for multi-env
-- Environment-specific value overrides
-- Automated configuration validation
-
-### Monitoring the Architecture
-
-#### **Key Health Indicators**
-```bash  
-# Component health
-kubectl get pods -n observability-lab
-
-# ArgoCD sync status  
-kubectl get applications -n argocd
-
-# Resource usage
-kubectl top pods -n observability-lab
-```
-
-#### **Configuration Validation**
-```bash
-# Validate Helm chart
-helm lint helm/stackcharts/
-
-# Dry-run deployment  
-helm template observability-stack helm/stackcharts/ --debug
-
-# Check ArgoCD health
-kubectl get application observability-stack -n argocd -o yaml
-```
-
 ---
 
 ## Next Steps
 
 After understanding this architecture:
 
-1. **📖 Read**: [Installation Guide](INSTALLATION.md) for setup
-2. **🚀 Practice**: [Usage Guide](USAGE_GUIDE.md) for hands-on experience  
-3. **🔧 Customize**: Edit `values.yaml` for your specific needs
-4. **🔍 Monitor**: Use [Troubleshooting Guide](QUICK_TROUBLESHOOTING.md) when issues arise
-
-**Questions or improvements?** The architecture is designed to evolve with your learning!
+1. ** Read**: [Installation Guide](INSTALLATION.md) for setup
+2. ** Practice**: [Usage Guide](USAGE_GUIDE.md) for hands-on experience  
+3. ** Customize**: Edit `values.yaml` for your specific needs
+4. ** Monitor**: Use [Troubleshooting Guide](QUICK_TROUBLESHOOTING.md) when issues arise
