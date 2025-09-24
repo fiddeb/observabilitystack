@@ -63,6 +63,7 @@ observabilitystack/
 ├── argocd/                    # ArgoCD application definitions
 │   └── observability-stack.yaml
 ├── docs/                      # Documentation
+│   ├── ARCHITECTURE.md        # 🏗️ Design decisions & concepts
 │   ├── INSTALLATION.md
 │   ├── USAGE_GUIDE.md
 │   └── ...
@@ -82,6 +83,9 @@ observabilitystack/
 ```
 
 ## Documentation
+
+### Architecture & Concepts
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - 🏗️ **Design decisions, patterns, and customization concepts**
 
 ### Getting Started
 - **[Installation Guide](docs/INSTALLATION.md)** - Complete setup instructions

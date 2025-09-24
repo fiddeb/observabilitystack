@@ -2,6 +2,8 @@
 
 Complete installation instructions for the ObservabilityStack - a **development and learning** environment.
 
+> 💡 **New to the Stack?** Read the [Architecture Guide](ARCHITECTURE.md) first to understand the design decisions and configuration patterns.
+
 > ⚠️  **Lab Environment**: This setup is optimized for local development, learning, and experimentation. It uses simplified configurations and default credentials that are **not suitable for production** use.
 
 ## What You'll Get
@@ -334,9 +336,16 @@ kubectl get events -n observability-lab --sort-by=.metadata.creationTimestamp | 
 
 ## Next Steps - Start Learning!
 
+### **Understand the Architecture**
+- **[Architecture Guide](ARCHITECTURE.md)** - 🏗️ **Why** the stack is built this way and **how** to customize it
+
 ### **Send Custom Data**
 - Follow [Usage Guide](USAGE_GUIDE.md) to send your own logs, metrics, and traces
 - Use the OpenTelemetry Collector endpoints
+
+### **Customize Your Setup**
+- See [Architecture Guide - Customization](ARCHITECTURE.md#customization-guide) for configuration patterns
+- Learn about the single `values.yaml` approach and multi-tenant setup
 
 ### Learning Resources
 - **[Usage Guide](USAGE_GUIDE.md)** - How to use the stack
