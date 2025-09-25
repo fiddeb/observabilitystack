@@ -10,7 +10,7 @@ dependencies:
   version: 27.30.0
 - name: grafana
   repository: https://grafana.github.io/helm-charts
-  version: 9.3.2
+  version: 10.0.0
 - name: minio
   repository: https://charts.bitnami.com/bitnami
   version: 17.0.21
