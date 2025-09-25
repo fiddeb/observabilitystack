@@ -979,7 +979,8 @@ opentelemetry-collector:
           - context: log
             statement: |
               route() where
-                attributes["dev.audit.*"] != nil or
+                attributes["dev.audit.category"] != nil or
+                attributes["dev.audit.severity"] != nil
             pipelines: [logs/audit]
 
     exporters:
