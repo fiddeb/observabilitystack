@@ -527,6 +527,8 @@ tempo:
       ##  - namespaceSelector:
       ##    matchExpressions:
     ##    - {key: role, operator: In, values: [tempo]}
+
+
 prometheus:
   enabled: true
   rbac:

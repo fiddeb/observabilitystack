@@ -6,14 +6,21 @@ This document explains the **design decisions**, **architectural patterns**, and
 
 ## Table of Contents
 
-- [Design Philosophy](#design-philosophy)
-- [Architecture Overview](#architecture-overview)
-- [Helm Umbrella Chart Pattern](#helm-umbrella-chart-pattern)
-- [Single values.yaml Strategy](#single-valuesyaml-strategy)
-- [GitOps with ArgoCD](#gitops-with-argocd)
-- [Multi-Tenant Architecture](#multi-tenant-architecture)
-- [Configuration Patterns](#configuration-patterns)
-- [Customization Guide](#customization-guide)
+- [Architecture Guide](#architecture-guide)
+  - [Table of Contents](#table-of-contents)
+  - [Stack Configuration](#stack-configuration)
+    - [Configuration Structure](#configuration-structure)
+  - [Architecture Overview](#architecture-overview)
+    - [Component Responsibilities](#component-responsibilities)
+  - [Helm Umbrella Chart Pattern](#helm-umbrella-chart-pattern)
+    - [Umbrella Chart Structure](#umbrella-chart-structure)
+      - [How the Umbrella Pattern Works](#how-the-umbrella-pattern-works)
+    - [Understanding Subcharts](#understanding-subcharts)
+      - [**How Subcharts Work**](#how-subcharts-work)
+      - [**Subchart Configuration Patterns**](#subchart-configuration-patterns)
+      - [Declarative Infrastructure](#declarative-infrastructure)
+      - [**Adding New Components**](#adding-new-components)
+  - [Next Steps](#next-steps)
 
 ## Stack Configuration
 
