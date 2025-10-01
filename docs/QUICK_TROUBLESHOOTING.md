@@ -101,35 +101,9 @@ kubectl exec -it -n observability-lab deployment/grafana -- wget -qO- "http://lo
 - [ ] Other logs go to foo tenant (default)
 - [ ] Routing processor works: `kubectl logs -n observability-lab deployment/otel-collector | grep routing`
 
-## S3/Minio Checklist (Not in use)
+## Storage Backend
 
-### Minio Health Check
-```bash
-# 1. Minio pod running?
-kubectl get pods -n observability-lab | grep minio
-
-# 2. Buckets exist?
-kubectl -n observability-lab exec -it $(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}') -- mc ls local/
-
-# 3. Data in buckets?
-kubectl -n observability-lab exec -it $(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}') -- mc ls local/loki-chunks/
-kubectl -n observability-lab exec -it $(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}') -- mc ls local/tempo-traces/
-
-# 4. Credentials working?
-kubectl get secret minio -n observability-lab -o jsonpath='{.data.root-password}' | base64 -d
-```
-
-### S3 Integration Verification
-```bash
-# Test S3 connectivity from Loki
-kubectl -n observability-lab exec loki-0 -- wget -qO- http://minio:9000/minio/health/live
-
-# Test S3 connectivity from Tempo
-kubectl -n observability-lab exec tempo-0 -- wget -qO- http://minio:9000/minio/health/live
-
-# Check S3 config in runtime
-kubectl -n observability-lab exec loki-0 -- wget -qO- http://localhost:3100/config | grep -A 10 s3
-```
+**Current:** Local filesystem storage via PVCs
 
 ## Network Troubleshooting
 
@@ -137,7 +111,6 @@ kubectl -n observability-lab exec loki-0 -- wget -qO- http://localhost:3100/conf
 ```bash
 # Internal DNS working?
 kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup loki.observability-lab.svc.cluster.local
-kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup minio.observability-lab.svc.cluster.local
 
 # External DNS (for ingress)?
 nslookup loki.k8s.test
@@ -178,8 +151,9 @@ kubectl top pods -n observability-lab
 kubectl top nodes
 kubectl describe nodes | grep -E "(Pressure|Allocatable|Allocated)"
 
-# Disk usage in Minio
-kubectl -n observability-lab exec $(kubectl get pod -n observability-lab -l app=minio -o jsonpath='{.items[0].metadata.name}') -- df -h
+# PVC disk usage
+kubectl get pvc -n observability-lab
+kubectl describe pvc -n observability-lab
 ```
 
 ### Application Performance

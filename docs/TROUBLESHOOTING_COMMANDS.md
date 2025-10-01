@@ -1,56 +1,42 @@
-# Felsökning och Testkommandon för Observability Stack
+# Troubleshooting and Test Commands for Observability Stack
 
-Detta dokument samlar alla användbara kommandon för felsökning, testning och verifiering av observability stack-miljön.
+This document contains all useful commands for troubleshooting, testing, and verifying the observability stack environment.
 
-## Innehållsförteckning
-
-- [Git och Branch Management](#git-och-branch-management)
-- [ArgoCD Operations](#argocd-operations)
-- [Kubernetes Debugging](#kubernetes-debugging)
-- [Loki Testing och Debugging](#loki-testing-och-debugging)
-- [Tempo/Tracing Testing](#tempotrace-testing)
-- [Minio S3 Operations](#minio-s3-operations)
-- [OpenTelemetry Collector Testing](#opentelemetry-collector-testing)
-- [Network och Connectivity](#network-och-connectivity)
-- [Configuration Verification](#configuration-verification)
-- [Performance och Monitoring](#performance-och-monitoring)
-
----
 
 ## Git och Branch Management
 
 ### Branch Information
 ```bash
-# Visa aktuell branch
+# Show current branch
 git rev-parse --abbrev-ref HEAD
 
-# Visa alla branches
+# Show all branches
 git branch -a
 
-# Visa Git status
+# Show Git status
 git status
 
-# Visa ändringar
+# Show changes
 git diff
 git diff --cached
 
-# Visa commit-historik
+# Show commit history
 git log --oneline -10
 ```
 
 ### Feature Branch Workflow
 ```bash
-# Skapa och byt till feature branch
+# Create and switch to feature branch
 git checkout -b feat/my-feature
 
-# Committa ändringar
+# Commit changes
 git add -A
-git commit -m "feat: beskrivning av ändring"
+git commit -m "feat: description of change"
 
-# Merga med vårt script (rekommenderat)
+# Merge using our script (recommended)
 ./scripts/merge_feature.sh feat/my-feature
 
-# Manuell merge (med Git hook-skydd)
+# Manual merge (with Git hook protection)
 git checkout main
 git merge feat/my-feature
 ```
@@ -61,50 +47,50 @@ git merge feat/my-feature
 
 ### Application Management
 ```bash
-# Visa ArgoCD applications
+# Show ArgoCD applications
 kubectl get applications -n argocd
 
-# Visa detaljerad status för vår application
+# Show detailed status for our application
 kubectl get application observability-stack -n argocd -o yaml
 
-# Kontrollera targetRevision
+# Check targetRevision
 kubectl get application observability-stack -n argocd -o jsonpath='{.spec.source.targetRevision}'
 
-# Kontrollera sync och health status
+# Check sync and health status
 kubectl get application observability-stack -n argocd -o jsonpath='{.status.sync.status}'
 kubectl get application observability-stack -n argocd -o jsonpath='{.status.health.status}'
 ```
 
 ### ArgoCD Web Interface Access
 ```bash
-# Hämta admin password
+# Get admin password
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
 
-# Port forward till ArgoCD UI
+# Port forward to ArgoCD UI
 kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 
-# Skapa ingress för ArgoCD (permanent access)
+# Create ingress for ArgoCD (permanent access)
 kubectl apply -f argocd-ingress.yaml
 
-# Kontrollera ArgoCD server status
+# Check ArgoCD server status
 kubectl get pods -n argocd | grep argocd-server
 
-# Restart ArgoCD server om nödvändigt
+# Restart ArgoCD server if needed
 kubectl delete pod -l app.kubernetes.io/name=argocd-server -n argocd
 ```
 
 ### Force Sync Operations
 ```bash
-# Vårt automatiska sync-script
+# Our automated sync script
 ./scripts/force_argo_sync.sh
 
-# Manuell refresh
+# Manual refresh
 kubectl patch application observability-stack -n argocd -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}' --type=merge
 
-# Manuell sync
+# Manual sync
 kubectl patch application observability-stack -n argocd -p '{"operation":{"sync":{"syncStrategy":{"hook":{}}}}}' --type=merge
 
-# Applicera ArgoCD manifest
+# Apply ArgoCD manifest
 kubectl apply -f argocd/observability-stack.yaml -n argocd
 ```
 
@@ -112,73 +98,73 @@ kubectl apply -f argocd/observability-stack.yaml -n argocd
 
 ## Kubernetes Debugging
 
-### Pod och Service Information
+### Pod and Service Information
 ```bash
-# Lista alla pods i observability namespace
+# List all pods in observability namespace
 kubectl get pods -n observability-lab
 
-# Visa detaljerad pod-info
+# Show detailed pod info
 kubectl get pods -n observability-lab -o wide
 
-# Beskriva specifik pod
+# Describe specific pod
 kubectl describe pod <pod-name> -n observability-lab
 
-# Visa pod-loggar
+# Show pod logs
 kubectl logs <pod-name> -n observability-lab
 kubectl logs <pod-name> -n observability-lab --tail=20
 kubectl logs <pod-name> -n observability-lab --follow
 
-# Loggar för container i multi-container pod
+# Logs for container in multi-container pod
 kubectl logs <pod-name> -c <container-name> -n observability-lab
 ```
 
-### Services och Endpoints
+### Services and Endpoints
 ```bash
-# Lista services
+# List services
 kubectl get services -n observability-lab
 
-# Lista endpoints
+# List endpoints
 kubectl get endpoints -n observability-lab
 
-# Visa service detaljer
+# Show service details
 kubectl describe service <service-name> -n observability-lab
 ```
 
-### ConfigMaps och Secrets
+### ConfigMaps and Secrets
 ```bash
-# Lista configmaps
+# List configmaps
 kubectl get configmaps -n observability-lab
 
-# Visa configmap innehåll
+# Show configmap contents
 kubectl get configmap <configmap-name> -n observability-lab -o yaml
 
-# Visa secrets
+# Show secrets
 kubectl get secrets -n observability-lab
 
-# Hämta secret värde (base64 decoded)
+# Get secret value (base64 decoded)
 kubectl get secret <secret-name> -n observability-lab -o jsonpath='{.data.<key>}' | base64 -d
 ```
 
 ### Resource Debugging
 ```bash
-# Visa alla resurser i namespace
+# Show all resources in namespace
 kubectl get all -n observability-lab
 
-# Visa events i namespace
+# Show events in namespace
 kubectl get events -n observability-lab --sort-by=.metadata.creationTimestamp
 
-# Kontrollera resource usage
+# Check resource usage
 kubectl top pods -n observability-lab
 kubectl top nodes
 ```
 
 ---
 
-## Loki Testing och Debugging
+## Loki Testing and Debugging
 
 ### Log Ingestion Testing
 ```bash
-# Skicka testlogg till Loki via API
+# Send test log to Loki via API
 curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" -XPOST "http://loki.k8s.test/loki/api/v1/push" -d '{
   "streams": [
     {
@@ -193,7 +179,7 @@ curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" -XPOST "http://
   ]
 }'
 
-# Flera loggar för chunk-testning
+# Multiple logs for chunk testing
 curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" -XPOST "http://loki.k8s.test/loki/api/v1/push" -d '{
   "streams": [
     {
@@ -208,18 +194,17 @@ curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" -XPOST "http://
       ]
     }
   ]
-}'
 ```
 
 ### Log Querying
 ```bash
-# Använd logcli för att querier loggar
+# Use logcli to query logs
 logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="test-job"}' --limit=100 --since=1h
 
-# Query specifik service
+# Query specific service
 logcli query --addr=http://loki.k8s.test --org-id="foo" '{service_name="test-service"}' --limit=50 --since=30m
 
-# Query med pattern matching
+# Query with pattern matching
 logcli query --addr=http://loki.k8s.test --org-id="foo" '{job=~"test.*"}' --limit=200 --since=2h
 
 # Live tail
@@ -228,16 +213,16 @@ logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="test-job"}' --tai
 
 ### Loki Configuration Verification
 ```bash
-# Visa Loki runtime configuration
+# Show Loki runtime configuration
 kubectl -n observability-lab exec loki-0 -- wget -qO- http://localhost:3100/config
 
-# Kontrollera Loki metrics
+# Check Loki metrics
 kubectl -n observability-lab exec loki-0 -- wget -qO- http://localhost:3100/metrics
 
-# Kontrollera Loki ready status
+# Check Loki ready status
 kubectl -n observability-lab exec loki-0 -- wget -qO- http://localhost:3100/ready
 
-# Visa Loki loggar med filtering
+# Show Loki logs with filtering
 kubectl logs loki-0 -n observability-lab --tail=20 | grep -E "(error|warn|chunk|flush|filesystem)"
 kubectl logs loki-0 -n observability-lab --tail=50 | grep -E "(storage|filesystem|local)"
 ```
@@ -248,25 +233,25 @@ kubectl logs loki-0 -n observability-lab --tail=50 | grep -E "(storage|filesyste
 
 ### Tempo Configuration
 ```bash
-# Visa Tempo configmap
+# Show Tempo configmap
 kubectl get configmap tempo -n observability-lab -o yaml
 
-# Kontrollera Tempo environment variables
+# Check Tempo environment variables
 kubectl get pod tempo-0 -n observability-lab -o yaml | grep -A 10 -B 5 "env:"
 
-# Visa Tempo loggar
+# Show Tempo logs
 kubectl logs tempo-0 -n observability-lab --tail=20
 
-# Kontrollera Tempo metrics
+# Check Tempo metrics
 kubectl -n observability-lab exec tempo-0 -- wget -qO- http://localhost:3200/metrics
 ```
 
 ### Trace Testing
 ```bash
-# VIKTIGT: Tempo måste ha search aktiverat för search API:et att fungera
-# Nuvarande konfiguration har INTE search aktiverat
+# IMPORTANT: Tempo must have search enabled for the search API to work
+# Current configuration does NOT have search enabled
 
-# Skicka test trace via OpenTelemetry Collector (rekommenderat)
+# Send test trace via OpenTelemetry Collector (recommended)
 curl -X POST http://otel-collector.k8s.test:4318/v1/traces \
   -H "Content-Type: application/json" \
   -d '{
@@ -290,7 +275,7 @@ curl -X POST http://otel-collector.k8s.test:4318/v1/traces \
     }]
   }'
 
-# Alternativt: Skicka direkt till Tempo (behöver port-forward)
+# Alternative: Send directly to Tempo (requires port-forward)
 # kubectl port-forward service/tempo 3200:3200 -n observability-lab &
 curl -X POST http://localhost:3200/v1/traces \
   -H "Content-Type: application/json" \
@@ -315,109 +300,24 @@ curl -X POST http://localhost:3200/v1/traces \
     }]
   }'
 
-# Verifiera att traces skrivs till S3/Minio (istället för search API)
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/tempo-traces/ | tail -5
+# IMPORTANT: Tempo must have search enabled for the search API to work
+# Current configuration does NOT have search enabled
+# Use Grafana to search traces instead
 
-# Kontrollera Tempo metrics för trace ingestion
+# Verify that traces are written to filesystem storage
+kubectl -n observability-lab exec tempo-0 -- ls -lh /var/tempo/traces/
+
+# Check Tempo metrics for trace ingestion
 kubectl -n observability-lab exec tempo-0 -- wget -qO- "http://localhost:3200/metrics" | grep -E "tempo_distributor|tempo_ingester"
 ```
 
 ---
 
-## Minio S3 Operations
+## Storage Backend
 
-### Minio Access och Navigation
-```bash
-# Port forward till Minio console
-kubectl port-forward service/minio-console 9090:9090 -n observability-lab &
+**Current setup:** Local filesystem storage via PVCs
 
-# Port forward till Minio API
-kubectl port-forward service/minio 9000:9000 -n observability-lab &
-
-# Hämta Minio admin password
-kubectl get secret minio -n observability-lab -o jsonpath='{.data.root-password}' | base64 -d && echo
-
-# Hämta Minio access key (vanligtvis 'minio')
-kubectl get secret minio -n observability-lab -o jsonpath='{.data.root-user}' | base64 -d && echo
-```
-
-### MC (Minio Client) Commands
-```bash
-# Lista Minio pods
-kubectl get pods -n observability-lab | grep minio
-
-# Exec into Minio pod för mc commands
-kubectl -n observability-lab exec -it <minio-pod-name> -- bash
-
-# Lista buckets
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls local/
-
-# Lista innehåll i Loki chunks bucket
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls local/loki-chunks/
-
-# Lista innehåll i Tempo traces bucket
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls local/tempo-traces/
-
-# Rekursiv listing för att se alla filer
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/loki-chunks/
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/tempo-traces/
-
-# Räkna antal filer i bucket
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/loki-chunks/ | wc -l
-
-# Visa detaljer för specifik fil
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc stat local/loki-chunks/<file-path>
-
-# Kopiera fil från bucket (för inspektion)
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc cp local/loki-chunks/<file-path> /tmp/
-
-# Visa bucket policy
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc policy get local/loki-chunks/
-```
-
-### S3 Bucket Testing och Verifiering
-```bash
-# Testa S3 anslutning genom att skriva testfil
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc mb local/test-bucket
-kubectl -n observability-lab exec -it <minio-pod-name> -- echo "Test S3 connectivity" | mc pipe local/test-bucket/test-file.txt
-
-# Verifiera att filen skapades
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls local/test-bucket/
-
-# Läs tillbaka filen för att testa read
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc cat local/test-bucket/test-file.txt
-
-# Rensa upp testbucket
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc rm --recursive --force local/test-bucket/
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc rb local/test-bucket
-
-# Testa bucket-anslutning utan att exec:a till pod (använd port-forward)
-# Först: kubectl port-forward service/minio 9000:9000 -n observability-lab &
-
-# Använd curl för att testa S3 API (kräver signering, enklare med mc)
-# Men för snabb test via API:
-curl -v http://localhost:9000/
-
-# Alternativt, testa med aws-cli om det finns:
-# aws --endpoint-url http://localhost:9000 s3 ls --no-verify-ssl
-```
-
-### Bucket Health Check
-```bash
-# Kontrollera att alla obligatoriska buckets finns
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls local/ | grep -E "loki-chunks|loki-ruler|tempo-traces"
-
-# Verifiera bucket-storlek och statistik
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc du local/loki-chunks/
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc du local/tempo-traces/
-
-# Kontrollera senaste aktivitet
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/loki-chunks/ | tail -10
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/tempo-traces/ | tail -10
-
-# Testa write/read performance (basic)
-kubectl -n observability-lab exec -it <minio-pod-name> -- time bash -c 'echo "Performance test data" | mc pipe local/loki-chunks/perf-test-$(date +%s).txt'
-```
+For S3/Minio setup (deprecated), see [`docs/deprecated/MINIO_SETUP.md`](deprecated/MINIO_SETUP.md)
 
 ---
 
@@ -425,20 +325,20 @@ kubectl -n observability-lab exec -it <minio-pod-name> -- time bash -c 'echo "Pe
 
 ### Collector Status
 ```bash
-# Visa OpenTelemetry Collector loggar
+# Show OpenTelemetry Collector logs
 kubectl logs -l app=otel-collector -n observability-lab --tail=20
 
-# Kontrollera collector configuration
+# Check collector configuration
 kubectl get configmap otel-collector -n observability-lab -o yaml
 
-# Testa collector endpoints
+# Test collector endpoints
 curl -X POST http://otel-collector.k8s.test:4318/v1/traces -H "Content-Type: application/json" -d '{}'
 curl -X POST http://otel-collector.k8s.test:4317/v1/traces -H "Content-Type: application/json" -d '{}'
 ```
 
 ### OTLP Testing
 ```bash
-# Skicka test spans via OTLP HTTP
+# Send test spans via OTLP HTTP
 curl -X POST http://otel-collector.k8s.test:4318/v1/traces \
   -H "Content-Type: application/json" \
   -d '{
@@ -461,27 +361,26 @@ curl -X POST http://otel-collector.k8s.test:4318/v1/traces \
     }]
   }'
 
-# Testa collector health
+# Test collector health
 curl http://otel-collector.k8s.test:13133/
 ```
 
 ---
 
-## Network och Connectivity
+## Network and Connectivity
 
 ### Service Discovery
 ```bash
-# Kontrollera DNS resolution
+# Check DNS resolution
 kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup loki.observability-lab.svc.cluster.local
 kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup tempo.observability-lab.svc.cluster.local
-kubectl run -it --rm debug --image=busybox --restart=Never -- nslookup minio.observability-lab.svc.cluster.local
 
-# Testa intern connectivity
+# Test internal connectivity
 kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I http://loki.observability-lab.svc.cluster.local:3100/ready
 kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -I http://tempo.observability-lab.svc.cluster.local:3200/ready
 ```
 
-### Port Forwarding för Lokal Access
+### Port Forwarding for Local Access
 ```bash
 # Loki
 kubectl port-forward service/loki 3100:3100 -n observability-lab &
@@ -495,29 +394,23 @@ kubectl port-forward service/prometheus 9090:80 -n observability-lab &
 # Tempo
 kubectl port-forward service/tempo 3200:3200 -n observability-lab &
 
-# Minio Console
-kubectl port-forward service/minio-console 9090:9090 -n observability-lab &
-
-# Minio API
-kubectl port-forward service/minio 9000:9000 -n observability-lab &
-
-# Lista aktiva port forwards
+# List active port forwards
 ps aux | grep "kubectl port-forward"
 
-# Stoppa alla port forwards
+# Stop all port forwards
 pkill -f "kubectl port-forward"
 ```
 
 ### Ingress Testing
 ```bash
-# Testa ingress endpoints (om konfigurerade)
+# Test ingress endpoints (if configured)
 curl -I http://grafana.k8s.test
 curl -I http://loki.k8s.test/ready
 curl -I http://tempo.k8s.test/ready
 curl -I http://prometheus.k8s.test
 curl -I http://otel-collector.k8s.test:4318/v1/traces
 
-# Kontrollera ingress configuration
+# Check ingress configuration
 kubectl get ingress -n observability-lab
 kubectl describe ingress <ingress-name> -n observability-lab
 ```
@@ -526,78 +419,78 @@ kubectl describe ingress <ingress-name> -n observability-lab
 
 ## Configuration Verification
 
-### Environment Variables och Secrets
+### Environment Variables and Secrets
 ```bash
-# Kontrollera environment variables för olika pods
+# Check environment variables for different pods
 kubectl get pod loki-0 -n observability-lab -o yaml | grep -A 20 "env:"
 kubectl get pod tempo-0 -n observability-lab -o yaml | grep -A 20 "env:"
 kubectl get pod grafana-<hash> -n observability-lab -o yaml | grep -A 20 "env:"
 
-# Verifiera S3 credentials i pods
-kubectl -n observability-lab exec loki-0 -- env | grep -E "(MINIO|S3|AWS)"
-kubectl -n observability-lab exec tempo-0 -- env | grep -E "(MINIO|S3|AWS)"
+# Check environment variables in pods
+kubectl -n observability-lab exec loki-0 -- env | sort
+kubectl -n observability-lab exec tempo-0 -- env | sort
 
-# Kontrollera mounted volumes
+# Check mounted volumes
 kubectl get pod loki-0 -n observability-lab -o yaml | grep -A 10 -B 5 "volumeMounts"
 kubectl get pod tempo-0 -n observability-lab -o yaml | grep -A 10 -B 5 "volumeMounts"
 ```
 
 ### Configuration Files
 ```bash
-# Visa Loki config fil
+# Show Loki config file
 kubectl -n observability-lab exec loki-0 -- cat /etc/loki/config/config.yaml
 
-# Visa Tempo config fil  
+# Show Tempo config file
 kubectl -n observability-lab exec tempo-0 -- cat /etc/tempo/tempo.yaml
 
-# Visa Prometheus config
+# Show Prometheus config
 kubectl -n observability-lab exec prometheus-<hash> -- cat /etc/prometheus/prometheus.yml
 ```
 
 ---
 
-## Performance och Monitoring
+## Performance and Monitoring
 
 ### Resource Usage
 ```bash
-# Kontrollera resource usage för pods
+# Check resource usage for pods
 kubectl top pods -n observability-lab
 
-# Kontrollera node resource usage
+# Check node resource usage
 kubectl top nodes
 
-# Visa resource requests och limits
+# Show resource requests and limits
 kubectl describe pods -n observability-lab | grep -E "(Requests|Limits)"
 
-# Detaljerad resource info för specifik pod
+# Detailed resource info for specific pod
 kubectl describe pod <pod-name> -n observability-lab | grep -A 10 -B 5 -E "(Requests|Limits|Containers)"
 ```
 
-### Disk Usage (Minio S3)
+### PVC Disk Usage
 ```bash
-# Kontrollera bucket storlek
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc du local/loki-chunks/
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc du local/tempo-traces/
+# Check PVC usage
+kubectl get pvc -n observability-lab
 
-# Lista stora filer
-kubectl -n observability-lab exec -it <minio-pod-name> -- mc ls --recursive local/loki-chunks/ | sort -k3 -h
+# Describe PVCs for details
+kubectl describe pvc -n observability-lab
 
-# Disk usage för Minio pod
-kubectl -n observability-lab exec <minio-pod-name> -- df -h
+# Check PV disk usage (requires exec into pods)
+kubectl -n observability-lab exec loki-0 -- df -h /var/loki
+kubectl -n observability-lab exec tempo-0 -- df -h /var/tempo
 ```
 
 ### Application Metrics
 ```bash
-# Kontrollera Loki metrics
+# Check Loki metrics
 curl http://loki.k8s.test:3100/metrics | grep loki_
 
-# Kontrollera Tempo metrics  
+# Check Tempo metrics
 curl http://tempo.k8s.test:3200/metrics | grep tempo_
 
-# Kontrollera Prometheus targets
+# Check Prometheus targets
 curl http://prometheus.k8s.test/api/v1/targets
 
-# Kontrollera Grafana health
+# Check Grafana health
 curl http://grafana.k8s.test/api/health
 ```
 
@@ -605,64 +498,65 @@ curl http://grafana.k8s.test/api/health
 
 ## Troubleshooting Playbook
 
-### Common Issues och Solutions
+### Common Issues and Solutions
 
-#### 1. Pod inte Ready/Running
+#### 1. Pod not Ready/Running
 ```bash
-# Steg 1: Kontrollera pod status
+# Step 1: Check pod status
 kubectl get pods -n observability-lab
 kubectl describe pod <pod-name> -n observability-lab
 
-# Steg 2: Kontrollera events
+# Step 2: Check events
 kubectl get events -n observability-lab --sort-by=.metadata.creationTimestamp
 
-# Steg 3: Kontrollera loggar
+# Step 3: Check logs
 kubectl logs <pod-name> -n observability-lab --previous
 kubectl logs <pod-name> -n observability-lab
 ```
 
-#### 2. Service inte Accessible
+#### 2. Service not Accessible
 ```bash
-# Steg 1: Kontrollera service endpoints
+# Step 1: Check service endpoints
 kubectl get endpoints <service-name> -n observability-lab
 
-# Steg 2: Testa intern connectivity
+# Step 2: Test internal connectivity
 kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- curl -v http://<service-name>.<namespace>.svc.cluster.local:<port>
 
-# Steg 3: Kontrollera network policies
+# Step 3: Check network policies
 kubectl get networkpolicies -n observability-lab
 ```
 
-#### 3. S3/Minio Issues
+#### 3. Storage Issues (Filesystem)
 ```bash
-# Steg 1: Kontrollera Minio pod status
-kubectl get pods -n observability-lab | grep minio
-kubectl logs <minio-pod-name> -n observability-lab
+# Check PVC status
+kubectl get pvc -n observability-lab
 
-# Steg 2: Testa S3 connectivity från pod
-kubectl -n observability-lab exec loki-0 -- wget -qO- http://minio:9000/minio/health/live
+# Check disk space in pods
+kubectl -n observability-lab exec loki-0 -- df -h /var/loki
+kubectl -n observability-lab exec tempo-0 -- df -h /var/tempo
 
-# Steg 3: Kontrollera S3 credentials
-kubectl get secret minio -n observability-lab -o yaml
+# Check for permission issues
+kubectl logs -n observability-lab loki-0 | grep -i "permission denied"
+kubectl logs -n observability-lab tempo-0 | grep -i "permission denied"
 ```
 
 #### 4. ArgoCD Sync Issues
 ```bash
-# Steg 1: Kontrollera application status
+# Step 1: Check application status
 kubectl get application observability-stack -n argocd -o yaml
 
-# Steg 2: Force refresh och sync
+# Step 2: Force refresh and sync
 ./scripts/force_argo_sync.sh
 
-# Steg 3: Kontrollera Git connectivity
+# Step 3: Check Git connectivity
 kubectl get application observability-stack -n argocd -o jsonpath='{.status.conditions}'
 ```
 
 ---
 
-## Användbar Shortcuts och Aliases
+## Useful Shortcuts and Aliases
 
-Lägg till dessa i din `.zshrc` eller `.bashrc`:
+Add these to your `.zshrc` or `.bashrc`:
 
 ```bash
 # Kubernetes aliases
@@ -686,7 +580,7 @@ alias argosync='./scripts/force_argo_sync.sh'
 # Port forwarding shortcuts
 alias pf-grafana='kubectl port-forward service/grafana 3000:80 -n observability-lab &'
 alias pf-loki='kubectl port-forward service/loki 3100:3100 -n observability-lab &'
-alias pf-minio='kubectl port-forward service/minio-console 9090:9090 -n observability-lab &'
+alias pf-tempo='kubectl port-forward service/tempo 3200:3200 -n observability-lab &'
 ```
 
 ---
