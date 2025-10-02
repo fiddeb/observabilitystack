@@ -140,12 +140,13 @@ cd observabilitystack
 ```
 
 **What happens:**
-1. Installs ArgoCD in your cluster
-2. Configures ArgoCD for HTTP access (insecure mode)
-3. Installs ArgoCD ingress for web access
-4. Deploys the complete observability stack
-5. Configures all components with lab-friendly defaults
-6. Sets up local filesystem storage for persistence
+1. Updates Helm chart dependencies (downloads required charts)
+2. Installs ArgoCD in your cluster
+3. Configures ArgoCD for HTTP access (insecure mode)
+4. Installs ArgoCD ingress for web access
+5. Deploys the complete observability stack
+6. Configures all components with lab-friendly defaults
+7. Sets up local filesystem storage for persistence
 
 **Time:** ~5-10 minutes for complete deployment
 
@@ -261,6 +262,11 @@ This allows ArgoCD to automatically sync changes from your fork when you push up
 If you prefer manual setup:
 
 ```bash
+# Update Helm dependencies first
+cd helm/stackcharts
+helm dependency update
+cd ../..
+
 # Install ArgoCD
 kubectl create namespace argocd
 kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
@@ -268,6 +274,22 @@ kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/st
 # Create the observability application (use your fork if you have one)
 kubectl apply -f argocd/observability-stack.yaml -n argocd
 ```
+
+### Updating Helm Dependencies
+
+If you need to update chart dependencies manually:
+
+```bash
+cd helm/stackcharts
+helm dependency update
+```
+
+This downloads the required Helm charts specified in `Chart.yaml`:
+- Grafana, Loki, Tempo, Prometheus
+- OpenTelemetry Collector
+- Minio (disabled by default)
+
+The downloaded charts are saved in `charts/` directory and committed to the repository for reproducible builds.
 
 ## Lab Components
 
