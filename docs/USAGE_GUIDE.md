@@ -469,6 +469,4 @@ vim helm/stackcharts/values.yaml
 
 ## Troubleshooting
 
-For detailed troubleshooting, see:
-- [Troubleshooting Commands](TROUBLESHOOTING_COMMANDS.md) - Complete command reference
-- [Quick Troubleshooting](QUICK_TROUBLESHOOTING.md) - Emergency procedures
+For detailed troubleshooting, see [Troubleshooting Guide](TROUBLESHOOTING.md) - Emergency procedures, debugging, and complete command reference.

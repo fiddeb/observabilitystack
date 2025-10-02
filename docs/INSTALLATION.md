@@ -49,6 +49,7 @@ Add these entries to your `/etc/hosts` file:
 127.0.0.1 otel-collector.k8s.test
 127.0.0.1 argocd.k8s.test
 ```
+
 #### Option 2: dnsmasq (Recommended for Labs)
 Set up wildcard DNS resolution for `*.k8s.test` domains:
 
@@ -134,15 +135,6 @@ If you prefer not to configure DNS, you can access everything via port forwardin
 - **Memory:** 4GB RAM (recommended: 8GB RAM)
 - **Storage:** 10GB available disk space
 
-**Resource Optimization:**
-The stack is optimized for development environments:
-- **Loki:** 200m CPU request, 500m CPU limit, 512Mi-1Gi memory
-- **Prometheus:** Default resource limits  
-- **Grafana:** Minimal resource usage
-- **OpenTelemetry Collector:** 100m CPU, 128Mi memory
-
-
-
 ## Installation
 
 ### Fork the Repository (Recommended)
@@ -196,8 +188,6 @@ cd observabilitystack
 6. Configures all components with lab-friendly defaults
 7. Sets up local filesystem storage for persistence
 
-**Time:** ~5-10 minutes for complete deployment
-
 **After installation, ArgoCD is immediately accessible at:**
 - **URL:** http://argocd.k8s.test
 - **Username:** admin  
@@ -235,14 +225,6 @@ kubectl port-forward svc/argocd-server -n argocd 8080:80 &
 # Username: admin
 # Password: (same as above)
 ```
-
-### ArgoCD Configuration
-
-The installation script automatically configures ArgoCD with:
-- **HTTP access** (insecure mode for lab use)
-- **Ingress setup** for web access via http://argocd.k8s.test
-- **Observability stack application** for GitOps management
-
 #### Get ArgoCD Credentials
 ```bash
 # Username is always: admin
@@ -335,7 +317,7 @@ helm dependency update
 This downloads the required Helm charts specified in `Chart.yaml`:
 - Grafana, Loki, Tempo, Prometheus
 - OpenTelemetry Collector
-- Minio (disabled by default)
+
 
 The downloaded charts are saved in `charts/` directory and committed to the repository for reproducible builds.
 
@@ -350,10 +332,9 @@ The installation deploys a complete observability stack:
 - **Grafana** - Unified visualization dashboard (pre-configured datasources)
 
 **Lab Features:**
-- Default credentials for easy access
+- No login credentials for easy access for Grafana
 - Pre-configured data sources in Grafana
 - Local filesystem storage for data persistence across restarts
-- Simplified setup without S3 complexity
 
 ## Verification
 
@@ -370,8 +351,8 @@ kubectl get application observability-stack -n argocd
 After installation, your observability lab is available at:
 
 - **Grafana** (Main Dashboard): http://grafana.k8s.test 
-  - **Credentials**: admin/admin (default lab credentials)
-  - **Features**: Pre-configured datasources with multi-tenant support, sample dashboards
+  - **Credentials**: No credentials needed (disable_login: false to use default admin/admin)
+  - **Features**: Pre-configured datasources with multi-tenant support for logs
   - **Data Sources**: Prometheus, Loki (foo tenant), Loki (bazz tenant), Tempo
 - **ArgoCD** (GitOps Management): http://argocd.k8s.test
   - **Username**: admin
@@ -398,7 +379,7 @@ kubectl wait --for=condition=complete job/telemetrygen-traces -n observability-l
 ```
 # Verify in Grafana
 Open Grafana and check:
-- **Metrics**: Explore → Prometheus → `telemetrygen_tests_total`
+- **Metrics**: Explore → Prometheus → `gen{}`
 - **Logs (foo tenant)**: Explore → Loki → `{job="telemetrygen"}`
 - **Logs (bazz tenant)**: Explore → Loki-bazz → `{job="audit-logs"}` 
 - **Traces**: Explore → Tempo → `{service.name="telemetrygen"}`
@@ -408,34 +389,6 @@ Open Grafana and check:
 ## Troubleshooting Lab Setup
 
 ### Repository Setup Issues?
-
-**Error: "No such file or directory: argocd/observability-stack.yaml"**
-```bash
-# Make sure you're in the project root directory
-cd /path/to/observabilitystack
-./scripts/setup_argocd.sh
-```
-
-**Error: "No git remote 'origin' found"**
-```bash
-# Add git remote if missing
-git remote add origin https://github.com/YOUR_USERNAME/observabilitystack.git
-
-# Or check existing remotes
-git remote -v
-```
-
-**Script detects wrong repository**
-```bash
-# Check your git remote
-git remote get-url origin
-
-# Update to your fork if needed
-git remote set-url origin https://github.com/YOUR_USERNAME/observabilitystack.git
-
-# Run setup script again
-./scripts/setup_argocd.sh
-```
 
 **ArgoCD application not updating**
 ```bash
@@ -463,11 +416,6 @@ kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 # - ArgoCD: https://localhost:8080 (admin/<get-password>)
 ```
 
-**Get ArgoCD Password:**
-```bash
-kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
-```
-
 **Solution 2 - Check DNS Configuration**
 ```bash
 # Test DNS resolution
@@ -493,8 +441,7 @@ kubectl get events -n observability-lab --sort-by=.metadata.creationTimestamp | 
 ```
 
 ### Need More Help?
-- **[Quick Troubleshooting Guide](QUICK_TROUBLESHOOTING.md)** - Emergency procedures
-- **[Complete Command Reference](TROUBLESHOOTING_COMMANDS.md)** - All debugging commands
+- **[Troubleshooting Guide](TROUBLESHOOTING.md)** - Emergency procedures and complete command reference
 
 ## Next Steps - Start Learning!
 

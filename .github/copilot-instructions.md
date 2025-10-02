@@ -16,16 +16,24 @@ This repo is small by design. If some folders are not present yet, treat them as
 
     •	/scripts: helper scripts (e.g., [`install_argo.sh`](scripts/install_argo.sh) for ArgoCD bootstrap, [`force_argo_sync.sh`](scripts/force_argo_sync.sh) for manual syncing)
     •	/helm: Helm charts and values organized by component
-        ◦	/helm/stackcharts: umbrella chart for the entire observability stack ([`Chart.yaml`](helm/stackcharts/Chart.yaml), [`values.yaml`](helm/stackcharts/values.yaml))
-        ◦	/helm/tempo: legacy Tempo configurations (deprecated - use stackcharts umbrella chart)
-        ◦	/helm/grafana, /helm/loki, /helm/opentelemetry, /helm/prometheus: component-specific configurations
-    •	/argocd: ArgoCD application manifests ([`observability-stack.yaml`](argocd/observability-stack.yaml) for GitOps deployment)
+        ◦	/helm/stackcharts: umbrella chart for the entire observability stack
+            - [`Chart.yaml`](helm/stackcharts/Chart.yaml): Chart dependencies and versions
+            - [`values/`](helm/stackcharts/values/): Split configuration files (one per component)
+                - `base.yaml`: Component enable/disable flags
+                - `loki.yaml`, `tempo.yaml`, `prometheus.yaml`, `grafana.yaml`, etc.: Component-specific configurations
+            - [`charts/`](helm/stackcharts/charts/): Downloaded dependency charts (.tgz files)
+    •	/argocd: ArgoCD application manifests ([`observability-stack.yaml`](argocd/observability-stack.yaml) for GitOps deployment with multi-values support)
     •	/app: demo applications with telemetry instrumentation
     •	/metrics: collected metrics and monitoring data
-    •	/docs (optional): extra notes, runbooks, and troubleshooting guides  
+    •	/docs: comprehensive documentation
+        ◦	[`ARCHITECTURE.md`](docs/ARCHITECTURE.md): Umbrella chart pattern, multi-values configuration, and design decisions
+        ◦	[`INSTALLATION.md`](docs/INSTALLATION.md): Complete setup instructions
+        ◦	[`USAGE_GUIDE.md`](docs/USAGE_GUIDE.md): How to use the system
+        ◦	[`TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md): Emergency procedures, debugging, and complete command reference
+        ◦	[`GIT_WORKFLOW.md`](docs/GIT_WORKFLOW.md): Git and development workflow guidelines
     •	/dashboards (optional): Grafana dashboard JSON models and provisioning
-    •	/manifests (optional): any raw Kubernetes manifests used alongside Helm
-    •	project root: [`README.md`](README.md), [`LICENSE`](LICENSE), [`manifests/`](manifests/) for Kubernetes manifests
+    •	/manifests: Kubernetes manifests (ArgoCD ingress, test jobs)
+    •	project root: [`README.md`](README.md), [`LICENSE`](LICENSE)
 
 ⸻
 
@@ -62,8 +70,7 @@ Documentation Standards
 	•	File organization:
 		◦	/docs/INSTALLATION.md: Complete setup instructions from zero to working system
 		◦	/docs/USAGE_GUIDE.md: How to use the system once installed
-		◦	/docs/TROUBLESHOOTING_COMMANDS.md: Comprehensive command reference for debugging
-		◦	/docs/QUICK_TROUBLESHOOTING.md: Emergency procedures and fast recovery steps
+		◦	/docs/TROUBLESHOOTING.md: Emergency procedures, debugging, and complete command reference
 		◦	/docs/GIT_WORKFLOW.md: Git and development workflow guidelines
 	•	Cross-references: Always link between related documentation sections
 	•	Verification: Include verification steps and expected results for all procedures

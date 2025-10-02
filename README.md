@@ -12,7 +12,7 @@ A **development and learning** observability platform built on **OpenTelemetry**
 - **Tempo** - High-scale distributed tracing with local filesystem storage
 - **Prometheus** - Metrics collection with remote write support
 - **ArgoCD** - GitOps deployment and management
-- **Multi-Tenant Architecture** - Separate data isolation with 'foo' and 'bazz' tenants
+- **Multi-Tenant Architecture** - Separate data isolation with 'foo' and 'bazz' tenants for logs
 - **Resource Optimized** - Runs efficiently on local development machines
 - **Lab-Friendly** - Easy setup for development, learning, and testing
 - **Educational** - Great for understanding observability and multi-tenancy concepts
@@ -69,7 +69,7 @@ Verify everything works end-to-end:
 kubectl apply -f manifests/telemetry-test-jobs.yaml
 
 # Check results in Grafana
-"Metrics: Navigate to Prometheus → telemetrygen_tests_total"
+"Metrics: Navigate to Prometheus → gen{}"
 "Logs: Navigate to Loki → {job=\"telemetrygen-logs\"}"  
 "Traces: Navigate to Tempo → {service.name=\"telemetrygen\"}"
 ```
@@ -81,29 +81,53 @@ observabilitystack/
 ├── argocd/                    # ArgoCD application definitions
 │   └── observability-stack.yaml
 ├── docs/                      # Documentation
-│   ├── ARCHITECTURE.md        # Design & concepts
+│   ├── ARCHITECTURE.md        # Design & concepts (umbrella chart pattern)
 │   ├── INSTALLATION.md
 │   ├── USAGE_GUIDE.md
 │   └── ...
-├── helm/stackcharts/          # Helm charts for the observability stack
-│   ├── Chart.yaml
-│   ├── values.yaml
-│   └── charts/
+├── helm/stackcharts/          # Helm umbrella chart
+│   ├── Chart.yaml             # Chart dependencies
+│   ├── values/                # Split configuration (one file per component)
+│   │   ├── base.yaml              # Component enable/disable flags
+│   │   ├── loki.yaml              # Loki configuration
+│   │   ├── tempo.yaml             # Tempo configuration
+│   │   ├── prometheus.yaml        # Prometheus configuration
+│   │   ├── grafana.yaml           # Grafana configuration
+│   │   ├── minio.yaml             # Minio configuration (disabled)
+│   │   └── opentelemetry-collector.yaml  # OTel configuration
+│   └── charts/                # Downloaded dependency charts (.tgz)
 ├── manifests/                 # Kubernetes manifests
 │   ├── argocd-ingress.yaml    # ArgoCD web access
 │   └── telemetry-test-jobs.yaml # Test workloads
 ├── scripts/                   # Automation scripts
 │   ├── install_argo.sh        # Complete installation
 │   ├── force_argo_sync.sh     # ArgoCD sync management
-│   └── merge_feature.sh       # Git workflow
+│   ├── merge_feature.sh       # Git workflow
+│   └── test_multi_values.sh   # Validate configuration
 └── app/                       # Example applications
     └── src/demo/
 ```
 
+## Configuration
+
+The stack uses a **multi-values** approach for better organization:
+
+- **`helm/stackcharts/values/base.yaml`** - Control which components are installed
+- **Component-specific files** - One file per component (loki.yaml, grafana.yaml, etc.)
+
+**Example: Disable Tempo to save resources**
+```bash
+# Edit helm/stackcharts/values/base.yaml
+tempo:
+  enabled: false
+```
+
+See [Architecture Guide](docs/ARCHITECTURE.md) for detailed configuration patterns.
+
 ## Documentation
 
 ### Architecture & Concepts
-- **[Architecture Guide](docs/ARCHITECTURE.md)** - **Design, patterns, and customization concepts**
+- **[Architecture Guide](docs/ARCHITECTURE.md)** - **Umbrella chart pattern, multi-values configuration, and customization**
 
 ### Getting Started
 - **[Installation Guide](docs/INSTALLATION.md)** - Complete setup instructions
@@ -111,8 +135,7 @@ observabilitystack/
 
 ### Operations  
 - **[Git Workflow](docs/GIT_WORKFLOW.md)** - Branch management and deployment
-- **[Quick Troubleshooting](docs/QUICK_TROUBLESHOOTING.md)** - Emergency procedures
-- **[Troubleshooting Commands](docs/TROUBLESHOOTING_COMMANDS.md)** - Complete command reference
+- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Emergency procedures, debugging, and complete command reference
 
 ### Automation
 - **[force_argo_sync.sh](scripts/force_argo_sync.sh)** - Intelligent ArgoCD sync
@@ -126,23 +149,6 @@ observabilitystack/
 
 # Get ArgoCD admin password
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d && echo
-
-# Send test log to 'foo' tenant
-curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" \
-     -XPOST "http://loki.k8s.test/loki/api/v1/push" \
-     -d '{"streams":[{"stream":{"job":"test"},"values":[["'$(date +%s%N)'","Hello from foo tenant!"]]}]}'
-
-# Send test log to 'bazz' tenant  
-curl -H "Content-Type: application/json" -H "X-Scope-OrgID: bazz" \
-     -XPOST "http://loki.k8s.test/loki/api/v1/push" \
-     -d '{"streams":[{"stream":{"job":"test"},"values":[["'$(date +%s%N)'","Hello from bazz tenant!"]]}]}'
-
-# Query logs from specific tenant
-logcli query --addr=http://loki.k8s.test --org-id="foo" '{job="test"}' --since=5m
-logcli query --addr=http://loki.k8s.test --org-id="bazz" '{job="test"}' --since=5m
-
-# Check persistent volumes
-kubectl get pv,pvc -n observability-lab
 ```
 
 ## Troubleshooting
@@ -157,7 +163,7 @@ kubectl port-forward service/grafana 3000:80 -n observability-lab &
 kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 ```
 
-**Need help?** Check [Quick Troubleshooting](docs/QUICK_TROUBLESHOOTING.md) for emergency procedures.
+**Need help?** Check [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for emergency procedures and debugging commands.
 
 ## Contributing
 
@@ -172,6 +178,8 @@ git checkout -b feat/my-awesome-feature
 
 # Merge safely
 ./scripts/merge_feature.sh feat/my-awesome-feature
+
+or create pull request :)
 ```
 
 ## License
