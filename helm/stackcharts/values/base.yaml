@@ -8,7 +8,7 @@ tempo:
   enabled: true
 
 prometheus:
-  enabled: true
+  enabled: false
 
 grafana:
   enabled: true
