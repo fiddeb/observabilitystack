@@ -33,33 +33,73 @@ This document explains the **design decisions**, **architectural patterns**, and
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│                    ObservabilityStack                       │
-├─────────────────────────────────────────────────────────────┤
-│                                                             │
-│  ┌──────────────┐    ┌──────────────┐    ┌──────────────┐   │
-│  │   ArgoCD     │    │  Traefik     │    │   Storage    │   │
-│  │  (GitOps)    │    │  (Ingress)   │    │(Filesystem)  │   │
-│  └──────────────┘    └──────────────┘    └──────────────┘   │
-│                                                             │
-│  ┌──────────────────────────────────────────────────────────┤
-│  │              Observability Components                    │
-│  ├──────────────────────────────────────────────────────────┤
-│  │                                                          │
-│  │  ┌──────────┐  ┌──────────┐  ┌──────────┐  ┌─────────┐   │
-│  │  │   Loki   │  │  Tempo   │  │Prometheus│  │ Grafana │   │
-│  │  │ (Logs)   │  │(Traces)  │  │(Metrics) │  │  (UI)   │   │
-│  │  └──────────┘  └──────────┘  └──────────┘  └─────────┘   │
-│  │                                                          │
-│  │  ┌────────────────────────────────────────────────────┐  │
-│  │  │        OpenTelemetry Collector                     │  │
-│  │  │         (Telemetry Pipeline)                       │  │
-│  │  └────────────────────────────────────────────────────┘  │
-│  └──────────────────────────────────────────────────────────┤
-└─────────────────────────────────────────────────────────────┘
-```
+```mermaid
+flowchart TB
+subgraph ObservabilityStack
+    subgraph External[External Access]
+        User[User Browser]
+    end
 
+    subgraph GitOps[GitOps and Deployment]
+        Git[Git Repository]
+        ArgoCD[ArgoCD Controller]
+        Helm[Helm Umbrella Chart]
+    end
+
+    subgraph Ingress[Ingress Layer]
+        Traefik[Traefik]
+    end
+
+    subgraph Pipeline[Telemetry Pipeline]
+        OTel[OTel Collector]
+    end
+
+    subgraph Backend[Storage Backends]
+        Loki[Loki - Logs]
+        Prometheus[Prometheus - Metrics]
+        Tempo[Tempo - Traces]
+    end
+
+    subgraph UI[Visualization]
+        Grafana[Grafana]
+    end
+end
+    %% GitOps Flow
+    Git -->|Sync| ArgoCD
+    ArgoCD -->|Deploy| Helm
+    Helm -.->|Install| Pipeline
+    Helm -.->|Install| Backend
+    Helm -.->|Install| UI
+    Helm -.->|Install| Ingress
+
+    %% Data Flow
+    OTel -->|Logs| Loki
+    OTel -->|Metrics| Prometheus
+    OTel -->|Traces| Tempo
+
+    %% Query Flow
+    Grafana -.->|Query| Loki
+    Grafana -.->|Query| Prometheus
+    Grafana -.->|Query| Tempo
+
+    %% User Access
+    User -->|HTTP| Traefik
+    Traefik -->|Route| Grafana
+    Traefik -->|Route| OTel
+
+    %% Styling
+    classDef gitops fill:#326CE5,stroke:#1558d6,color:#fff
+    classDef data fill:#F46800,stroke:#d45500,color:#fff
+    classDef storage fill:#00B3E6,stroke:#0099cc,color:#fff
+    classDef ui fill:#52C41A,stroke:#389e0d,color:#fff
+    classDef ingress fill:#722ED1,stroke:#531dab,color:#fff
+
+    class Git,ArgoCD,Helm gitops
+    class OTel data
+    class Loki,Prometheus,Tempo storage
+    class Grafana ui
+    class Traefik ingress
+```
 ### Component Responsibilities
 
 | Component | Role | Function |
