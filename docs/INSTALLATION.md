@@ -49,12 +49,10 @@ Add these entries to your `/etc/hosts` file:
 127.0.0.1 otel-collector.k8s.test
 127.0.0.1 argocd.k8s.test
 ```
-
-**Pros**: Simple, no additional tools needed  
-**Cons**: Must manually add each subdomain
-
 #### Option 2: dnsmasq (Recommended for Labs)
 Set up wildcard DNS resolution for `*.k8s.test` domains:
+
+##### macOS Setup
 
 ```bash
 # Install dnsmasq (macOS with Homebrew)
@@ -71,10 +69,60 @@ echo "nameserver 127.0.0.1" | sudo tee /etc/resolver/k8s.test
 
 # Start dnsmasq
 sudo brew services start dnsmasq
+
+# Verify DNS resolution
+dig grafana.k8s.test @127.0.0.1
 ```
 
-**Pros**: Automatic resolution for any `*.k8s.test` subdomain  
-**Cons**: Requires additional setup
+##### Linux Setup
+
+**Ubuntu/Debian:**
+```bash
+# Install dnsmasq
+sudo apt-get update
+sudo apt-get install -y dnsmasq
+
+# Configure dnsmasq for wildcard resolution
+echo "listen-address=127.0.0.1" | sudo tee -a /etc/dnsmasq.conf
+echo "bind-interfaces" | sudo tee -a /etc/dnsmasq.conf
+echo "address=/.k8s.test/127.0.0.1" | sudo tee -a /etc/dnsmasq.conf
+
+# Configure NetworkManager to use dnsmasq
+echo -e "[main]\ndns=dnsmasq" | sudo tee /etc/NetworkManager/conf.d/dnsmasq.conf
+
+# Restart services
+sudo systemctl restart dnsmasq
+sudo systemctl restart NetworkManager
+
+# Verify DNS resolution
+dig grafana.k8s.test @127.0.0.1
+```
+
+**Fedora/RHEL/CentOS:**
+```bash
+# Install dnsmasq
+sudo dnf install -y dnsmasq  # or: sudo yum install -y dnsmasq
+
+# Configure dnsmasq for wildcard resolution
+echo "listen-address=127.0.0.1" | sudo tee -a /etc/dnsmasq.conf
+echo "bind-interfaces" | sudo tee -a /etc/dnsmasq.conf
+echo "address=/.k8s.test/127.0.0.1" | sudo tee -a /etc/dnsmasq.conf
+
+# Configure NetworkManager to use dnsmasq
+echo -e "[main]\ndns=dnsmasq" | sudo tee /etc/NetworkManager/conf.d/dnsmasq.conf
+
+# Restart services
+sudo systemctl restart dnsmasq
+sudo systemctl restart NetworkManager
+
+# Verify DNS resolution
+dig grafana.k8s.test @127.0.0.1
+```
+
+##### Windows Setup
+
+**Windows users:** Use Option 1 (static hosts file) at `C:\Windows\System32\drivers\etc\hosts` (requires admin privileges). Wildcard DNS setup on Windows requires more complex configurations beyond the scope of this lab.
+
 
 #### Option 3: No DNS (Port Forwarding Only)
 If you prefer not to configure DNS, you can access everything via port forwarding (see Troubleshooting section).

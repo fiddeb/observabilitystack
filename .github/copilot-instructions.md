@@ -38,6 +38,13 @@ Libraries and Frameworks
 
 ⸻
 
+Platform Support
+	•	Primary: macOS and Linux (fully documented and tested)
+	•	Limited: Windows (basic guidance only - static hosts file approach)
+	•	Note: Project maintainer has deep experience with macOS/Linux; Windows support is minimal and community-driven
+
+⸻
+
 Coding Standards
 	•	Shell (bash): POSIX-ish, set -Eeuo pipefail; echo intent before actions
 	•	YAML: 2-space indent, comment non-defaults, prefer small diffs; keep overrides in separate files (e.g., *-local.yaml)
@@ -88,9 +95,10 @@ Branching Policy
 Operations Guidelines
 	•	Install (GitOps): ./scripts/install_argo.sh - installs ArgoCD and deploys the complete observability stack
 	•	Manual sync: ./scripts/force_argo_sync.sh - forces ArgoCD to sync changes from Git
-	•	Ingress/Hosts: configure dnsmasq for wildcard DNS resolution:
-		◦	Configure dnsmasq: address=/.k8s.test/127.0.0.1 in /opt/homebrew/etc/dnsmasq.conf
-		◦	Setup resolver: echo "nameserver 127.0.0.1" > /etc/resolver/k8s.test
+	•	Ingress/Hosts: configure dnsmasq for wildcard DNS resolution (see docs/INSTALLATION.md for platform-specific instructions):
+		◦	macOS: address=/.k8s.test/127.0.0.1 in /opt/homebrew/etc/dnsmasq.conf + /etc/resolver/k8s.test
+		◦	Linux: address=/.k8s.test/127.0.0.1 in /etc/dnsmasq.conf + NetworkManager/systemd-resolved integration
+		◦	Windows: Use static hosts file (wildcard DNS not supported in lab setup)
 	•	Access:
 	•	Grafana: http://grafana.k8s.test (anonymous by default). To enable login, set in grafana_values.yaml:
 
