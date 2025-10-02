@@ -1,0 +1,20 @@
+# Base configuration - Component enable/disable flags
+# This file controls which components are installed
+
+loki:
+  enabled: true
+
+tempo:
+  enabled: true
+
+prometheus:
+  enabled: true
+
+grafana:
+  enabled: true
+
+minio:
+  enabled: false
+
+opentelemetry-collector:
+  enabled: true

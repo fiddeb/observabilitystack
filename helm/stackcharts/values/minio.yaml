@@ -1,0 +1,18 @@
+# Minio configuration
+# S3-compatible object storage (DISABLED - using local filesystem instead)
+
+minio:
+  fullnameOverride: minio
+  auth:
+    rootUser: "minio"
+    rootPassword: "minio123"
+  defaultBuckets: "tempo-traces,loki-chunks,loki-ruler,loki-admin"
+  persistence:
+    enabled: false
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"

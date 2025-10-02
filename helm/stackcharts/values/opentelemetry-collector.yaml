@@ -1,0 +1,111 @@
+# OpenTelemetry Collector configuration
+# Central telemetry ingestion and routing
+
+opentelemetry-collector:
+  fullnameOverride: "otel-collector"
+  
+  mode: "deployment"
+  
+  image:
+    repository: "otel/opentelemetry-collector-contrib"
+    tag: "latest"
+    pullPolicy: "IfNotPresent"
+  
+  command:
+    name: "otelcol-contrib"
+  
+  config:
+    receivers:
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+    
+    processors:
+      batch: {}
+      memory_limiter:
+        limit_mib: 128
+    connectors:
+      routing:
+        default_pipelines: [logs/default]
+        table:
+          - context: log
+            statement: |
+              route() where
+                attributes["dev.audit.category"] != nil or
+                attributes["dev.audit.severity"] != nil
+            pipelines: [logs/audit]
+
+    exporters:
+      debug/default:
+        verbosity: basic
+      
+      debug/audit: 
+        verbosity: detailed
+      # Traces to Tempo
+      otlp/tempo:
+        endpoint: http://tempo.observability-lab.svc.cluster.local:4317
+        tls:
+          insecure: true
+      
+      # Logs to Loki
+      otlphttp/default:
+        logs_endpoint: http://loki-gateway.observability-lab.svc.cluster.local/otlp/v1/logs
+        headers:
+          "X-Scope-OrgID": foo
+      # Logs to Loki
+      otlphttp/bazz:
+        logs_endpoint: http://loki-gateway.observability-lab.svc.cluster.local/otlp/v1/logs
+        headers:
+          "X-Scope-OrgID": bazz
+      # Metrics to Prometheus remote write
+      prometheusremotewrite:
+        endpoint: http://prometheus.observability-lab.svc.cluster.local:80/api/v1/write
+        tls:
+          insecure: true
+    
+    service:
+      pipelines:
+        traces:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlp/tempo]
+        
+        logs:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [routing]
+        
+        metrics:
+          receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [prometheusremotewrite]
+        logs/default:
+          receivers: [routing]
+          processors: [memory_limiter, batch]
+          exporters: [otlphttp/default]
+        logs/audit:
+          receivers: [routing]
+          processors: [memory_limiter, batch]
+          exporters: [otlphttp/bazz, debug/audit]
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "250m"
+      memory: "256Mi"
+
+  ingress:
+    enabled: true
+    ingressClassName: "traefik"
+    annotations: {}
+    hosts:
+      - host: otel-collector.k8s.test
+        paths:
+          - path: /
+            pathType: Prefix
+            port: 4318

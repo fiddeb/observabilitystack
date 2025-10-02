@@ -7,8 +7,17 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/fiddeb/observabilitystack.git'
-    targetRevision: main   # auto-synced with current branch
+    targetRevision: feature/refactor   # auto-synced with current branch
     path: helm/stackcharts
+    helm:
+      valueFiles:
+        - values/base.yaml
+        - values/loki.yaml
+        - values/tempo.yaml
+        - values/prometheus.yaml
+        - values/grafana.yaml
+        - values/minio.yaml
+        - values/opentelemetry-collector.yaml
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: observability-lab
