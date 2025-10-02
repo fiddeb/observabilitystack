@@ -11,10 +11,10 @@ dependencies:
     version: "1.23.3"
     repository: "https://grafana.github.io/helm-charts"
     condition: tempo.enabled
-  - name: tempo2
-    version: "1.23.3"
-    repository: "https://grafana.github.io/helm-charts"
-    condition: tempo2.enabled
+  #- name: tempo2
+  #  version: "1.23.3"
+  #  repository: "https://grafana.github.io/helm-charts"
+  #  condition: tempo2.enabled
     
   - name: prometheus
     version: "27.30.0"
