@@ -266,7 +266,7 @@ rate(http_requests_total[5m])
 container_memory_usage_bytes
 
 # Custom metrics from OpenTelemetry
-telemetrygen_tests_total
+gen{}
 ```
 
 #### Loki Queries
@@ -301,7 +301,7 @@ sum(count_over_time({service_name="web-service"} |~ "HTTP request" [1m])) by (se
 sum(count_over_time({category="audit"} [1h])) by (category)
 ```
 
-> 📊 **Tenant Isolation**: Switch between datasources in Grafana to view logs from different tenants. Each tenant's data is completely isolated.
+> **Tenant Isolation**: Switch between datasources in Grafana to view logs from different tenants. Each tenant's data is completely isolated.
 
 #### Tempo Queries
 ```

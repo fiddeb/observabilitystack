@@ -537,14 +537,6 @@ curl -X POST http://otel-collector.k8s.test:4318/v1/traces \
 # Use OpenTelemetry SDK or grpcurl for testing
 ```
 
-### OTLP Routing Verification
-```bash
-# Check routing processor logs
-kubectl logs -n observability-lab deployment/otel-collector | grep routing
-
-# Check that logs with dev.audit.category go to bazz tenant
-kubectl logs -n observability-lab deployment/otel-collector | grep -i "dev.audit.category"
-```
 
 ---
 
@@ -608,10 +600,8 @@ pkill -f "kubectl port-forward"
 ### Ingress Testing
 ```bash
 # Test ingress endpoints
-curl -I http://grafana.k8s.test
-curl -I http://loki.k8s.test/ready
-curl -I http://tempo.k8s.test/ready
-curl -I http://prometheus.k8s.test
+curl -s http://grafana.k8s.test
+curl -s http://loki.k8s.test/ready
 
 # Check ingress resources
 kubectl get ingress -n observability-lab
@@ -827,11 +817,6 @@ kubectl logs -l app=otel-collector -n observability-lab --tail=50
 curl -H "Content-Type: application/json" -H "X-Scope-OrgID: foo" \
   -XPOST "http://loki.k8s.test/loki/api/v1/push" \
   -d '{"streams":[{"stream":{"job":"debug"},"values":[["'$(date +%s%N)'","Debug test"]]}]}'
-
-# For Tempo (via OTLP):
-curl -X POST http://otel-collector.k8s.test:4318/v1/traces \
-  -H "Content-Type: application/json" \
-  -d '{"resourceSpans":[{"instrumentationLibrarySpans":[{"spans":[]}]}]}'
 
 # Step 4: Check storage
 kubectl -n observability-lab exec loki-0 -- ls -lh /var/loki/chunks/
