@@ -870,6 +870,201 @@ kubectl describe pvc -n observability-lab
 ```
 ---
 
+## Cleanup and Uninstall
+
+### Quick Cleanup - Keep Cluster Running
+
+Remove the observability stack but keep ArgoCD and cluster infrastructure:
+
+```bash
+# 1. Delete the ArgoCD application (keeps ArgoCD itself)
+kubectl delete application observability-stack -n argocd
+
+# 2. Verify resources are being removed
+kubectl get pods -n observability-lab --watch
+
+# 3. Clean up namespace (if empty)
+kubectl delete namespace observability-lab
+
+# 4. Remove ingress rules
+kubectl delete ingress -n observability-lab --all
+
+# 5. Clean up any orphaned PVCs (⚠️ deletes data!)
+kubectl get pvc -n observability-lab
+kubectl delete pvc --all -n observability-lab
+```
+
+### Full Uninstall - Remove Everything
+
+Complete removal including ArgoCD and all configurations:
+
+```bash
+# 1. Delete observability stack
+kubectl delete application observability-stack -n argocd
+
+# 2. Wait for resources to be removed
+kubectl wait --for=delete namespace/observability-lab --timeout=120s || true
+
+# 3. Uninstall ArgoCD
+kubectl delete namespace argocd
+
+# 4. Remove ArgoCD CRDs
+kubectl delete crd applications.argoproj.io
+kubectl delete crd applicationsets.argoproj.io
+kubectl delete crd appprojects.argoproj.io
+
+# 5. Clean up any remaining PVs (⚠️ deletes all data!)
+kubectl get pv | grep observability-lab
+kubectl delete pv -l app.kubernetes.io/part-of=observability-stack
+
+# 6. Remove local Git repository artifacts (optional)
+rm -rf /Users/faar/Documents/Src/github/fiddeb/observabilitystack/helm/stackcharts/charts/*.tgz
+rm -f /Users/faar/Documents/Src/github/fiddeb/observabilitystack/helm/stackcharts/Chart.lock
+```
+
+### Selective Component Removal
+
+Remove individual components while keeping the rest:
+
+#### Disable Component via Helm Values
+
+```bash
+# 1. Edit helm/stackcharts/values/base.yaml
+# Set component.enabled: false (e.g., tempo.enabled: false)
+
+# 2. Commit and push changes
+git add helm/stackcharts/values/base.yaml
+git commit -m "feat: disable tempo component"
+git push origin main
+
+# 3. Force ArgoCD sync
+./scripts/force_argo_sync.sh
+
+# 4. Clean up component PVCs (⚠️ deletes data!)
+kubectl delete pvc -l app.kubernetes.io/name=tempo -n observability-lab
+```
+
+#### Manual Component Removal
+
+```bash
+# Example: Remove Tempo
+kubectl delete statefulset tempo -n observability-lab
+kubectl delete service tempo -n observability-lab
+kubectl delete configmap tempo -n observability-lab
+kubectl delete pvc -l app.kubernetes.io/name=tempo -n observability-lab
+```
+
+### Reset to Clean State
+
+Start fresh without reinstalling cluster:
+
+```bash
+# 1. Remove observability stack
+kubectl delete application observability-stack -n argocd
+kubectl delete namespace observability-lab --wait=true
+
+# 2. Recreate namespace
+kubectl create namespace observability-lab
+
+# 3. Reinstall via ArgoCD
+./scripts/force_argo_sync.sh
+
+# 4. Wait for healthy state
+kubectl wait --for=condition=ready pod --all -n observability-lab --timeout=300s
+```
+
+### DNS Cleanup (macOS/Linux)
+
+If you want to remove the `*.k8s.test` DNS configuration:
+
+#### macOS
+```bash
+# 1. Remove resolver configuration
+sudo rm /etc/resolver/k8s.test
+
+# 2. Restart DNS (optional)
+sudo killall -HUP mDNSResponder
+
+# 3. Remove dnsmasq configuration (if you want to uninstall dnsmasq)
+# Edit /opt/homebrew/etc/dnsmasq.conf and remove: address=/.k8s.test/127.0.0.1
+brew services stop dnsmasq
+# brew uninstall dnsmasq  # Only if you don't need it for anything else
+```
+
+#### Linux
+```bash
+# 1. Remove dnsmasq configuration
+sudo sed -i '/address=\/.k8s.test\/127.0.0.1/d' /etc/dnsmasq.conf
+
+# 2. Restart dnsmasq
+sudo systemctl restart dnsmasq
+# or
+sudo service dnsmasq restart
+```
+
+### Verification After Cleanup
+
+Confirm everything is removed:
+
+```bash
+# Check namespaces
+kubectl get namespace | grep -E 'observability-lab|argocd'
+
+# Check PVs (should show none for observability-lab)
+kubectl get pv | grep observability-lab
+
+# Check ingress
+kubectl get ingress --all-namespaces
+
+# Test DNS (should fail or timeout)
+curl -s --max-time 5 http://grafana.k8s.test || echo "✅ Grafana endpoint removed"
+curl -s --max-time 5 http://loki.k8s.test/ready || echo "✅ Loki endpoint removed"
+```
+
+### Troubleshooting Cleanup Issues
+
+#### Namespace Stuck in Terminating
+
+```bash
+# 1. Check for finalizers
+kubectl get namespace observability-lab -o json | jq '.spec.finalizers'
+
+# 2. Force remove finalizers (⚠️ use with caution!)
+kubectl get namespace observability-lab -o json \
+  | jq 'del(.spec.finalizers)' \
+  | kubectl replace --raw /api/v1/namespaces/observability-lab/finalize -f -
+```
+
+#### PVCs Won't Delete
+
+```bash
+# 1. Check if PVC is bound to pods
+kubectl get pods -n observability-lab -o json | \
+  jq '.items[].spec.volumes[].persistentVolumeClaim.claimName'
+
+# 2. Delete pods using the PVC first
+kubectl delete pod <pod-name> -n observability-lab --force --grace-period=0
+
+# 3. Then delete PVC
+kubectl delete pvc <pvc-name> -n observability-lab
+```
+
+#### ArgoCD Application Won't Delete
+
+```bash
+# 1. Check finalizers
+kubectl get application observability-stack -n argocd -o yaml | grep finalizers -A5
+
+# 2. Remove finalizers if stuck
+kubectl patch application observability-stack -n argocd \
+  -p '{"metadata":{"finalizers":null}}' --type=merge
+
+# 3. Force delete
+kubectl delete application observability-stack -n argocd --force --grace-period=0
+```
+
+---
+
 ## Useful Shortcuts and Aliases
 
 Add these to your `~/.zshrc` or `~/.bashrc`:
