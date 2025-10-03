@@ -1,5 +1,8 @@
 # ObservabilityStack
 
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/fiddeb/observabilitystack/releases/tag/v0.1.0)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 A **development and learning** observability platform built on **OpenTelemetry**, **Grafana**, **Loki**, **Prometheus**, and **Tempo**. Perfect for **local labs**, **learning**, and **proof-of-concepts**. Deployed via **ArgoCD** for GitOps management with **local filesystem storage** and **multi-tenant support**.
 
 > ⚠️  **Not for Production**: This setup is designed for development, learning, and lab environments. For production deployments, additional security, scaling, and operational considerations are required.
