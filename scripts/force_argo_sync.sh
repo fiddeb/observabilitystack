@@ -43,8 +43,17 @@ echo -e "Current Git branch: ${YELLOW}$current_branch${NC}"
 current_target=$(kubectl get application $APP_NAME -n $ARGOCD_NAMESPACE -o jsonpath='{.spec.source.targetRevision}' 2>/dev/null || echo "Unknown")
 echo -e "ArgoCD targetRevision: ${YELLOW}$current_target${NC}"
 
-# Check if targetRevision needs updating
-if [ "$current_branch" != "$current_target" ]; then
+# Check if targetRevision is a tag (starts with 'v')
+if [[ "$current_target" =~ ^v[0-9]+\.[0-9]+\.[0-9]+ ]]; then
+    echo -e "${GREEN}✅ Using stable release tag: $current_target${NC}"
+    echo -e "${BLUE}💡 To update to a new release, manually edit argocd/observability-stack.yaml${NC}"
+    skip_target_update=true
+else
+    skip_target_update=false
+fi
+
+# Check if targetRevision needs updating (only for branches, not tags)
+if [ "$skip_target_update" = false ] && [ "$current_branch" != "$current_target" ]; then
     echo -e "${YELLOW}🔄 Updating ArgoCD targetRevision from '$current_target' to '$current_branch'${NC}"
     
     # Update targetRevision in YAML file
@@ -61,7 +70,7 @@ if [ "$current_branch" != "$current_target" ]; then
     new_target=$(kubectl get application $APP_NAME -n $ARGOCD_NAMESPACE -o jsonpath='{.spec.source.targetRevision}')
     echo -e "New targetRevision: ${GREEN}$new_target${NC}"
 else
-    echo -e "${GREEN}✅ ArgoCD targetRevision already matches current branch${NC}"
+    echo -e "${GREEN}✅ ArgoCD targetRevision matches current configuration${NC}"
 fi
 
 # Function to wait for sync
