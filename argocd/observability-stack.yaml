@@ -7,7 +7,7 @@ spec:
   project: default
   source:
     repoURL: 'https://github.com/fiddeb/observabilitystack.git'
-    targetRevision: main   # auto-synced with current branch
+    targetRevision: v0.1.0   # stable release (change to 'main' for latest development)
     path: helm/stackcharts
     helm:
       valueFiles:
