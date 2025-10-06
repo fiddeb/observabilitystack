@@ -4,27 +4,22 @@
 
 set -Eeuo pipefail
 
-# Color codes
-GREEN='\033[0;32m'
-YELLOW='\033[1;33m'
-RED='\033[0;31m'
-NC='\033[0m'
-
+# Source common library
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
+source "${SCRIPT_DIR}/lib/common.sh"
+
+REPO_ROOT=$(get_repo_root)
 cd "$REPO_ROOT"
 
-echo -e "${YELLOW}Testing multi-values Helm configuration...${NC}\n"
-echo -e "Working directory: $(pwd)\n"
+print_header "Testing multi-values Helm configuration..."
+echo "Working directory: $(pwd)"
+echo ""
 
 # Check if helm is installed
-if ! command -v helm &> /dev/null; then
-    echo -e "${RED}Error: helm is not installed${NC}"
-    exit 1
-fi
+validate_command helm || exit 1
 
 # Validate each values file individually
-echo -e "${GREEN}Step 1: Validating individual values files${NC}"
+print_step "Step 1: Validating individual values files"
 VALUES_FILES=(
     "base.yaml"
     "loki.yaml"
@@ -39,15 +34,16 @@ for file in "${VALUES_FILES[@]}"; do
     filepath="helm/stackcharts/values/$file"
     echo -n "  Checking $file... "
     if [ -f "$filepath" ]; then
-        echo -e "${GREEN}✓${NC}"
+        print_success "✓"
     else
-        echo -e "${RED}✗ Missing${NC}"
+        print_error "✗ Missing"
         exit 1
     fi
 done
 
 # Test Helm template with all values files
-echo -e "\n${GREEN}Step 2: Running Helm template dry-run${NC}"
+echo ""
+print_step "Step 2: Running Helm template dry-run"
 helm template observability-stack ./helm/stackcharts \
   -f helm/stackcharts/values/base.yaml \
   -f helm/stackcharts/values/loki.yaml \
@@ -61,15 +57,16 @@ helm template observability-stack ./helm/stackcharts \
   > /tmp/helm-template-output.yaml 2>&1
 
 if [ $? -eq 0 ]; then
-    echo -e "${GREEN}✓ Helm template generation successful${NC}"
+    print_success "Helm template generation successful"
 else
-    echo -e "${RED}✗ Helm template generation failed${NC}"
+    print_error "Helm template generation failed"
     echo "See /tmp/helm-template-output.yaml for details"
     exit 1
 fi
 
 # Check that enabled components are present
-echo -e "\n${GREEN}Step 3: Verifying enabled components${NC}"
+echo ""
+print_step "Step 3: Verifying enabled components"
 TEMPLATE_FILE="/tmp/helm-template-output.yaml"
 
 # Components that should be present
@@ -84,46 +81,48 @@ EXPECTED_COMPONENTS=(
 for component in "${EXPECTED_COMPONENTS[@]}"; do
     echo -n "  Looking for $component... "
     if grep -q "$component" "$TEMPLATE_FILE"; then
-        echo -e "${GREEN}✓${NC}"
+        echo "✓"
     else
-        echo -e "${RED}✗ Not found${NC}"
+        echo "✗ Not found"
     fi
 done
 
 # Check that disabled components are NOT present
 echo -n "  Verifying minio is disabled... "
 if ! grep -q "kind: Deployment" "$TEMPLATE_FILE" | grep -q "minio"; then
-    echo -e "${GREEN}✓${NC}"
+    echo "✓"
 else
-    echo -e "${YELLOW}⚠ Minio might be enabled${NC}"
+    print_warning "Minio might be enabled"
 fi
 
 # Verify ArgoCD Application manifest
-echo -e "\n${GREEN}Step 4: Validating ArgoCD Application${NC}"
+echo ""
+print_step "Step 4: Validating ArgoCD Application"
 ARGOCD_APP="argocd/observability-stack.yaml"
 
 echo -n "  Checking valueFiles configuration... "
 if grep -q "valueFiles:" "$ARGOCD_APP"; then
-    echo -e "${GREEN}✓${NC}"
+    echo "✓"
     
     # Count number of value files
     VALUE_FILE_COUNT=$(grep -c "values/" "$ARGOCD_APP" || true)
     echo "  Found $VALUE_FILE_COUNT values files configured"
     
     if [ "$VALUE_FILE_COUNT" -eq 7 ]; then
-        echo -e "  ${GREEN}✓ All 7 values files configured${NC}"
+        print_success "All 7 values files configured"
     else
-        echo -e "  ${YELLOW}⚠ Expected 7 files, found $VALUE_FILE_COUNT${NC}"
+        print_warning "Expected 7 files, found $VALUE_FILE_COUNT"
     fi
 else
-    echo -e "${RED}✗ valueFiles not found${NC}"
+    print_error "valueFiles not found"
     exit 1
 fi
 
 # Summary
-echo -e "\n${GREEN}═══════════════════════════════════════${NC}"
-echo -e "${GREEN}  All tests passed! ✓${NC}"
-echo -e "${GREEN}═══════════════════════════════════════${NC}"
+echo ""
+print_success "═══════════════════════════════════════"
+print_success "  All tests passed! ✓"
+print_success "═══════════════════════════════════════"
 echo ""
 echo "Configuration structure:"
 echo "  • base.yaml - Component flags"
