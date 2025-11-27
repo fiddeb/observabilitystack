@@ -19,6 +19,7 @@ spec:
           - 'collector="default"'
           - --telemetry-attributes
           - 'env="test"'
+       
         resources:
           limits:
             memory: "100Mi"
@@ -43,6 +44,14 @@ spec:
           - --otlp-insecure
           - --rate=10
           - --duration=30s
+          - --otlp-attributes
+          - 'service.name="testservice"'
+          - --otlp-attributes
+          - 'deployment.environment.name="dev"'
+          - --telemetry-attributes
+          - 'collector="default"'
+          - --body
+          - 'This is a test log message from telemetrygen.'
         resources:
           limits:
             memory: "100Mi"
