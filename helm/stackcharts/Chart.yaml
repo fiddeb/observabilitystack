@@ -17,7 +17,7 @@ dependencies:
   #  condition: tempo2.enabled
     
   - name: prometheus
-    version: "27.30.0"
+    version: "27.46.0"
     repository: "https://prometheus-community.github.io/helm-charts"
     condition: prometheus.enabled
   - name: grafana

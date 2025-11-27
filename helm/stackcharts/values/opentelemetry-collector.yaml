@@ -89,11 +89,19 @@ opentelemetry-collector:
           enabled: true
           initial_interval: 500ms
           max_interval: 10s
-      # Metrics to Prometheus remote write
-      prometheusremotewrite:
-        endpoint: http://prometheus.observability-lab.svc.cluster.local:80/api/v1/write
+      # Metrics to Prometheus via OTLP (native)
+      otlphttp/prometheus:
+        endpoint: http://prometheus.observability-lab.svc.cluster.local:80/api/v1/otlp/v1/metrics
         tls:
           insecure: true
+        sending_queue:
+          enabled: true
+          num_consumers: 10
+          queue_size: 1000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 500ms
+          max_interval: 10s
     
     service:
       pipelines:
@@ -110,7 +118,7 @@ opentelemetry-collector:
         metrics:
           receivers: [otlp]
           processors: [memory_limiter, batch]
-          exporters: [prometheusremotewrite]
+          exporters: [otlphttp/prometheus]
         logs/default:
           receivers: [routing]
           processors: [memory_limiter, batch]
