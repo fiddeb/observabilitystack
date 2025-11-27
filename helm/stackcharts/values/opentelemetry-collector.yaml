@@ -91,7 +91,7 @@ opentelemetry-collector:
           max_interval: 10s
       # Metrics to Prometheus via OTLP (native)
       otlphttp/prometheus:
-        endpoint: http://prometheus.observability-lab.svc.cluster.local:80/api/v1/otlp/v1/metrics
+        endpoint: http://prometheus.observability-lab.svc.cluster.local:80/api/v1/otlp/
         tls:
           insecure: true
         sending_queue:
