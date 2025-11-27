@@ -22,11 +22,24 @@ opentelemetry-collector:
             endpoint: 0.0.0.0:4317
           http:
             endpoint: 0.0.0.0:4318
+      
+      loki:
+        protocols:
+          http:
+            endpoint: 0.0.0.0:3101
+        use_incoming_timestamp: true
     
     processors:
-      batch: {}
       memory_limiter:
-        limit_mib: 128
+        check_interval: 2s
+        limit_percentage: 75
+        spike_limit_percentage: 25
+      
+      batch:
+        send_batch_size: 4096
+        send_batch_max_size: 8192
+        timeout: 50ms
+
     connectors:
       routing:
         default_pipelines: [logs/default]
@@ -45,21 +58,37 @@ opentelemetry-collector:
       debug/audit: 
         verbosity: detailed
       # Traces to Tempo
-      otlp/tempo:
-        endpoint: http://tempo.observability-lab.svc.cluster.local:4317
-        tls:
-          insecure: true
+      #otlp/tempo:
+      #  endpoint: http://tempo.observability-lab.svc.cluster.local:4317
+      #  tls:
+      #     insecure: true
       
       # Logs to Loki
       otlphttp/default:
         logs_endpoint: http://loki-gateway.observability-lab.svc.cluster.local/otlp/v1/logs
         headers:
           "X-Scope-OrgID": foo
+        sending_queue:
+          enabled: true
+          num_consumers: 40
+          queue_size: 5000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 500ms
+          max_interval: 10s
       # Logs to Loki
       otlphttp/bazz:
         logs_endpoint: http://loki-gateway.observability-lab.svc.cluster.local/otlp/v1/logs
         headers:
           "X-Scope-OrgID": bazz
+        sending_queue:
+          enabled: true
+          num_consumers: 40
+          queue_size: 5000
+        retry_on_failure:
+          enabled: true
+          initial_interval: 500ms
+          max_interval: 10s
       # Metrics to Prometheus remote write
       prometheusremotewrite:
         endpoint: http://prometheus.observability-lab.svc.cluster.local:80/api/v1/write
@@ -68,13 +97,13 @@ opentelemetry-collector:
     
     service:
       pipelines:
-        traces:
-          receivers: [otlp]
-          processors: [memory_limiter, batch]
-          exporters: [otlp/tempo]
+        #traces:
+        #  receivers: [otlp]
+        #  processors: [memory_limiter, batch]
+        #  exporters: [otlp/tempo]
         
         logs:
-          receivers: [otlp]
+          receivers: [otlp, loki]
           processors: [memory_limiter, batch]
           exporters: [routing]
         
@@ -93,19 +122,30 @@ opentelemetry-collector:
 
   resources:
     requests:
-      cpu: "100m"
-      memory: "128Mi"
+      cpu: "500m"
+      memory: "512Mi"
     limits:
-      cpu: "250m"
-      memory: "256Mi"
+      cpu: "2000m"
+      memory: "4096Mi"
+
+  ports:
+    loki:
+      enabled: true
+      containerPort: 3101
+      servicePort: 3101
+      protocol: TCP
 
   ingress:
     enabled: true
     ingressClassName: "traefik"
-    annotations: {}
+    annotations:
+      traefik.ingress.kubernetes.io/router.middlewares: observability-lab-strip-loki-prefix@kubernetescrd
     hosts:
       - host: otel-collector.k8s.test
         paths:
           - path: /
             pathType: Prefix
             port: 4318
+          - path: /loki
+            pathType: Prefix
+            port: 3101

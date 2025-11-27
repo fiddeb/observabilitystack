@@ -10,12 +10,12 @@ dependencies:
   version: 27.30.0
 - name: grafana
   repository: https://grafana.github.io/helm-charts
-  version: 10.0.0
+  version: 10.2.0
 - name: minio
   repository: https://charts.bitnami.com/bitnami
   version: 17.0.21
 - name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
   version: 0.122.2
-digest: sha256:2c38db5b54f835367bfe850a13b3d0283c0ae684ad20d6c489bd02a1a7d70b24
-generated: "2025-09-25T14:12:00.891914+02:00"
+digest: sha256:00e19a59a36c77f4a2675355298541c28fdc4a5acdf86196358ad8c8ddc3e736
+generated: "2025-11-27T11:01:39.494089+01:00"
