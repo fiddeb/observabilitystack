@@ -453,7 +453,7 @@ kubectl get events -n observability-lab --sort-by=.metadata.creationTimestamp | 
 - Use the OpenTelemetry Collector endpoints
 
 ### **Customize Your Setup**
-- See [Architecture Guide - Customization](ARCHITECTURE.md#customization-guide) for configuration patterns
+- See [Architecture Guide - Configuration Management](ARCHITECTURE.md#configuration-management) for configuration patterns
 - Learn about the single `values.yaml` approach and multi-tenant setup
 
 ### Learning Resources

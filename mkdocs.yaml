@@ -1,0 +1,15 @@
+site_name: ObservabilityStack
+theme:
+  name: "material"
+ # palette:
+ #   primary: "grey"
+ #   accent: "amber"
+  logo: assets/logo.png
+  favicon: logo.png
+markdown_extensions:
+  - codehilite  
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format

@@ -2,3 +2,4 @@ metrics
 app
 tmp
 **/*.bak
+site
