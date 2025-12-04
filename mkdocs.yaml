@@ -1,9 +1,9 @@
 site_name: ObservabilityStack
 theme:
   name: "material"
- # palette:
- #   primary: "grey"
- #   accent: "amber"
+  palette:
+    primary: "grey"
+    accent: "deep purple"
   logo: assets/logo.png
   favicon: logo.png
 markdown_extensions:
