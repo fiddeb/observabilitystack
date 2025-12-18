@@ -163,7 +163,7 @@ grafana:
         name: Mimir
         type: prometheus
         uid: mimir
-        url: http://mimir-nginx/prometheus
+        url: http://mimir-gateway/prometheus
         jsonData:
           httpMethod: POST
           manageAlerts: false

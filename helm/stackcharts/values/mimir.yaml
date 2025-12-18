@@ -7,33 +7,105 @@ mimir:
 
   fullnameOverride: mimir
 
+  # Override config template completely to avoid MinIO references
   mimir:
-    structuredConfig:
-      limits:
-        # Delete from storage metrics data older than 30 days (adjust as needed)
-        compactor_blocks_retention_period: 30d
-      
-      common:
+    config: |
+      usage_stats:
+        installation_mode: helm
+
+      activity_tracker:
+        filepath: /active-query-tracker/activity.log
+
+      alertmanager:
+        data_dir: /data/alertmanager
+        enable_api: true
+        external_url: /alertmanager
         storage:
-          # Use local filesystem storage (MinIO disabled for simplicity)
           backend: filesystem
           filesystem:
-            dir: /data/mimir
+            dir: /data/mimir/alertmanager
 
       blocks_storage:
-        storage_prefix: blocks
+        backend: filesystem
         filesystem:
           dir: /data/mimir/blocks
+        bucket_store:
+          sync_dir: /data/tsdb-sync
+        tsdb:
+          dir: /data/tsdb
+          head_compaction_interval: 15m
+          wal_replay_concurrency: 3
 
-      alertmanager_storage:
-        storage_prefix: alertmanager
-        filesystem:
-          dir: /data/mimir/alertmanager
+      compactor:
+        compaction_interval: 30m
+        deletion_delay: 2h
+        data_dir: /data/compactor
+        sharding_ring:
+          wait_stability_min_duration: 1m
 
-      ruler_storage:
-        storage_prefix: ruler
-        filesystem:
-          dir: /data/mimir/ruler
+      distributor:
+        ring:
+          heartbeat_period: 1m
+          heartbeat_timeout: 4m
+
+      frontend:
+        parallelize_shardable_queries: true
+
+      frontend_worker:
+        frontend_address: mimir-monolithic-headless.observability-lab.svc:9095
+        grpc_client_config:
+          max_send_msg_size: 419430400
+
+      ingester:
+        ring:
+          final_sleep: 0s
+          num_tokens: 512
+          unregister_on_shutdown: false
+          heartbeat_period: 2m
+          heartbeat_timeout: 10m
+
+      ingester_client:
+        grpc_client_config:
+          max_recv_msg_size: 104857600
+          max_send_msg_size: 104857600
+
+      limits:
+        max_total_query_length: 12000h
+        max_query_parallelism: 240
+        max_cache_freshness: 10m
+        compactor_blocks_retention_period: 30d
+
+      memberlist:
+        abort_if_cluster_join_fails: false
+        compression_enabled: false
+        join_members:
+          - dns+mimir-gossip-ring.observability-lab.svc.cluster.local.:7946
+
+      querier:
+        max_concurrent: 16
+
+      query_scheduler:
+        max_outstanding_requests_per_tenant: 800
+
+      ruler:
+        alertmanager_url: dnssrvnoa+http://_http-metrics._tcp.mimir-monolithic-headless.observability-lab.svc.cluster.local./alertmanager
+        enable_api: true
+        rule_path: /data/ruler
+        storage:
+          backend: filesystem
+          filesystem:
+            dir: /data/mimir/ruler
+
+      runtime_config:
+        file: /var/mimir/runtime.yaml
+
+      store_gateway:
+        sharding_ring:
+          heartbeat_period: 1m
+          heartbeat_timeout: 10m
+          wait_stability_min_duration: 1m
+          tokens_file_path: /data/tokens
+          unregister_on_shutdown: false
 
   # Monolithic pod configuration
   monolithic:
@@ -46,16 +118,15 @@ mimir:
 
     resources:
       requests:
-        memory: "512Mi"
-        cpu: "250m"
+        memory: "1Gi"
+        cpu: "500m"
       limits:
-        memory: "2Gi"
-        cpu: "1000m"
+        memory: "4Gi"
+        cpu: "2000m"
 
-  # Nginx gateway for Mimir
-  nginx:
+  # Gateway configuration (use nginx or disable completely)
+  gateway:
     replicas: 1
-    
     ingress:
       enabled: true
       ingressClassName: traefik
@@ -64,18 +135,35 @@ mimir:
           paths:
             - path: /
               pathType: Prefix
-      # No TLS for local dev
       tls: []
 
-  # Disable MinIO (using local filesystem)
+  # Nginx disabled (using gateway instead)
+  nginx:
+    enabled: false
+
+  # Disable MinIO (using filesystem)
   minio:
+    enabled: false
+
+  # Disable Kafka (not needed for filesystem storage)
+  kafka:
     enabled: false
 
   # Alertmanager disabled for initial setup
   alertmanager:
     enabled: false
 
-  # Disable microservices components (we're in monolithic mode)
+  # Disable all caches for simplicity
+  chunks-cache:
+    enabled: false
+  index-cache:
+    enabled: false
+  metadata-cache:
+    enabled: false
+  results-cache:
+    enabled: false
+
+  # Explicitly disable microservices components (we're in monolithic mode)
   distributor:
     replicas: 0
   ingester:
