@@ -13,6 +13,9 @@ prometheus:
 grafana:
   enabled: true
 
+mimir:
+  enabled: false
+
 minio:
   enabled: false
 

@@ -11,11 +11,14 @@ dependencies:
 - name: grafana
   repository: https://grafana.github.io/helm-charts
   version: 10.2.0
+- name: mimir-distributed
+  repository: file://./charts/mimir-distributed
+  version: 5.9.0-weekly.365
 - name: minio
   repository: https://charts.bitnami.com/bitnami
   version: 17.0.21
 - name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
   version: 0.122.2
-digest: sha256:fcaa16a1f0aa7b94fc705be039a14dd7d36b1d79fbd371fcc809064e2b1ae9d8
-generated: "2025-11-27T12:45:04.671421+01:00"
+digest: sha256:fa3e3c075f1559270907cecadd8bef0e0de878c36a65b401168506cdd2122603
+generated: "2025-12-18T11:02:58.280662+01:00"

@@ -25,6 +25,13 @@ dependencies:
     repository: "https://grafana.github.io/helm-charts"
     condition: grafana.enabled
 
+  # Using local chart from NGDATA fork with monolithic support
+  - name: mimir-distributed
+    version: "5.9.0-weekly.365"
+    repository: "file://./charts/mimir-distributed"
+    condition: mimir.enabled
+    alias: mimir
+
   - name: minio
     version: "17.0.21"
     repository: "https://charts.bitnami.com/bitnami"

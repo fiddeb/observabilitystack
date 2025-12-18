@@ -160,6 +160,16 @@ grafana:
         url: http://prometheus
       - editable: true
         isDefault: false
+        name: Mimir
+        type: prometheus
+        uid: mimir
+        url: http://mimir-nginx/prometheus
+        jsonData:
+          httpMethod: POST
+          manageAlerts: false
+          prometheusType: Mimir
+      - editable: true
+        isDefault: false
         name: loki
         type: loki
         uid: loki

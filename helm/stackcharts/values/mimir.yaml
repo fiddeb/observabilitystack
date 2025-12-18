@@ -1,0 +1,94 @@
+# Mimir configuration - Monolithic mode
+# Based on NGDATA fork: https://github.com/NGDATA/mimir/blob/main/operations/helm/charts/mimir-distributed/monolithic.yaml
+
+mimir:
+  # Monolithic deployment mode (single binary running all components)
+  deploymentMode: monolithic
+
+  fullnameOverride: mimir
+
+  mimir:
+    structuredConfig:
+      limits:
+        # Delete from storage metrics data older than 30 days (adjust as needed)
+        compactor_blocks_retention_period: 30d
+      
+      common:
+        storage:
+          # Use local filesystem storage (MinIO disabled for simplicity)
+          backend: filesystem
+          filesystem:
+            dir: /data/mimir
+
+      blocks_storage:
+        storage_prefix: blocks
+        filesystem:
+          dir: /data/mimir/blocks
+
+      alertmanager_storage:
+        storage_prefix: alertmanager
+        filesystem:
+          dir: /data/mimir/alertmanager
+
+      ruler_storage:
+        storage_prefix: ruler
+        filesystem:
+          dir: /data/mimir/ruler
+
+  # Monolithic pod configuration
+  monolithic:
+    replicas: 1  # Single instance for local dev
+    
+    persistentVolume:
+      enabled: true
+      size: "10Gi"
+      # storageClass: "" # Use default storageClass
+
+    resources:
+      requests:
+        memory: "512Mi"
+        cpu: "250m"
+      limits:
+        memory: "2Gi"
+        cpu: "1000m"
+
+  # Nginx gateway for Mimir
+  nginx:
+    replicas: 1
+    
+    ingress:
+      enabled: true
+      ingressClassName: traefik
+      hosts:
+        - host: mimir.k8s.test
+          paths:
+            - path: /
+              pathType: Prefix
+      # No TLS for local dev
+      tls: []
+
+  # Disable MinIO (using local filesystem)
+  minio:
+    enabled: false
+
+  # Alertmanager disabled for initial setup
+  alertmanager:
+    enabled: false
+
+  # Disable microservices components (we're in monolithic mode)
+  distributor:
+    replicas: 0
+  ingester:
+    replicas: 0
+  querier:
+    replicas: 0
+  query_frontend:
+    replicas: 0
+  compactor:
+    replicas: 0
+  store_gateway:
+    replicas: 0
+  ruler:
+    replicas: 0
+  overrides_exporter:
+    replicas: 0
