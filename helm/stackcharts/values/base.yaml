@@ -14,7 +14,7 @@ grafana:
   enabled: true
 
 mimir:
-  enabled: false
+  enabled: true
 
 minio:
   enabled: false
