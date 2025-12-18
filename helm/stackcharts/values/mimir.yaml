@@ -7,6 +7,9 @@ mimir:
 
   fullnameOverride: mimir
 
+  # Don't use template-based config generation
+  useExternalConfig: false
+
   # Override config template completely to avoid MinIO references
   mimir:
     config: |
