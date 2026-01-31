@@ -21,6 +21,9 @@ theme:
     - search.highlight
     - content.code.copy
 
+extra:
+  homepage: https://fiddeb.github.io/docnet/
+
 markdown_extensions:
   - codehilite  
   - pymdownx.superfences:
