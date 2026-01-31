@@ -1,10 +1,10 @@
 # Git Workflow and ArgoCD Branch Management
 
-This document describes how we ensure that `targetRevision` is always correct before merging to main.
+How to make sure `targetRevision` points to `main` before merging.
 
-## Problem
+## The Problem
 
-When working with feature branches, `targetRevision` in the ArgoCD manifest is updated to point to the feature branch. You must remember to reset it to `main` before merging.
+When working with feature branches, `targetRevision` in the ArgoCD manifest gets updated to point to your feature branch. You need to reset it to `main` before merging, otherwise production breaks.
 
 ## Solutions
 
@@ -58,7 +58,7 @@ git commit -m "fix: reset targetRevision to main before merge"
 # 💡 Consider using main branch for production deployments
 ```
 
-## Recommended Workflow
+## How to Work with Feature Branches
 
 1. **Create feature branch:**
    ```bash
@@ -91,12 +91,12 @@ git commit -m "fix: reset targetRevision to main before merge"
    ./scripts/force_argo_sync.sh
    ```
 
-## Safety Measures
+## Safety Features
 
-- **Git Hook**: Prevents merge if `targetRevision` is not `main`
-- **Merge Script**: Automatic reset before merge
-- **Sync Script**: Warns when you're not on main branch
-- **Backup**: `.bak` files are created during automatic changes
+- **Git Hook**: Blocks merge if `targetRevision` isn't `main`
+- **Merge Script**: Auto-resets before merge
+- **Sync Script**: Warns when you're not on main
+- **Backup**: `.bak` files created during auto-changes
 
 ## Troubleshooting
 

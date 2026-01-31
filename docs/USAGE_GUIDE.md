@@ -2,24 +2,24 @@
 
 How to use the ObservabilityStack for learning and experimenting with telemetry data.
 
-> 💡 **Lab Environment**: This guide assumes you're using the lab setup with default credentials and configurations. Perfect for learning observability concepts!
+> **Lab Environment**: This guide assumes you're using the lab setup with default credentials and configurations.
 
 ## Overview
 
-The ObservabilityStack provides a complete learning platform with:
-- **OpenTelemetry Collector** as the central telemetry ingestion point with intelligent routing
-- **Loki** for log storage and querying (local filesystem) with **multi-tenant support**
+The ObservabilityStack provides:
+- **OpenTelemetry Collector** for telemetry ingestion with routing
+- **Loki** for log storage (local filesystem) with multi-tenant support
 - **Tempo** for distributed tracing (local filesystem)
-- **Prometheus** for metrics collection
-- **Grafana** for unified visualization with tenant-specific datasources
+- **Prometheus** for metrics
+- **Grafana** for visualization with tenant-specific datasources
 
-### Multi-Tenant Architecture
+### Multi-Tenant Setup
 
-The platform supports multiple tenants for log isolation:
-- **'foo' tenant** - Default tenant for general logs
-- **'bazz' tenant** - Separate tenant for audit logs
-- Automatic routing based on log attributes via OpenTelemetry Collector
-- Separate Grafana datasources for each tenant
+Logs are isolated by tenant:
+- **'foo' tenant** - Default for general logs
+- **'bazz' tenant** - For audit logs
+- Automatic routing based on log attributes
+- Separate Grafana datasources for each
 
 ## Data Flow
 
@@ -27,7 +27,6 @@ The platform supports multiple tenants for log isolation:
 Applications → OpenTelemetry Collector → Backends → Grafana
 ```
 
-**Detailed Flow:**
 - **Logs** → OpenTelemetry Collector → Loki (local filesystem) → Grafana
 - **Metrics** → OpenTelemetry Collector → Prometheus → Grafana  
 - **Traces** → OpenTelemetry Collector → Tempo (local filesystem) → Grafana
@@ -237,7 +236,7 @@ curl -X POST http://otel-collector.k8s.test/v1/logs \
   }'
 ```
 
-> 📝 **Routing Logic**: Logs with `dev.audit.category` attribute are routed to 'bazz' tenant. All other logs go to 'foo' tenant.
+> **Routing Logic**: Logs with a `dev.audit.category` attribute go to the 'bazz' tenant. Everything else goes to 'foo'.
 
 ## Using Grafana
 
@@ -253,7 +252,7 @@ All data sources are automatically configured:
 3. **Loki (bazz tenant)** - Audit logs from 'bazz' tenant  
 4. **Tempo** - Distributed traces with service map
 
-> 💡 **Multi-Tenant Logs**: Each Loki datasource connects to a specific tenant using the `X-Scope-OrgID` header, providing complete data isolation.
+> **Multi-Tenant Logs**: Each Loki datasource connects to a specific tenant using the `X-Scope-OrgID` header for data isolation.
 
 ### Querying Data
 
@@ -301,7 +300,7 @@ sum(count_over_time({service_name="web-service"} |~ "HTTP request" [1m])) by (se
 sum(count_over_time({category="audit"} [1h])) by (category)
 ```
 
-> **Tenant Isolation**: Switch between datasources in Grafana to view logs from different tenants. Each tenant's data is completely isolated.
+> **Tenant Isolation**: Each tenant's data is isolated. Switch between Loki datasources in Grafana to view different tenant logs.
 
 #### Tempo Queries
 ```
@@ -402,10 +401,10 @@ spec:
 ## Storage and Retention
 
 ### Local Filesystem Storage
-- **Loki logs**: Stored on local filesystem in persistent volumes  
-- **Tempo traces**: Stored on local filesystem in persistent volumes
-- **Persistence**: Data persists across pod restarts via PersistentVolumes
-- **Simplified Setup**: No S3 configuration required for lab environment
+- **Loki logs**: Local persistent volumes  
+- **Tempo traces**: Local persistent volumes
+- **Persistence**: Data survives pod restarts
+- **Lab setup**: No S3 configuration needed
 
 ### Check Storage Usage
 ```bash
@@ -443,17 +442,18 @@ curl http://prometheus.k8s.test/-/ready
 ./scripts/force_argo_sync.sh
 ```
 
-## Advanced Configuration
+## Advanced
 
 ### Multi-tenancy
 Loki supports multi-tenancy via the `X-Scope-OrgID` header:
 
 ```bash
-# Send logs to tenant "production"
+# Tenant "production"
 curl -H "X-Scope-OrgID: production" ...
 
-# Send logs to tenant "staging"  
+# Tenant "staging"  
 curl -H "X-Scope-OrgID: staging" ...
+```
 ```
 
 ### Custom Configuration
@@ -469,4 +469,4 @@ vim helm/stackcharts/values.yaml
 
 ## Troubleshooting
 
-For detailed troubleshooting, see [Troubleshooting Guide](TROUBLESHOOTING.md) - Emergency procedures, debugging, and complete command reference.
+For detailed troubleshooting, see [Troubleshooting Guide](TROUBLESHOOTING.md).

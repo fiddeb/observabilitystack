@@ -2,7 +2,7 @@
 
 ## Summary
 
-Optimized log ingestion pipeline from **13.4k eps** to **67.5k eps** (403% improvement) through systematic batch processor tuning and resource scaling.
+I optimized the log ingestion pipeline from 13.4k eps to 67.5k eps (403% improvement). It took systematic batch processor tuning and throwing more CPU at Loki.
 
 ## Performance Progression
 
@@ -14,7 +14,7 @@ Optimized log ingestion pipeline from **13.4k eps** to **67.5k eps** (403% impro
 | Test 3 | Batch 4096/8192/25ms, 80% mem limit | 67.0k eps | -2.5% ❌ |
 | Final | Batch 4096/8192/50ms, 75% mem limit, Loki defaults | 67.5k eps | Stable ✅ |
 
-## Key Configuration Changes
+## What Changed
 
 ### OpenTelemetry Collector
 
@@ -23,14 +23,14 @@ Optimized log ingestion pipeline from **13.4k eps** to **67.5k eps** (403% impro
 - `send_batch_max_size: 128 → 8192` (64x larger)
 - `timeout: 200ms → 50ms` (4x faster)
 
-**Why it worked:** Larger batches reduce network overhead and per-request processing. Fewer, larger HTTP requests to Loki = higher throughput.
+**Why this worked:** Bigger batches mean fewer HTTP requests to Loki. Network overhead is expensive - bundling more logs per request made a huge difference.
 
 **Memory Limiter:**
-- `limit_percentage: 75%` (from 80%)
-- `spike_limit_percentage: 25%` (from 30%)
-- `check_interval: 2s` (from 1s)
+- `limit_percentage: 75%` (down from 80%)
+- `spike_limit_percentage: 25%` (down from 30%)
+- `check_interval: 2s` (up from 1s)
 
-**Why it worked:** 2s check interval reduces CPU overhead from constant memory checks. 75%/25% provides sufficient buffer without triggering premature throttling.
+**Why this worked:** Checking memory every second was eating CPU for no good reason. 2s checks are plenty fast, and 75%/25% gives enough headroom without throttling too early.
 
 **Resources:**
 - `cpu: 250m → 2000m` (8x)
@@ -51,7 +51,7 @@ Optimized log ingestion pipeline from **13.4k eps** to **67.5k eps** (403% impro
 - `memory: 1Gi → 8Gi` (8x)
 - `GOMEMLIMIT: 7500MiB`
 
-**Why it worked:** Loki is CPU-bound for OTLP ingestion, decompression, and indexing. More cores = higher parallel processing capacity.
+**Why this worked:** Loki is CPU-hungry when ingesting OTLP logs. More cores = more parallel processing. Sometimes the answer is just "throw more hardware at it."
 
 **Ingestion Limits:**
 - `ingestion_rate_mb: 4 → 64` (16x)
@@ -60,10 +60,10 @@ Optimized log ingestion pipeline from **13.4k eps** to **67.5k eps** (403% impro
 **Why it worked:** Removed artificial rate limiting that was throttling valid high-volume ingestion.
 
 **Chunk Settings:**
-- Default 1.5MB chunks (reverted from 2MB experiment)
+- Default 1.5MB chunks (I tried 2MB, didn't help)
 - Default idle/age timings
 
-**Why it worked:** Loki's defaults are optimized for balanced throughput/memory. Custom chunk tuning (2MB, 15m idle, 2h age) delayed writes and **reduced performance**.
+**Why this worked:** Loki's defaults are there for a reason. My "clever" custom chunk tuning (2MB chunks, 15m idle, 2h age) actually made things worse by keeping data in memory too long.
 
 ### k6 Test Configuration
 
@@ -77,12 +77,12 @@ Optimized log ingestion pipeline from **13.4k eps** to **67.5k eps** (403% impro
 - High volume: 12 VUs, 90s
 - Burst: 18 VUs, 40s (reduced from 25 due to TCP port exhaustion)
 
-## Failed Optimizations
+## What Didn't Work
 
 ### Timeout Too Aggressive
-- `timeout: 25ms` caused **regression** (-2.5% throughput)
-- **Root cause:** Premature batch flushes before optimal size reached
-- **Fix:** Reverted to 50ms for balance between latency and batch fill
+- `timeout: 25ms` made things worse (-2.5% throughput)
+- **What I learned:** Batches need time to fill up. 25ms was too impatient - it sent half-full batches and wasted the benefit of batching.
+- **Fix:** Went back to 50ms
 
 ### Memory Limiter Too Permissive
 - `80%/30%/1s` caused **regression**
@@ -90,15 +90,15 @@ Optimized log ingestion pipeline from **13.4k eps** to **67.5k eps** (403% impro
 - **Fix:** 75%/25%/2s provides headroom without constant checking
 
 ### Loki Chunk Tuning
-- 2MB chunks + long retention caused **regression**
-- **Root cause:** Keeping chunks in memory longer delayed actual disk writes, reducing ingestion rate
-- **Fix:** Use Loki defaults (1.5MB, standard timings)
+- 2MB chunks + long retention made things worse
+- **What I learned:** I thought keeping chunks in memory longer would reduce disk I/O. Wrong. It just delayed writes and slowed down ingestion.
+- **Fix:** Stick with Loki's defaults
 
-## Bottlenecks Identified
+## Bottlenecks
 
-1. **CPU ceiling:** 2000m OTel + 6000m Loki = 8 cores total. Further scaling requires more CPU allocation.
-2. **TCP port exhaustion:** localhost connections limited by macOS. 18 VUs max without sysctl tuning.
-3. **Batch size sweet spot:** 4096/8192 optimal. Larger batches didn't improve throughput.
+1. **CPU ceiling:** I'm using 8 cores total (2000m OTel + 6000m Loki). To go faster, I'd need more CPU.
+2. **TCP port exhaustion:** macOS localhost connections ran out at 18 VUs. Need sysctl tuning to go higher.
+3. **Batch size sweet spot:** 4096/8192 was optimal. Bigger batches didn't help.
 
 ## Production Recommendations
 
@@ -151,13 +151,13 @@ ingester:
   chunk_encoding: snappy  # Use defaults for other settings
 ```
 
-### Key Learnings
+### What I Learned
 
-1. **Batch size has exponential impact:** 32x larger batches = ~5x throughput
-2. **CPU > Memory for Loki:** CPU scaling gave highest ROI
-3. **Default settings exist for a reason:** Loki's defaults outperformed custom tuning
-4. **Timeout balances latency vs throughput:** 50ms optimal, faster = premature flush
-5. **Parallel workers critical:** 40 consumers handle burst load without queue overflow
+1. **Batch size matters a lot:** 32x larger batches gave ~5x throughput. Networking is expensive.
+2. **CPU > Memory for Loki:** More cores helped way more than more RAM.
+3. **Trust the defaults:** Loki's settings beat my "optimizations."
+4. **Timeout is a tradeoff:** 50ms balances latency vs throughput. Faster isn't always better.
+5. **Parallel workers help:** 40 consumers handled burst load without queue overflow.
 
 ## Test Methodology
 

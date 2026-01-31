@@ -1,10 +1,10 @@
 # Troubleshooting Guide
 
-Complete troubleshooting reference for the ObservabilityStack. Use this guide for emergency recovery, testing, debugging, and day-to-day operations.
+How to debug, test, and recover the ObservabilityStack.
 
 ---
 
-## Quick Start - Emergency Recovery
+## Quick Recovery
 
 ### 5-Minute Health Check
 
@@ -20,7 +20,7 @@ curl -s http://loki.k8s.test/ready
 curl -s http://grafana.k8s.test/api/health
 ```
 
-### Emergency Procedures
+### Common Fixes
 
 #### If Pods Are Down
 ```bash
@@ -45,9 +45,9 @@ kubectl run -it --rm debug --image=curlimages/curl --restart=Never -- \
   curl -s http://loki.observability-lab.svc.cluster.local:3100/ready
 ```
 
-#### Complete Stack Restart
+#### Restart All Pods
 ```bash
-# 1. Delete all pods (Kubernetes will recreate them)
+# 1. Delete all pods (Kubernetes recreates them)
 kubectl delete pods --all -n observability-lab
 
 # 2. Wait for all pods to be ready
@@ -465,7 +465,7 @@ curl -X POST http://localhost:3200/v1/traces \
   }'
 ```
 
-> ⚠️ **Important**: Current configuration does NOT have Tempo search API enabled. Use Grafana to search and view traces.
+> **Important**: Current configuration does NOT have Tempo search API enabled. Use Grafana to search and view traces.
 
 ### Tempo Configuration
 ```bash
@@ -894,9 +894,9 @@ kubectl get pvc -n observability-lab
 kubectl delete pvc --all -n observability-lab
 ```
 
-### Full Uninstall - Remove Everything
+### Full Uninstall
 
-Complete removal including ArgoCD and all configurations:
+Remove everything including ArgoCD:
 
 ```bash
 # 1. Delete observability stack
@@ -1029,7 +1029,7 @@ curl -s --max-time 5 http://loki.k8s.test/ready || echo "✅ Loki endpoint remov
 # 1. Check for finalizers
 kubectl get namespace observability-lab -o json | jq '.spec.finalizers'
 
-# 2. Force remove finalizers (⚠️ use with caution!)
+# 2. Force remove finalizers (use with caution!)
 kubectl get namespace observability-lab -o json \
   | jq 'del(.spec.finalizers)' \
   | kubectl replace --raw /api/v1/namespaces/observability-lab/finalize -f -
@@ -1102,10 +1102,10 @@ alias pf-stop='pkill -f "kubectl port-forward"'
 
 ## Related Documentation
 
-- **[Architecture Guide](ARCHITECTURE.md)** - System design and umbrella chart structure
-- **[Installation Guide](INSTALLATION.md)** - Complete setup instructions
-- **[Usage Guide](USAGE_GUIDE.md)** - How to use the observability stack
-- **[Git Workflow](GIT_WORKFLOW.md)** - Branch and merge procedures
+- [Architecture Guide](ARCHITECTURE.md) - System design
+- [Installation Guide](INSTALLATION.md) - Setup instructions
+- [Usage Guide](USAGE_GUIDE.md) - How to use the stack
+- [Git Workflow](GIT_WORKFLOW.md) - Branch and merge procedures
 
 ---
 

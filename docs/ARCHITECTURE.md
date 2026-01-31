@@ -1,6 +1,6 @@
 # Architecture Guide
 
-This document explains the **design decisions**, **architectural patterns**, and **configuration philosophy** behind the ObservabilityStack.
+This document explains the design decisions and configuration patterns behind the ObservabilityStack.
 
 ## Table of Contents
 
@@ -104,10 +104,10 @@ end
 
 | Component | Role | Function |
 |-----------|------|----------|
-| **ArgoCD** | GitOps Controller | Manages deployments from Git repository |
+| **ArgoCD** | GitOps Controller | Syncs deployments from Git |
 | **Traefik** | Ingress Controller | Routes external traffic to services |
 | **Loki** | Log Aggregation | Stores and queries log data |
-| **Tempo** | Trace Storage | Stores and queries distributed traces |
+| **Tempo** | Trace Storage | Stores distributed traces |
 | **Prometheus** | Metrics Collection | Collects and stores time-series metrics |
 | **Grafana** | Visualization | Provides dashboards for logs, metrics, and traces |
 | **OTEL Collector** | Telemetry Pipeline | Receives, processes, and routes telemetry data |
@@ -218,7 +218,7 @@ grafana:
 
 ### Understanding Subcharts
 
-Each dependency becomes a **subchart** within the umbrella chart:
+Each dependency becomes a subchart within the umbrella chart:
 
 ```
 helm/stackcharts/
@@ -236,7 +236,7 @@ helm/stackcharts/
     └── ...
 ```
 
-#### **How Subcharts Work**
+#### How Subcharts Work
 
 **Value Inheritance**
 ```yaml
@@ -396,14 +396,14 @@ spec:
 ```
 
 **Change Workflow:**
-1. Edit relevant values file (e.g., `values/grafana.yaml`)
-2. Commit to Git: `git add helm/stackcharts/values/grafana.yaml && git commit -m "feat: update grafana"`
-3. Push to GitHub: `git push`
-4. ArgoCD auto-syncs (or force with `./scripts/force_argo_sync.sh`)
-5. See changes in ArgoCD UI: http://argocd.k8s.test
+1. Edit the relevant values file (e.g., `values/grafana.yaml`)
+2. Commit: `git add helm/stackcharts/values/grafana.yaml && git commit -m "feat: update grafana"`
+3. Push: `git push`
+4. ArgoCD auto-syncs (or force it with `./scripts/force_argo_sync.sh`)
+5. Check the changes in ArgoCD UI: http://argocd.k8s.test
 
 
-#### **Adding New Components**
+#### Adding New Components
 
 To add a new component (e.g., Jaeger for tracing):
 
@@ -496,7 +496,7 @@ Commit and push - ArgoCD will remove Tempo resources automatically.
 
 ### Finding Configuration Options
 
-Each component has extensive configuration options:
+**Each component has configuration options:**
 
 1. **Check component values file:**
    ```bash
@@ -520,9 +520,9 @@ Each component has extensive configuration options:
 
 ## Next Steps
 
-After understanding this architecture:
+After understanding this:
 
-1. **Read**: [Installation Guide](INSTALLATION.md) for setup
-2. **Practice**: [Usage Guide](USAGE_GUIDE.md) for hands-on experience  
-3. **Customize**: Edit component files in `helm/stackcharts/values/` for your specific needs
-4. **Monitor**: Use [Troubleshooting Guide](TROUBLESHOOTING.md) when issues arise
+1. **Setup**: [Installation Guide](INSTALLATION.md)
+2. **Try it**: [Usage Guide](USAGE_GUIDE.md) for hands-on practice
+3. **Customize**: Edit files in `helm/stackcharts/values/` for your needs
+4. **Debug**: [Troubleshooting Guide](TROUBLESHOOTING.md) when things break

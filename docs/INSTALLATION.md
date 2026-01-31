@@ -1,23 +1,23 @@
 # Installation Guide
 
-Complete installation instructions for the ObservabilityStack - a **development and learning** environment.
+How to install the ObservabilityStack - a development and learning environment.
 
 > **New to the Stack?** Read the [Architecture Guide](ARCHITECTURE.md) first to understand the design decisions and configuration patterns.
 
-> **Lab Environment**: This setup is optimized for local development, learning, and experimentation. It uses simplified configurations and default credentials that are **not suitable for production** use.
+> **Lab Environment**: This is for local development, learning, and experimentation. It uses simplified configurations and default credentials that aren't suitable for production.
 
 ## What You'll Get
 
-A complete observability lab with:
-- **Quick Setup**: One-command installation  
-- **All-in-One**: Logs, metrics, traces, and visualization
-- **GitOps**: ArgoCD-managed deployments
+An observability lab with:
+- **Quick Setup**: One command installs everything
+- **The basics**: Logs, metrics, traces, and visualization
+- **GitOps**: ArgoCD manages deployments
 
 ## Prerequisites
 
 ### 1. Kubernetes Cluster
 Ensure you have a running Kubernetes cluster with `kubectl` configured:
-- **Rancher Desktop** (easiest for local development)
+- **Rancher Desktop** (good for local development)
 - **Minikube** 
 - **k3s/k3d** (lightweight)
 
@@ -35,7 +35,7 @@ helm install traefik traefik/traefik
 
 ### 3. DNS Configuration for Local Access
 
-For the best lab experience, configure local DNS to access services via friendly URLs like `grafana.k8s.test`.
+To access services via URLs like `grafana.k8s.test`, set up local DNS.
 
 #### Option 1: Static Hosts File (Simple)
 Add these entries to your `/etc/hosts` file:
@@ -139,12 +139,12 @@ If you prefer not to configure DNS, you can access everything via port forwardin
 
 ### Fork the Repository (Recommended)
 
-**Important**: If you plan to make changes to the configuration or experiment with customizations, create a fork first:
+If you plan to experiment or customize, fork this first:
 
-1. **Fork the repository** on GitHub:
+1. **Fork on GitHub**:
    - Go to https://github.com/fiddeb/observabilitystack
-   - Click the "Fork" button in the top-right corner
-   - This creates your own copy that you can modify
+   - Click "Fork" in the top-right
+   - This creates your own copy to modify
 
 2. **Clone your fork** (replace `YOUR_USERNAME` with your GitHub username):
    ```bash
@@ -152,20 +152,19 @@ If you prefer not to configure DNS, you can access everything via port forwardin
    cd observabilitystack
    ```
 
-3. **Add upstream remote** (to get updates from the original repo):
+3. **Add upstream remote** (to get updates):
    ```bash
    git remote add upstream https://github.com/fiddeb/observabilitystack.git
    ```
-   This creates a connection to the original repository so you can pull in updates and new features later.
 
 **Why fork?**
-- **Customization**: Modify configurations for your specific needs
-- **Learning**: Experiment with changes without affecting the original
-- **Contributions**: Create pull requests to contribute improvements
-- **GitOps**: ArgoCD can monitor your fork for automatic deployments
+- Customize for your needs
+- Experiment without affecting the original
+- Create pull requests to contribute
+- GitOps: ArgoCD can watch your fork
 
 ### Quick Lab Setup
-The fastest way to get your observability lab running:
+The simplest way to get your observability lab running:
 
 ```bash
 # Clone the repository (or your fork - see above)
@@ -180,15 +179,14 @@ cd observabilitystack
 ```
 
 **What happens:**
-1. Updates Helm chart dependencies (downloads required charts)
-2. Installs ArgoCD in your cluster
-3. Configures ArgoCD for HTTP access (insecure mode)
-4. Installs ArgoCD ingress for web access
-5. Deploys the complete observability stack
-6. Configures all components with lab-friendly defaults
-7. Sets up local filesystem storage for persistence
+1. Updates Helm chart dependencies
+2. Installs ArgoCD
+3. Configures ArgoCD for HTTP access
+4. Installs ArgoCD ingress
+5. Deploys the observability stack
+6. Sets up local filesystem storage
 
-**After installation, ArgoCD is immediately accessible at:**
+**After installation, access ArgoCD at:**
 - **URL:** http://argocd.k8s.test
 - **Username:** admin  
 - **Password:** `kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d`
@@ -323,18 +321,18 @@ The downloaded charts are saved in `charts/` directory and committed to the repo
 
 ## Lab Components
 
-The installation deploys a complete observability stack:
+The installation deploys an observability stack:
 
-- **OpenTelemetry Collector** - Central telemetry ingestion point
-- **Loki** - Log aggregation and storage (with local filesystem)
-- **Tempo** - Distributed tracing storage (with local filesystem) 
-- **Prometheus** - Metrics collection and storage
-- **Grafana** - Unified visualization dashboard (pre-configured datasources)
+- **OpenTelemetry Collector** - Telemetry ingestion
+- **Loki** - Log storage (local filesystem)
+- **Tempo** - Trace storage (local filesystem) 
+- **Prometheus** - Metrics storage
+- **Grafana** - Visualization (pre-configured datasources)
 
 **Lab Features:**
-- No login credentials for easy access for Grafana
-- Pre-configured data sources in Grafana
-- Local filesystem storage for data persistence across restarts
+- No login required for Grafana
+- Pre-configured data sources
+- Local filesystem storage
 
 ## Verification
 
@@ -388,9 +386,9 @@ Open Grafana and check:
 
 ## Troubleshooting Lab Setup
 
-### Repository Setup Issues?
+### Repository Setup Issues
 
-**ArgoCD application not updating**
+**ArgoCD not updating?**
 ```bash
 # Force refresh in ArgoCD UI or CLI
 kubectl patch app observability-stack -n argocd --type merge -p '{"metadata":{"annotations":{"argocd.argoproj.io/refresh":"hard"}}}'
@@ -401,7 +399,7 @@ kubectl delete app observability-stack -n argocd
 ```
 
 ### DNS Not Working?
-**Solution 1 - Port Forwarding (Always Works)**
+**Option 1 - Port Forwarding (Always Works)**
 ```bash
 # Access via localhost ports
 kubectl port-forward service/grafana 3000:3000 -n observability-lab &
@@ -409,14 +407,14 @@ kubectl port-forward service/loki 3100:3100 -n observability-lab &
 kubectl port-forward service/prometheus 9090:9090 -n observability-lab &
 kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 
-# Access at:
+# Then open:
 # - Grafana: http://localhost:3000
 # - Loki: http://localhost:3100  
 # - Prometheus: http://localhost:9090
-# - ArgoCD: https://localhost:8080 (admin/<get-password>)
+# - ArgoCD: https://localhost:8080
 ```
 
-**Solution 2 - Check DNS Configuration**
+**Option 2 - Check DNS**
 ```bash
 # Test DNS resolution
 nslookup grafana.k8s.test
@@ -441,18 +439,18 @@ kubectl get events -n observability-lab --sort-by=.metadata.creationTimestamp | 
 ```
 
 ### Need More Help?
-- **[Troubleshooting Guide](TROUBLESHOOTING.md)** - Emergency procedures and complete command reference
+- [Troubleshooting Guide](TROUBLESHOOTING.md) - Full debugging reference
 
-## Next Steps - Start Learning!
+## Next Steps
 
-### **Understand the Architecture**
+### Understand the Architecture
 - **[Architecture Guide](ARCHITECTURE.md)** - **Why** the stack is built this way and **how** to customize it
 
-### **Send Custom Data**
+### Send Custom Data
 - Follow [Usage Guide](USAGE_GUIDE.md) to send your own logs, metrics, and traces
 - Use the OpenTelemetry Collector endpoints
 
-### **Customize Your Setup**
+### Customize Your Setup
 - See [Architecture Guide - Configuration Management](ARCHITECTURE.md#configuration-management) for configuration patterns
 - Learn about the single `values.yaml` approach and multi-tenant setup
 

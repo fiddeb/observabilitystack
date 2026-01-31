@@ -2,16 +2,16 @@
 
 ## Overview
 
-Mimir har lagts till i ObservabilityStack i **monolitiskt läge** baserat på NGDATA's fork av Grafana Mimir som har stöd för monolithic deployment.
+I added Mimir to the stack in monolithic mode using NGDATA's fork of Grafana Mimir, which supports single-pod deployments.
 
-- **Chart**: `mimir-distributed` v5.6.0 (från Grafana Helm repo)
-- **Deployment Mode**: Monolithic (en pod kör alla komponenter)
-- **Storage**: Lokalt filesystem (persistent volume)
+- **Chart**: `mimir-distributed` v5.6.0 (from Grafana Helm repo)
+- **Deployment Mode**: Monolithic (one pod runs all components)
+- **Storage**: Local filesystem (persistent volume)
 - **Ingress**: `http://mimir.k8s.test`
 
-## Aktivera Mimir
+## Enable Mimir
 
-### 1. Uppdatera Chart Dependencies
+### 1. Update Chart Dependencies
 
 ```bash
 cd helm/stackcharts
@@ -19,9 +19,9 @@ helm dependency update
 cd ../..
 ```
 
-### 2. Aktivera i base.yaml
+### 2. Enable in base.yaml
 
-Redigera `helm/stackcharts/values/base.yaml`:
+Edit `helm/stackcharts/values/base.yaml`:
 
 ```yaml
 mimir:
@@ -34,32 +34,32 @@ mimir:
 ./scripts/force_argo_sync.sh
 ```
 
-Eller manuellt:
+Or manually:
 
 ```bash
 argocd app sync observability-stack --force
 ```
 
-## Verifiera Installation
+## Verify Installation
 
 ```bash
-# Kolla pods
+# Check pods
 kubectl get pods -n observability-lab | grep mimir
 
-# Förväntat resultat:
+# Expected output:
 # mimir-0                    1/1     Running   0          2m
 # mimir-nginx-xxxxx          1/1     Running   0          2m
 
-# Testa endpoints
+# Test endpoints
 curl http://mimir.k8s.test/ready
 curl http://mimir.k8s.test/metrics
 ```
 
-## Användning
+## Usage
 
-### Skicka Metrics via Prometheus Remote Write
+### Send Metrics via Prometheus Remote Write
 
-Konfigurera en Prometheus instance för att skicka metrics till Mimir:
+Configure a Prometheus instance to send metrics to Mimir:
 
 ```yaml
 # prometheus-config.yaml
@@ -69,12 +69,12 @@ remote_write:
 
 ### Query Metrics via Grafana
 
-Mimir är redan konfigurerad som datasource i Grafana:
-- **Namn**: Mimir
+Mimir is already configured as a datasource in Grafana:
+- **Name**: Mimir
 - **URL**: `http://mimir-nginx/prometheus`
-- **Typ**: Prometheus (Mimir-compatible)
+- **Type**: Prometheus (Mimir-compatible)
 
-Besök `http://grafana.k8s.test` och välj "Mimir" som datasource i Explore.
+Visit `http://grafana.k8s.test` and select "Mimir" as the datasource in Explore.
 
 ### Query Metrics via API
 
@@ -87,18 +87,18 @@ curl -G http://mimir.k8s.test/prometheus/api/v1/query \
 curl http://mimir.k8s.test/prometheus/api/v1/label/__name__/values
 ```
 
-## Konfiguration
+## Configuration
 
-### Viktiga Inställningar
+### Key Settings
 
-Konfigurera i `helm/stackcharts/values/mimir.yaml`:
+Configure in `helm/stackcharts/values/mimir.yaml`:
 
 ```yaml
 mimir:
   monolithic:
-    replicas: 1  # Öka för HA
+    replicas: 1  # Increase for HA
     persistentVolume:
-      size: "10Gi"  # Justera efter behov
+      size: "10Gi"  # Adjust as needed
     resources:
       limits:
         memory: "2Gi"
@@ -112,9 +112,9 @@ mimir:
 
 ### Storage Backend
 
-**Standard**: Lokalt filesystem (`/data/mimir`)
+**Default**: Local filesystem (`/data/mimir`)
 
-För att byta till S3/MinIO:
+To switch to S3/MinIO:
 
 ```yaml
 mimir:
@@ -131,7 +131,7 @@ mimir:
             insecure: true
 ```
 
-### Aktivera AlertManager
+### Enable AlertManager
 
 ```yaml
 mimir:
@@ -143,56 +143,56 @@ mimir:
 
 ### Monolithic vs Microservices
 
-**Monolithic Mode** (nuvarande setup):
-- En enda pod kör alla komponenter (distributor, ingester, querier, etc.)
-- Perfekt för utveckling och mindre produktionsmiljöer
-- Enklare att sätta upp och felsöka
+**Monolithic Mode** (current setup):
+- One pod runs all components (distributor, ingester, querier, etc.)
+- Good for development and smaller production environments
+- Simpler to set up and debug
 
 **Microservices Mode**:
-- Varje komponent körs separat
-- Bättre skalbarhet för stora produktionsmiljöer
-- Kräver mer resurser och komplexitet
+- Each component runs separately
+- Better scalability for large production environments
+- Requires more resources and complexity
 
-### Komponenter
+### Components
 
-I monolitiskt läge inkluderas:
-- **Distributor**: Tar emot metrics från remote write
-- **Ingester**: Skriver metrics till storage
-- **Querier**: Hanterar PromQL queries
-- **Compactor**: Komprimerar och behåller blocks
-- **Store Gateway**: Läser från långtidslagring
+Monolithic mode includes:
+- **Distributor**: Receives metrics from remote write
+- **Ingester**: Writes metrics to storage
+- **Querier**: Handles PromQL queries
+- **Compactor**: Compresses and retains blocks
+- **Store Gateway**: Reads from long-term storage
 - **Nginx**: Gateway/load balancer
 
 ## Troubleshooting
 
-### Pod startar inte
+### Pod Won't Start
 
 ```bash
-# Kolla events
+# Check events
 kubectl describe pod mimir-0 -n observability-lab
 
-# Kolla logs
+# Check logs
 kubectl logs mimir-0 -n observability-lab
 
-# Vanliga problem:
-# - PVC binding (kräver storageClass)
-# - Resource limits (öka minne/CPU)
+# Common issues:
+# - PVC binding (requires storageClass)
+# - Resource limits (increase memory/CPU)
 ```
 
-### Ingen data i Grafana
+### No Data in Grafana
 
 ```bash
-# Verifiera Mimir endpoint
+# Verify Mimir endpoint
 kubectl exec -it -n observability-lab deploy/grafana -- \
   curl http://mimir-nginx/prometheus/api/v1/query?query=up
 
-# Kolla att remote_write fungerar
+# Check that remote_write works
 kubectl logs -n observability-lab mimir-0 | grep "distributor"
 ```
 
 ### High Memory Usage
 
-Öka memory limits eller minska retention:
+Increase memory limits or reduce retention:
 
 ```yaml
 mimir:
@@ -206,26 +206,26 @@ mimir:
         compactor_blocks_retention_period: 7d  # Kortare retention
 ```
 
-## Jämförelse med Prometheus
+## Comparison with Prometheus
 
 | Feature | Prometheus | Mimir |
 |---------|-----------|-------|
-| **Deployment** | Single binary | Monolithic eller microservices |
-| **Storage** | Lokal TSDB | S3/GCS/Azure/Filesystem |
-| **Retention** | ~15 dagar (typiskt) | Månader/år |
-| **HA** | Svår | Inbyggd |
-| **Skalbarhet** | Begränsad | Horisontell |
-| **PromQL** | ✅ | ✅ (kompatibel) |
+| **Deployment** | Single binary | Monolithic or microservices |
+| **Storage** | Local TSDB | S3/GCS/Azure/Filesystem |
+| **Retention** | ~15 days (typical) | Months/years |
+| **HA** | Complex | Built-in |
+| **Scalability** | Limited | Horizontal |
+| **PromQL** | ✅ | ✅ (compatible) |
 | **Remote Write** | ✅ | ✅ |
 
-## Nästa Steg
+## Next Steps
 
-1. **Integrera med OpenTelemetry**: Konfigurera OTel Collector att skicka metrics till Mimir
-2. **Multi-tenancy**: Använd `X-Scope-OrgId` headers för tenant isolation
-3. **HA Setup**: Öka replicas till 3 med zoneAwareReplication
-4. **Production Storage**: Migrera till S3/MinIO för persistens
+1. **OpenTelemetry**: Configure OTel Collector to send metrics to Mimir
+2. **Multi-tenancy**: Use `X-Scope-OrgId` headers for tenant isolation
+3. **HA Setup**: Increase replicas to 3 with zoneAwareReplication
+4. **Production Storage**: Migrate to S3/MinIO for persistence
 
-## Referenser
+## References
 
 - [NGDATA Mimir Fork](https://github.com/NGDATA/mimir/blob/main/operations/helm/charts/mimir-distributed/monolithic.yaml)
 - [Grafana Mimir Documentation](https://grafana.com/docs/mimir/latest/)

@@ -13,6 +13,7 @@ REPO_ROOT=$(get_repo_root)
 ARGOCD_APP_MANIFEST="${REPO_ROOT}/argocd/observability-stack.yaml"
 ARGOCD_INGRESS_MANIFEST="${REPO_ROOT}/manifests/argocd-ingress.yaml"
 HELM_CHART_DIR="${REPO_ROOT}/helm/stackcharts"
+ARGOCD_ALREADY_INSTALLED=false
 
 print_header "🚀 Observability Stack Installation"
 
@@ -21,6 +22,18 @@ print_step "Validating prerequisites..."
 validate_prerequisites kubectl helm git || exit 1
 validate_k8s_cluster || exit 1
 print_success "Prerequisites validated"
+echo ""
+
+# Check if ArgoCD is already installed
+print_step "Checking for existing ArgoCD installation..."
+EXISTING_NAMESPACE=$(kubectl get deployment -A -l app.kubernetes.io/name=argocd-server -o jsonpath='{.items[0].metadata.namespace}' 2>/dev/null || true)
+if [ -n "$EXISTING_NAMESPACE" ]; then
+    ARGOCD_NAMESPACE="$EXISTING_NAMESPACE"
+    ARGOCD_ALREADY_INSTALLED=true
+    print_success "ArgoCD already installed in namespace: $ARGOCD_NAMESPACE"
+else
+    print_info "No existing ArgoCD installation found"
+fi
 echo ""
 
 # Step 1: Update Helm dependencies
@@ -37,14 +50,18 @@ cd "$REPO_ROOT"
 echo ""
 
 # Step 2: Install Argo CD
-print_step "Installing ArgoCD..."
-ensure_namespace "$ARGOCD_NAMESPACE"
+if [ "$ARGOCD_ALREADY_INSTALLED" = true ]; then
+    print_step "Skipping ArgoCD installation (already installed in namespace: $ARGOCD_NAMESPACE)"
+else
+    print_step "Installing ArgoCD..."
+    ensure_namespace "$ARGOCD_NAMESPACE"
 
-print_info "Installing Argo CD..."
-kubectl apply -n "$ARGOCD_NAMESPACE" -f "$ARGOCD_MANIFEST_URL"
+    print_info "Installing Argo CD..."
+    kubectl apply -n "$ARGOCD_NAMESPACE" -f "$ARGOCD_MANIFEST_URL"
 
-# Wait for Argo CD server to be ready
-wait_for_deployment "argocd-server" "$ARGOCD_NAMESPACE" 600
+    # Wait for Argo CD server to be ready
+    wait_for_deployment "argocd-server" "$ARGOCD_NAMESPACE" 600
+fi
 echo ""
 
 # Step 3: Configure ArgoCD for HTTP access (insecure mode)
@@ -74,7 +91,7 @@ print_success "Application manifest applied"
 echo ""
 
 # Final information
-print_header "🎉 Argo CD Installation Complete!"
+print_header "Argo CD Installation Complete!"
 echo "ArgoCD Web Interface:"
 echo "  URL: http://argocd.k8s.test"
 echo "  Username: admin"
