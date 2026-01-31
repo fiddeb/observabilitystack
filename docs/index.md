@@ -18,15 +18,19 @@ All components are managed through a **Helm umbrella chart pattern** and deploye
 ## Quick Navigation
 
 ### Getting Started
-- **[Installation Guide](INSTALLATION.md)** - Complete setup from zero to running system
-- **[Usage Guide](USAGE_GUIDE.md)** - How to send and query telemetry data
+- **[Installation Guide](guides/INSTALLATION.md)** - Setup from zero to running system
+- **[Usage Guide](guides/USAGE_GUIDE.md)** - Send and query telemetry data
 
 ### Understanding the System
-- **[Architecture Guide](ARCHITECTURE.md)** - Umbrella chart pattern, multi-values configuration, and design decisions
-- **[Git Workflow](GIT_WORKFLOW.md)** - Branch management and deployment workflows
+- **[Architecture Guide](guides/ARCHITECTURE.md)** - Umbrella chart pattern and design decisions
+- **[Git Workflow](guides/GIT_WORKFLOW.md)** - Branch management and deployment workflows
+
+### Advanced Topics
+- **[Batch Optimization](advanced/BATCH_OPTIMIZATION.md)** - Performance tuning results
+- **[Mimir Setup](advanced/MIMIR_SETUP.md)** - Long-term metrics storage
 
 ### When Things Go Wrong
-- **[Troubleshooting Guide](TROUBLESHOOTING.md)** - Emergency procedures, debugging commands, and complete reference
+- **[Troubleshooting Guide](guides/TROUBLESHOOTING.md)** - Emergency procedures and debugging
 
 ## Key Features
 
@@ -59,11 +63,13 @@ This documentation is organized into focused guides:
 
 | Guide | Purpose |
 |-------|---------|
-| **[Installation](INSTALLATION.md)** | Prerequisites, DNS setup, complete installation steps |
-| **[Architecture](ARCHITECTURE.md)** | Umbrella chart pattern, GitOps workflow, configuration management |
-| **[Usage](USAGE_GUIDE.md)** | Sending logs/metrics/traces, querying data, dashboards |
-| **[Git Workflow](GIT_WORKFLOW.md)** | Feature branches, safe merging, ArgoCD integration |
-| **[Troubleshooting](TROUBLESHOOTING.md)** | Common issues, debugging, emergency procedures |
+| **[Installation](guides/INSTALLATION.md)** | Prerequisites, DNS setup, installation steps |
+| **[Architecture](guides/ARCHITECTURE.md)** | Umbrella chart pattern, GitOps workflow, configuration |
+| **[Usage](guides/USAGE_GUIDE.md)** | Sending logs/metrics/traces, querying data, dashboards |
+| **[Git Workflow](guides/GIT_WORKFLOW.md)** | Feature branches, safe merging, ArgoCD integration |
+| **[Troubleshooting](guides/TROUBLESHOOTING.md)** | Common issues, debugging, emergency procedures |
+| **[Batch Optimization](advanced/BATCH_OPTIMIZATION.md)** | Performance tuning and results |
+| **[Mimir Setup](advanced/MIMIR_SETUP.md)** | Long-term metrics storage |
 
 ## Architecture at a Glance
 
@@ -101,17 +107,17 @@ flowchart LR
 
 ## Need Help?
 
-- **Installation issues?** → [Installation Guide](INSTALLATION.md)
-- **How do I...?** → [Usage Guide](USAGE_GUIDE.md)
-- **Something broken?** → [Troubleshooting Guide](TROUBLESHOOTING.md)
-- **Understanding design?** → [Architecture Guide](ARCHITECTURE.md)
+- **Installation issues?** → [Installation Guide](guides/INSTALLATION.md)
+- **How do I...?** → [Usage Guide](guides/USAGE_GUIDE.md)
+- **Something broken?** → [Troubleshooting Guide](guides/TROUBLESHOOTING.md)
+- **Understanding design?** → [Architecture Guide](guides/ARCHITECTURE.md)
 
 ## Contributing
 
 We welcome contributions! Please:
 1. Fork the repository
 2. Create a feature branch
-3. Follow the [Git Workflow](GIT_WORKFLOW.md)
+3. Follow the [Git Workflow](guides/GIT_WORKFLOW.md)
 4. Submit a pull request
 
 ## License

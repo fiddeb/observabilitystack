@@ -125,20 +125,20 @@ tempo:
   enabled: false
 ```
 
-See [Architecture Guide](docs/ARCHITECTURE.md) for detailed configuration patterns.
+See [Architecture Guide](docs/guides/ARCHITECTURE.md) for detailed configuration patterns.
 
 ## Documentation
 
 ### Architecture & Concepts
-- **[Architecture Guide](docs/ARCHITECTURE.md)** - **Umbrella chart pattern, multi-values configuration, and customization**
+- **[Architecture Guide](docs/guides/ARCHITECTURE.md)** - **Umbrella chart pattern, multi-values configuration, and customization**
 
 ### Getting Started
-- **[Installation Guide](docs/INSTALLATION.md)** - Complete setup instructions
-- **[Usage Guide](docs/USAGE_GUIDE.md)** - How to send and query telemetry data
+- **[Installation Guide](docs/guides/INSTALLATION.md)** - Complete setup instructions
+- **[Usage Guide](docs/guides/USAGE_GUIDE.md)** - How to send and query telemetry data
 
 ### Operations  
-- **[Git Workflow](docs/GIT_WORKFLOW.md)** - Branch management and deployment
-- **[Troubleshooting Guide](docs/TROUBLESHOOTING.md)** - Emergency procedures, debugging, and complete command reference
+- **[Git Workflow](docs/guides/GIT_WORKFLOW.md)** - Branch management and deployment
+- **[Troubleshooting Guide](docs/guides/TROUBLESHOOTING.md)** - Emergency procedures, debugging, and complete command reference
 
 ### Automation
 - **[force_argo_sync.sh](scripts/force_argo_sync.sh)** - Intelligent ArgoCD sync
@@ -166,11 +166,11 @@ kubectl port-forward service/grafana 3000:80 -n observability-lab &
 kubectl port-forward svc/argocd-server -n argocd 8080:443 &
 ```
 
-**Need help?** Check [Troubleshooting Guide](docs/TROUBLESHOOTING.md) for emergency procedures and debugging commands.
+**Need help?** Check [Troubleshooting Guide](docs/guides/TROUBLESHOOTING.md) for emergency procedures and debugging commands.
 
 ## Contributing
 
-We welcome contributions! See our [Git Workflow](docs/GIT_WORKFLOW.md) for development practices.
+We welcome contributions! See our [Git Workflow](docs/guides/GIT_WORKFLOW.md) for development practices.
 
 ```bash
 # Create feature branch  
