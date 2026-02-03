@@ -61,7 +61,7 @@ mimir:
           unregister_on_shutdown: false
           heartbeat_period: 2m
           heartbeat_timeout: 10m
-          zone_awareness_enabled: true
+          zone_awareness_enabled: false
 
       ingester_client:
         grpc_client_config:
@@ -101,7 +101,7 @@ mimir:
           wait_stability_min_duration: 1m
           tokens_file_path: /data/tokens
           unregister_on_shutdown: false
-          zone_awareness_enabled: true
+          zone_awareness_enabled: false
 
   # Monolithic pod configuration
   monolithic:
@@ -185,7 +185,7 @@ mimir:
   ingester:
     replicas: 0
     zoneAwareReplication:
-      enabled: true
+      enabled: false
   querier:
     replicas: 0
   query_frontend:
@@ -195,7 +195,7 @@ mimir:
   store_gateway:
     replicas: 0
     zoneAwareReplication:
-      enabled: true
+      enabled: false
   ruler:
     replicas: 0
   overrides_exporter:
