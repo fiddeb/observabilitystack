@@ -57,7 +57,7 @@ else
     ensure_namespace "$ARGOCD_NAMESPACE"
 
     print_info "Installing Argo CD..."
-    kubectl apply -n "$ARGOCD_NAMESPACE" -f "$ARGOCD_MANIFEST_URL"
+    kubectl apply --server-side --force-conflicts -n "$ARGOCD_NAMESPACE" -f "$ARGOCD_MANIFEST_URL"
 
     # Wait for Argo CD server to be ready
     wait_for_deployment "argocd-server" "$ARGOCD_NAMESPACE" 600

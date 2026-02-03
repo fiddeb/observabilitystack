@@ -2,24 +2,24 @@
 
 How to use the ObservabilityStack for learning and experimenting with telemetry data.
 
-> **Lab Environment**: This guide assumes you're using the lab setup with default credentials and configurations.
+> 💡 **Lab Environment**: This guide assumes you're using the lab setup with default settings. Good for learning observability concepts!
 
 ## Overview
 
-The ObservabilityStack provides:
-- **OpenTelemetry Collector** for telemetry ingestion with routing
-- **Loki** for log storage (local filesystem) with multi-tenant support
+The ObservabilityStack includes:
+- **OpenTelemetry Collector** as the central telemetry ingestion point
+- **Loki** for log storage and querying (local filesystem) with **multi-tenant support**
 - **Tempo** for distributed tracing (local filesystem)
-- **Prometheus** for metrics
+- **Prometheus** for metrics collection
 - **Grafana** for visualization with tenant-specific datasources
 
 ### Multi-Tenant Setup
 
-Logs are isolated by tenant:
-- **'foo' tenant** - Default for general logs
-- **'bazz' tenant** - For audit logs
-- Automatic routing based on log attributes
-- Separate Grafana datasources for each
+The platform uses multiple tenants to isolate logs:
+- **'foo' tenant** - Default tenant for general logs
+- **'bazz' tenant** - Separate tenant for audit logs
+- Automatic routing based on log attributes via OpenTelemetry Collector
+- Separate Grafana datasources for each tenant
 
 ## Data Flow
 
@@ -236,16 +236,16 @@ curl -X POST http://otel-collector.k8s.test/v1/logs \
   }'
 ```
 
-> **Routing Logic**: Logs with a `dev.audit.category` attribute go to the 'bazz' tenant. Everything else goes to 'foo'.
+> **Routing Logic**: If your log has a `dev.audit.category` attribute, it goes to the 'bazz' tenant. Everything else goes to 'foo'.
 
 ## Using Grafana
 
 ### Access Grafana
 - URL: http://grafana.k8s.test
-- Default credentials: no log in needed default (admin/admin)
+- No login required (anonymous access enabled)
 
-### Pre-configured Data Sources
-All data sources are automatically configured:
+### Data Sources
+The following data sources are already set up:
 
 1. **Prometheus** - Metrics from OpenTelemetry Collector
 2. **Loki (foo tenant)** - Default logs from 'foo' tenant
@@ -300,7 +300,7 @@ sum(count_over_time({service_name="web-service"} |~ "HTTP request" [1m])) by (se
 sum(count_over_time({category="audit"} [1h])) by (category)
 ```
 
-> **Tenant Isolation**: Each tenant's data is isolated. Switch between Loki datasources in Grafana to view different tenant logs.
+> **Tenant Isolation**: Switch between datasources in Grafana to view logs from different tenants.
 
 #### Tempo Queries
 ```
@@ -317,7 +317,7 @@ sum(count_over_time({category="audit"} [1h])) by (category)
 ## Testing the Pipeline
 
 ### Automated Tests
-Run the complete test suite:
+Run the automated tests:
 
 ```bash
 # Deploy test jobs
@@ -401,10 +401,10 @@ spec:
 ## Storage and Retention
 
 ### Local Filesystem Storage
-- **Loki logs**: Local persistent volumes  
-- **Tempo traces**: Local persistent volumes
-- **Persistence**: Data survives pod restarts
-- **Lab setup**: No S3 configuration needed
+- **Loki logs**: Stored on local filesystem in persistent volumes  
+- **Tempo traces**: Stored on local filesystem in persistent volumes
+- **Persistence**: Data persists across pod restarts via PersistentVolumes
+- **Lab environment**: No S3 configuration needed
 
 ### Check Storage Usage
 ```bash
@@ -423,7 +423,7 @@ kubectl -n observability-lab exec deployment/tempo -- df -h /var/tempo
 
 ## Monitoring and Alerts
 
-### Built-in Metrics
+### Stack Metrics
 The stack exposes metrics for monitoring itself:
 
 - **Loki metrics**: http://loki.k8s.test:3100/metrics
