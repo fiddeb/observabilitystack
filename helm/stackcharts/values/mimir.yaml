@@ -107,6 +107,10 @@ mimir:
   monolithic:
     replicas: 1  # Single instance for local dev
     
+    # Disable zone-aware replication (NGDATA fork has enabled: true by default)
+    zoneAwareReplication:
+      enabled: false
+    
     persistentVolume:
       enabled: true
       size: "10Gi"
