@@ -62,6 +62,7 @@ mimir:
           heartbeat_period: 2m
           heartbeat_timeout: 10m
           zone_awareness_enabled: false
+          replication_factor: 1
 
       ingester_client:
         grpc_client_config:
