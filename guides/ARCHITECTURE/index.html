@@ -1,0 +1,1848 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="GitOps-managed observability stack for local Kubernetes">
+      
+      
+        <meta name="author" content="Fredrik Frodlund">
+      
+      
+      
+        <link rel="prev" href="../USAGE_GUIDE/">
+      
+      
+        <link rel="next" href="../GIT_WORKFLOW/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Architecture - ObservabilityStack</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="grey" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="https://fiddeb.github.io/docnet/" title="ObservabilityStack" class="md-header__button md-logo" aria-label="ObservabilityStack" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ObservabilityStack
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/fiddeb/observabilitystack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    fiddeb/observabilitystack
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSTALLATION/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="./" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../advanced/BATCH_OPTIMIZATION/" class="md-tabs__link">
+          
+  
+  
+  Advanced
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://fiddeb.github.io/docnet/" title="ObservabilityStack" class="md-nav__button md-logo" aria-label="ObservabilityStack" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    ObservabilityStack
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/fiddeb/observabilitystack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    fiddeb/observabilitystack
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSTALLATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../USAGE_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stack-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stack Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stack Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#component-responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#helm-umbrella-chart-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Helm Umbrella Chart Pattern
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Helm Umbrella Chart Pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#umbrella-chart-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Umbrella Chart Structure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Umbrella Chart Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-umbrella-pattern-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the Umbrella Pattern Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-values-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Values Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#understanding-subcharts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Subcharts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding Subcharts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-subcharts-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Subcharts Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subchart-configuration-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Subchart Configuration Patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#declarative-infrastructure-gitops-with-argocd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declarative Infrastructure (GitOps with ArgoCD)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-new-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding New Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#editing-component-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing Component Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-configuration-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Configuration Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GIT_WORKFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../TROUBLESHOOTING/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/BATCH_OPTIMIZATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Batch Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/MIMIR_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mimir Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#stack-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stack Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Stack Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#configuration-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture Overview
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture Overview">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#component-responsibilities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Component Responsibilities
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#helm-umbrella-chart-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Helm Umbrella Chart Pattern
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Helm Umbrella Chart Pattern">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#umbrella-chart-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Umbrella Chart Structure
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Umbrella Chart Structure">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-the-umbrella-pattern-works" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How the Umbrella Pattern Works
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-values-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Values Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#understanding-subcharts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Understanding Subcharts
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Understanding Subcharts">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#how-subcharts-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How Subcharts Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#subchart-configuration-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Subchart Configuration Patterns
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#declarative-infrastructure-gitops-with-argocd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Declarative Infrastructure (GitOps with ArgoCD)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-new-components" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding New Components
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#editing-component-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Editing Component Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#finding-configuration-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Finding Configuration Options
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#next-steps" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Next Steps
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture-guide">Architecture Guide<a class="headerlink" href="#architecture-guide" title="Permanent link">&para;</a></h1>
+<p>This document explains the design decisions and configuration patterns behind the ObservabilityStack.</p>
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="#architecture-guide">Architecture Guide</a></li>
+<li><a href="#table-of-contents">Table of Contents</a></li>
+<li><a href="#stack-configuration">Stack Configuration</a><ul>
+<li><a href="#configuration-structure">Configuration Structure</a></li>
+</ul>
+</li>
+<li><a href="#architecture-overview">Architecture Overview</a><ul>
+<li><a href="#component-responsibilities">Component Responsibilities</a></li>
+</ul>
+</li>
+<li><a href="#helm-umbrella-chart-pattern">Helm Umbrella Chart Pattern</a><ul>
+<li><a href="#umbrella-chart-structure">Umbrella Chart Structure</a></li>
+<li><a href="#how-the-umbrella-pattern-works">How the Umbrella Pattern Works</a></li>
+<li><a href="#multi-values-configuration">Multi-Values Configuration</a></li>
+<li><a href="#understanding-subcharts">Understanding Subcharts</a></li>
+<li><a href="#how-subcharts-work"><strong>How Subcharts Work</strong></a></li>
+<li><a href="#subchart-configuration-patterns"><strong>Subchart Configuration Patterns</strong></a></li>
+<li><a href="#declarative-infrastructure-gitops-with-argocd">Declarative Infrastructure (GitOps with ArgoCD)</a></li>
+<li><a href="#adding-new-components"><strong>Adding New Components</strong></a></li>
+</ul>
+</li>
+<li><a href="#configuration-management">Configuration Management</a><ul>
+<li><a href="#editing-component-configuration">Editing Component Configuration</a></li>
+<li><a href="#finding-configuration-options">Finding Configuration Options</a></li>
+</ul>
+</li>
+<li><a href="#next-steps">Next Steps</a></li>
+</ul>
+<h2 id="stack-configuration">Stack Configuration<a class="headerlink" href="#stack-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="configuration-structure">Configuration Structure<a class="headerlink" href="#configuration-structure" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>Umbrella chart pattern</strong> - All components managed as subcharts</li>
+<li><strong>GitOps deployment</strong> - Changes managed through Git commits</li>
+<li><strong>Local filesystem storage</strong> - No external storage dependencies</li>
+</ul>
+<h2 id="architecture-overview">Architecture Overview<a class="headerlink" href="#architecture-overview" title="Permanent link">&para;</a></h2>
+<pre class="mermaid"><code>flowchart TB
+subgraph ObservabilityStack
+    subgraph External[External Access]
+        User[User Browser]
+    end
+
+    subgraph GitOps[GitOps and Deployment]
+        Git[Git Repository]
+        ArgoCD[ArgoCD Controller]
+        Helm[Helm Umbrella Chart]
+    end
+
+    subgraph Ingress[Ingress Layer]
+        Traefik[Traefik]
+    end
+
+    subgraph Pipeline[Telemetry Pipeline]
+        OTel[OTel Collector]
+    end
+
+    subgraph Backend[Storage Backends]
+        Loki[Loki - Logs]
+        Prometheus[Prometheus - Metrics]
+        Tempo[Tempo - Traces]
+    end
+
+    subgraph UI[Visualization]
+        Grafana[Grafana]
+    end
+end
+    %% GitOps Flow
+    Git --&gt;|Sync| ArgoCD
+    ArgoCD --&gt;|Deploy| Helm
+    Helm -.-&gt;|Install| Pipeline
+    Helm -.-&gt;|Install| Backend
+    Helm -.-&gt;|Install| UI
+    Helm -.-&gt;|Install| Ingress
+
+    %% Data Flow
+    OTel --&gt;|Logs| Loki
+    OTel --&gt;|Metrics| Prometheus
+    OTel --&gt;|Traces| Tempo
+
+    %% Query Flow
+    Grafana -.-&gt;|Query| Loki
+    Grafana -.-&gt;|Query| Prometheus
+    Grafana -.-&gt;|Query| Tempo
+
+    %% User Access
+    User --&gt;|HTTP| Traefik
+    Traefik --&gt;|Route| Grafana
+    Traefik --&gt;|Route| OTel
+
+    %% Styling
+    classDef gitops fill:#326CE5,stroke:#1558d6,color:#fff
+    classDef data fill:#F46800,stroke:#d45500,color:#fff
+    classDef storage fill:#00B3E6,stroke:#0099cc,color:#fff
+    classDef ui fill:#52C41A,stroke:#389e0d,color:#fff
+    classDef ingress fill:#722ED1,stroke:#531dab,color:#fff
+
+    class Git,ArgoCD,Helm gitops
+    class OTel data
+    class Loki,Prometheus,Tempo storage
+    class Grafana ui
+    class Traefik ingress</code></pre>
+<h3 id="component-responsibilities">Component Responsibilities<a class="headerlink" href="#component-responsibilities" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Role</th>
+<th>Function</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>ArgoCD</strong></td>
+<td>GitOps Controller</td>
+<td>Syncs deployments from Git</td>
+</tr>
+<tr>
+<td><strong>Traefik</strong></td>
+<td>Ingress Controller</td>
+<td>Routes external traffic to services</td>
+</tr>
+<tr>
+<td><strong>Loki</strong></td>
+<td>Log Aggregation</td>
+<td>Stores and queries log data</td>
+</tr>
+<tr>
+<td><strong>Tempo</strong></td>
+<td>Trace Storage</td>
+<td>Stores distributed traces</td>
+</tr>
+<tr>
+<td><strong>Prometheus</strong></td>
+<td>Metrics Collection</td>
+<td>Collects and stores time-series metrics</td>
+</tr>
+<tr>
+<td><strong>Grafana</strong></td>
+<td>Visualization</td>
+<td>Provides dashboards for logs, metrics, and traces</td>
+</tr>
+<tr>
+<td><strong>OTEL Collector</strong></td>
+<td>Telemetry Pipeline</td>
+<td>Receives, processes, and routes telemetry data</td>
+</tr>
+</tbody>
+</table>
+<h2 id="helm-umbrella-chart-pattern">Helm Umbrella Chart Pattern<a class="headerlink" href="#helm-umbrella-chart-pattern" title="Permanent link">&para;</a></h2>
+<h3 id="umbrella-chart-structure">Umbrella Chart Structure<a class="headerlink" href="#umbrella-chart-structure" title="Permanent link">&para;</a></h3>
+<p>The <code>helm/stackcharts/</code> directory contains an <strong>umbrella chart</strong> that packages all components together:</p>
+<div class="highlight"><pre><span></span><code>helm/stackcharts/
+├── Chart.yaml           # Umbrella chart definition
+├── Chart.lock          # Dependency lock file  
+├── values/             # Split configuration files (one per component)
+│   ├── base.yaml           # Component enable/disable flags
+│   ├── loki.yaml           # Loki configuration
+│   ├── tempo.yaml          # Tempo configuration
+│   ├── prometheus.yaml     # Prometheus configuration
+│   ├── grafana.yaml        # Grafana configuration
+│   ├── minio.yaml          # Minio configuration
+│   └── opentelemetry-collector.yaml  # OTel configuration
+└── charts/             # Downloaded dependencies (.tgz files)
+    ├── grafana-10.0.0.tgz
+    ├── loki-6.36.0.tgz
+    ├── prometheus-27.30.0.tgz
+    └── ...
+</code></pre></div>
+<h4 id="how-the-umbrella-pattern-works">How the Umbrella Pattern Works<a class="headerlink" href="#how-the-umbrella-pattern-works" title="Permanent link">&para;</a></h4>
+<p><strong>With ArgoCD (Automated - Recommended)</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># ArgoCD handles all value files automatically</span>
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>argocd/observability-stack.yaml<span class="w"> </span>-n<span class="w"> </span>argocd
+</code></pre></div>
+<strong>Single Deployment Command</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Deploy entire stack with one command</span>
+helm<span class="w"> </span>install<span class="w"> </span>observability-stack<span class="w"> </span>./helm/stackcharts<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>helm/stackcharts/values/base.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>helm/stackcharts/values/loki.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>helm/stackcharts/values/tempo.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>helm/stackcharts/values/prometheus.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>helm/stackcharts/values/grafana.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>helm/stackcharts/values/minio.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-f<span class="w"> </span>helm/stackcharts/values/opentelemetry-collector.yaml<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-n<span class="w"> </span>observability-lab
+</code></pre></div>
+<strong>Version Management</strong>
+- <code>Chart.yaml</code> defines specific versions for all components
+- <code>Chart.lock</code> locks exact versions for reproducible deployments
+- <code>helm dependency update</code> downloads and packages all components</p>
+<p><strong>Dependency Definition</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Chart.yaml automatically handles component relationships</span>
+<span class="nt">dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10.0.0&quot;</span>
+<span class="w">    </span><span class="nt">repository</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://grafana.github.io/helm-charts&quot;</span>
+<span class="w">    </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana.enabled</span><span class="w">        </span><span class="c1"># Controlled by values/base.yaml</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;6.36.0&quot;</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">repository</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://grafana.github.io/helm-charts&quot;</span>
+<span class="w">    </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki.enabled</span><span class="w">           </span><span class="c1"># Controlled by values/base.yaml</span>
+</code></pre></div></p>
+<h3 id="multi-values-configuration">Multi-Values Configuration<a class="headerlink" href="#multi-values-configuration" title="Permanent link">&para;</a></h3>
+<p>Configuration is split into separate files for maintainability:</p>
+<p><strong>Base Configuration (<code>values/base.yaml</code>)</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Controls which components are installed</span>
+<span class="nt">loki</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">tempo</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">prometheus</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">grafana</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<span class="nt">minio</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">  </span><span class="c1"># Disabled - using filesystem storage</span>
+<span class="nt">opentelemetry-collector</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div></p>
+<p><strong>Component Configuration (e.g., <code>values/grafana.yaml</code>)</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Grafana-specific settings</span>
+<span class="nt">grafana</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">fullnameOverride</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana</span>
+<span class="w">  </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">  </span><span class="nt">datasources</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">datasources.yaml</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">      </span><span class="nt">datasources</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prometheus</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prometheus</span>
+<span class="w">          </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://prometheus</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Loki</span>
+<span class="w">          </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki</span>
+<span class="w">          </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://loki-gateway</span>
+<span class="w">  </span><span class="c1"># ... more Grafana config</span>
+</code></pre></div></p>
+<h3 id="understanding-subcharts">Understanding Subcharts<a class="headerlink" href="#understanding-subcharts" title="Permanent link">&para;</a></h3>
+<p>Each dependency becomes a subchart within the umbrella chart:</p>
+<div class="highlight"><pre><span></span><code>helm/stackcharts/
+├── Chart.yaml              # Parent chart definition
+├── values/                 # Split values files
+│   ├── base.yaml              # Enable flags
+│   ├── loki.yaml              # Loki config → loki subchart
+│   ├── grafana.yaml           # Grafana config → grafana subchart
+│   └── ...
+├── Chart.lock             # Locked subchart versions
+└── charts/                # Downloaded subcharts
+    ├── grafana-10.0.0.tgz     # Subchart: Grafana
+    ├── loki-6.36.0.tgz        # Subchart: Loki  
+    ├── prometheus-27.30.0.tgz # Subchart: Prometheus
+    └── ...
+</code></pre></div>
+<h4 id="how-subcharts-work">How Subcharts Work<a class="headerlink" href="#how-subcharts-work" title="Permanent link">&para;</a></h4>
+<p><strong>Value Inheritance</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># values/grafana.yaml - Passed to grafana subchart</span>
+<span class="nt">grafana</span><span class="p">:</span><span class="w">                    </span><span class="c1"># ← Top-level key matches subchart name</span>
+<span class="w">  </span><span class="nt">adminPassword</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">secretpwd</span>
+<span class="w">  </span><span class="nt">datasources</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[</span><span class="nv">...</span><span class="p p-Indicator">]</span>
+
+<span class="c1"># values/loki.yaml - Passed to loki subchart</span>
+<span class="nt">loki</span><span class="p">:</span><span class="w">                      </span><span class="c1"># ← Top-level key matches subchart name</span>
+<span class="w">  </span><span class="nt">singleBinary</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">replicas</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+
+<span class="c1"># values/prometheus.yaml - Passed to prometheus subchart</span>
+<span class="nt">prometheus</span><span class="p">:</span><span class="w">                </span><span class="c1"># ← Top-level key matches subchart name</span>
+<span class="w">  </span><span class="nt">server</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">persistentVolume</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">size</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8Gi</span>
+</code></pre></div></p>
+<p><strong>How Helm Merges Values:</strong>
+1. Helm reads all <code>-f</code> files in order (base.yaml first, then components)
+2. Each file with matching top-level key (e.g., <code>loki:</code>) is merged
+3. Later values override earlier ones
+4. Final merged config is passed to each subchart</p>
+<p><strong>Subchart Templates</strong>
+Each subchart has its own templates that get rendered:
+<div class="highlight"><pre><span></span><code>grafana subchart templates → grafana-deployment.yaml, grafana-service.yaml
+loki subchart templates    → loki-statefulset.yaml, loki-configmap.yaml  
+prometheus subchart templates → prometheus-deployment.yaml, etc.
+</code></pre></div></p>
+<p><strong>Dependency Management</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Download/update all subcharts</span>
+helm<span class="w"> </span>dependency<span class="w"> </span>update<span class="w"> </span>helm/stackcharts/
+
+<span class="c1"># This downloads:</span>
+<span class="c1"># - grafana-9.3.2.tgz from https://grafana.github.io/helm-charts  </span>
+<span class="c1"># - loki-6.36.0.tgz from https://grafana.github.io/helm-charts</span>
+<span class="c1"># - etc.</span>
+</code></pre></div></p>
+<h4 id="subchart-configuration-patterns"><strong>Subchart Configuration Patterns</strong><a class="headerlink" href="#subchart-configuration-patterns" title="Permanent link">&para;</a></h4>
+<p><strong>Global Values</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Shared across all subcharts</span>
+<span class="nt">global</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">storageClass</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;local-path&quot;</span>
+<span class="w">  </span><span class="nt">imagePullSecrets</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+
+<span class="c1"># Each subchart can access global values</span>
+<span class="nt">grafana</span><span class="p">:</span>
+<span class="w">  </span><span class="c1"># Uses global.storageClass automatically</span>
+<span class="w">  </span><span class="nt">persistence</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+
+<span class="nt">loki</span><span class="p">:</span><span class="w">  </span>
+<span class="w">  </span><span class="c1"># Also uses global.storageClass</span>
+<span class="w">  </span><span class="nt">persistence</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div></p>
+<p><strong>Conditional Subcharts</strong>
+The <code>condition</code> field in <code>Chart.yaml</code> determines which subcharts are installed:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Chart.yaml - Defines the conditions</span>
+<span class="nt">dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;6.36.0&quot;</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">repository</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://grafana.github.io/helm-charts&quot;</span>
+<span class="w">    </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">loki.enabled</span><span class="w">        </span><span class="c1"># ← Controls if this subchart installs</span>
+
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;10.0.0&quot;</span>
+<span class="w">    </span><span class="nt">repository</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;https://grafana.github.io/helm-charts&quot;</span><span class="w"> </span>
+<span class="w">    </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">grafana.enabled</span><span class="w">     </span><span class="c1"># ← Controls if this subchart installs</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><span class="c1"># values/base.yaml - Sets the condition values</span>
+<span class="nt">loki</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">    </span><span class="c1"># ← This value is checked by &quot;condition: loki.enabled&quot;</span>
+
+<span class="nt">grafana</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span><span class="w">    </span><span class="c1"># ← This value is checked by &quot;condition: grafana.enabled&quot;  </span>
+
+<span class="nt">tempo</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">false</span><span class="w">   </span><span class="c1"># ← Setting to false will skip tempo installation</span>
+</code></pre></div>
+<p><strong>How It Works:</strong>
+- Helm checks <code>values/base.yaml</code> for the condition path (e.g., <code>loki.enabled</code>)
+- If <code>true</code>, the subchart is included in deployment
+- If <code>false</code> or missing, the subchart is skipped entirely
+- This allows selective component installation from the same umbrella chart</p>
+<p><strong>Practical Examples:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Deploy only logs and visualization (no metrics or tracing)</span>
+<span class="c1"># In values/base.yaml:</span>
+loki:
+<span class="w">  </span>enabled:<span class="w"> </span><span class="nb">true</span>
+grafana:<span class="w"> </span>
+<span class="w">  </span>enabled:<span class="w"> </span><span class="nb">true</span>
+prometheus:
+<span class="w">  </span>enabled:<span class="w"> </span><span class="nb">false</span><span class="w">   </span><span class="c1"># Skip metrics collection</span>
+tempo:
+<span class="w">  </span>enabled:<span class="w"> </span><span class="nb">false</span><span class="w">   </span><span class="c1"># Skip tracing</span>
+opentelemetry-collector:
+<span class="w">  </span>enabled:<span class="w"> </span><span class="nb">true</span><span class="w">    </span><span class="c1"># Keep collector for log processing</span>
+</code></pre></div></p>
+<p><strong>Cross-Subchart References</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># Grafana subchart references other subcharts</span>
+<span class="nt">grafana</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">datasources</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">datasources.yaml</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">datasources</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prometheus</span>
+<span class="w">        </span><span class="c1"># Reference to prometheus subchart service</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://{{ include &quot;prometheus.fullname&quot; . }}:{{ .Values.prometheus.server.service.port }}</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Loki</span><span class="w">  </span>
+<span class="w">        </span><span class="c1"># Reference to loki subchart service</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://{{ include &quot;loki.serviceName&quot; . }}:{{ .Values.loki.service.port }}</span>
+</code></pre></div></p>
+<h4 id="declarative-infrastructure-gitops-with-argocd">Declarative Infrastructure (GitOps with ArgoCD)<a class="headerlink" href="#declarative-infrastructure-gitops-with-argocd" title="Permanent link">&para;</a></h4>
+<p><strong>ArgoCD Application Configuration:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># argocd/observability-stack.yaml</span>
+<span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">argoproj.io/v1alpha1</span>
+<span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Application</span>
+<span class="nt">metadata</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">observability-stack</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">source</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">repoURL</span><span class="p">:</span><span class="w"> </span><span class="s">&#39;https://github.com/fiddeb/observabilitystack.git&#39;</span>
+<span class="w">    </span><span class="nt">path</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">helm/stackcharts</span><span class="w">        </span><span class="c1"># Points to umbrella chart</span>
+<span class="w">    </span><span class="nt">targetRevision</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">main</span><span class="w">          </span><span class="c1"># Tracks main branch</span>
+<span class="w">    </span><span class="nt">helm</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">valueFiles</span><span class="p">:</span><span class="w">                 </span><span class="c1"># Multi-values configuration</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">values/base.yaml</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">values/loki.yaml</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">values/tempo.yaml</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">values/prometheus.yaml</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">values/grafana.yaml</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">values/minio.yaml</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">values/opentelemetry-collector.yaml</span>
+</code></pre></div></p>
+<p><strong>Change Workflow:</strong>
+1. Edit the relevant values file (e.g., <code>values/grafana.yaml</code>)
+2. Commit: <code>git add helm/stackcharts/values/grafana.yaml &amp;&amp; git commit -m "feat: update grafana"</code>
+3. Push: <code>git push</code>
+4. ArgoCD auto-syncs (or force it with <code>./scripts/force_argo_sync.sh</code>)
+5. Check the changes in ArgoCD UI: http://argocd.k8s.test</p>
+<h4 id="adding-new-components">Adding New Components<a class="headerlink" href="#adding-new-components" title="Permanent link">&para;</a></h4>
+<p>To add a new component (e.g., Jaeger for tracing):</p>
+<p><strong>1. Add to Chart.yaml dependencies:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># helm/stackcharts/Chart.yaml</span>
+<span class="nt">dependencies</span><span class="p">:</span>
+<span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jaeger</span>
+<span class="w">    </span><span class="nt">version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;0.71.2&quot;</span>
+<span class="w">    </span><span class="nt">repository</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">https://jaegertracing.github.io/helm-charts</span>
+<span class="w">    </span><span class="nt">condition</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jaeger.enabled</span>
+</code></pre></div></p>
+<p><strong>2. Create values file:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># helm/stackcharts/values/jaeger.yaml</span>
+<span class="nt">jaeger</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">fullnameOverride</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">jaeger</span>
+<span class="w">  </span><span class="c1"># ... jaeger configuration</span>
+</code></pre></div></p>
+<p><strong>3. Add enable flag:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># helm/stackcharts/values/base.yaml</span>
+<span class="nt">jaeger</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">enabled</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+</code></pre></div></p>
+<p><strong>4. Update ArgoCD Application:</strong>
+<div class="highlight"><pre><span></span><code><span class="c1"># argocd/observability-stack.yaml</span>
+<span class="nt">spec</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">source</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">helm</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">valueFiles</span><span class="p">:</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">values/base.yaml</span>
+<span class="w">        </span><span class="c1"># ... existing files</span>
+<span class="w">        </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">values/jaeger.yaml</span><span class="w">    </span><span class="c1"># Add new file</span>
+</code></pre></div></p>
+<p><strong>5. Update dependencies and commit:</strong>
+<div class="highlight"><pre><span></span><code>helm<span class="w"> </span>dependency<span class="w"> </span>update<span class="w"> </span>helm/stackcharts/
+git<span class="w"> </span>add<span class="w"> </span>helm/stackcharts/
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add Jaeger tracing&quot;</span>
+git<span class="w"> </span>push
+</code></pre></div></p>
+<hr />
+<h2 id="configuration-management">Configuration Management<a class="headerlink" href="#configuration-management" title="Permanent link">&para;</a></h2>
+<h3 id="editing-component-configuration">Editing Component Configuration<a class="headerlink" href="#editing-component-configuration" title="Permanent link">&para;</a></h3>
+<p>Each component has its own values file in <code>helm/stackcharts/values/</code>:</p>
+<p><strong>Example: Updating Grafana datasources</strong></p>
+<ol>
+<li>
+<p><strong>Edit the component file:</strong>
+   <div class="highlight"><pre><span></span><code>vim<span class="w"> </span>helm/stackcharts/values/grafana.yaml
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Make your changes:</strong>
+   <div class="highlight"><pre><span></span><code><span class="nt">grafana</span><span class="p">:</span>
+<span class="w">  </span><span class="nt">datasources</span><span class="p">:</span>
+<span class="w">    </span><span class="nt">datasources.yaml</span><span class="p">:</span>
+<span class="w">      </span><span class="nt">apiVersion</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<span class="w">      </span><span class="nt">datasources</span><span class="p">:</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Prometheus</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prometheus</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://prometheus</span>
+<span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">NewDatasource</span><span class="w">  </span><span class="c1"># Add new datasource</span>
+<span class="w">        </span><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">influxdb</span>
+<span class="w">        </span><span class="nt">url</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">http://influxdb:8086</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Commit and push:</strong>
+   <div class="highlight"><pre><span></span><code>git<span class="w"> </span>add<span class="w"> </span>helm/stackcharts/values/grafana.yaml
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: add InfluxDB datasource to Grafana&quot;</span>
+git<span class="w"> </span>push
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>ArgoCD syncs automatically</strong> (or force: <code>./scripts/force_argo_sync.sh</code>)</p>
+</li>
+</ol>
+<p>Commit and push - ArgoCD will remove Tempo resources automatically.</p>
+<h3 id="finding-configuration-options">Finding Configuration Options<a class="headerlink" href="#finding-configuration-options" title="Permanent link">&para;</a></h3>
+<p><strong>Each component has configuration options:</strong></p>
+<ol>
+<li>
+<p><strong>Check component values file:</strong>
+   <div class="highlight"><pre><span></span><code><span class="c1"># See all Loki options</span>
+cat<span class="w"> </span>helm/stackcharts/values/loki.yaml
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Check upstream chart documentation:</strong></p>
+</li>
+<li>Grafana: https://github.com/grafana/helm-charts/tree/main/charts/grafana</li>
+<li>Loki: https://github.com/grafana/helm-charts/tree/main/charts/loki</li>
+<li>Tempo: https://github.com/grafana/helm-charts/tree/main/charts/tempo</li>
+<li>
+<p>Prometheus: https://github.com/prometheus-community/helm-charts/tree/main/charts/prometheus</p>
+</li>
+<li>
+<p><strong>Extract default values from charts:</strong>
+   <div class="highlight"><pre><span></span><code>helm<span class="w"> </span>show<span class="w"> </span>values<span class="w"> </span>grafana/grafana<span class="w"> </span>&gt;<span class="w"> </span>/tmp/grafana-defaults.yaml
+helm<span class="w"> </span>show<span class="w"> </span>values<span class="w"> </span>grafana/loki<span class="w"> </span>&gt;<span class="w"> </span>/tmp/loki-defaults.yaml
+</code></pre></div></p>
+</li>
+</ol>
+<hr />
+<h2 id="next-steps">Next Steps<a class="headerlink" href="#next-steps" title="Permanent link">&para;</a></h2>
+<p>After understanding this:</p>
+<ol>
+<li><strong>Setup</strong>: <a href="../INSTALLATION/">Installation Guide</a></li>
+<li><strong>Try it</strong>: <a href="../USAGE_GUIDE/">Usage Guide</a> for hands-on practice</li>
+<li><strong>Customize</strong>: Edit files in <code>helm/stackcharts/values/</code> for your needs</li>
+<li><strong>Debug</strong>: <a href="../TROUBLESHOOTING/">Troubleshooting Guide</a> when things break</li>
+</ol>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
