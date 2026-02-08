@@ -21,10 +21,15 @@ dependencies:
     repository: "https://prometheus-community.github.io/helm-charts"
     condition: prometheus.enabled
   - name: grafana
+    alias: grafana-destination
     version: "10.2.0"
     repository: "https://grafana.github.io/helm-charts"
     condition: grafana.enabled
 
+  - name: grafana
+    version: "10.2.0"
+    repository: "https://grafana.github.io/helm-charts"
+    condition: grafana.enabled
   # Using local chart from NGDATA fork with monolithic support
   - name: mimir-distributed
     version: "5.9.0-weekly.365"
