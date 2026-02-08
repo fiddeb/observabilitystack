@@ -13,6 +13,9 @@ prometheus:
 grafana:
   enabled: true
 
+grafana-destination:
+  enabled: true
+
 mimir:
   enabled: true
 

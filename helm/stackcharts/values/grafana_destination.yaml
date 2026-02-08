@@ -1,0 +1,242 @@
+# Grafana configuration  
+# Unified visualization dashboard
+
+grafana-destination:
+  fullnameOverride: grafanadest
+  global:
+    imageRegistry: null
+    imagePullSecrets: []
+  rbac:
+    create: true
+    pspEnabled: false
+    pspUseAppArmor: false
+    namespaced: true
+
+  serviceAccount:
+    create: true
+    name:
+    nameTest:
+    labels: {}
+    automountServiceAccountToken: false
+
+  replicas: 1
+
+  headlessService: false
+
+  automountServiceAccountToken: true
+
+  autoscaling:
+    enabled: false
+
+  deploymentStrategy:
+    type: RollingUpdate
+
+  readinessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+
+  livenessProbe:
+    httpGet:
+      path: /api/health
+      port: 3000
+    initialDelaySeconds: 60
+    timeoutSeconds: 30
+    failureThreshold: 10
+
+  image:
+    registry: docker.io
+    repository: grafana/grafana
+    pullPolicy: IfNotPresent
+  
+  testFramework:
+    enabled: false
+    
+  securityContext:
+    runAsNonRoot: true
+    runAsUser: 472
+    runAsGroup: 472
+    fsGroup: 472
+
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+      - ALL
+    seccompProfile:
+      type: RuntimeDefault
+  createConfigmap: true
+  extraConfigmapMounts: []
+
+  extraLabels: {}
+
+  downloadDashboardsImage:
+    registry: docker.io
+    repository: curlimages/curl
+    tag: 7.85.0
+    sha: ""
+    pullPolicy: IfNotPresent
+
+  downloadDashboards:
+    env: {}
+    envFromSecret: ""
+    resources: {}
+    securityContext:
+      allowPrivilegeEscalation: false
+      capabilities:
+        drop:
+        - ALL
+      seccompProfile:
+        type: RuntimeDefault
+    envValueFrom: {}
+
+  podPortName: grafana
+  gossipPortName: gossip
+
+  service:
+    enabled: true
+    type: ClusterIP
+    port: 80
+    targetPort: 3000
+    annotations: {}
+    labels: {}
+    portName: service
+    appProtocol: ""
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations: {}
+    labels: {}
+    path: /
+    pathType: Prefix
+    hosts:
+      - grafanadest.k8s.test
+    backend:
+      service:
+        name: grafana
+        port:
+          number: 80
+
+  serviceMonitor:
+    enabled: false
+    path: /metrics
+    labels: {}
+    interval: 30s
+    scheme: http
+    tlsConfig: {}
+    scrapeTimeout: 30s
+    relabelings: []
+    metricRelabelings: []
+    targetLabels: []
+
+  extraExposePorts: []
+  resources: {}
+
+  persistence:
+    type: pvc
+    enabled: false
+    accessModes:
+      - ReadWriteOnce
+    size: 1Gi
+    finalizers:
+      - kubernetes.io/pvc-protection
+    extraPvcLabels: {}
+    disableWarning: false
+
+  adminUser: admin
+
+  plugins: []
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+      - editable: true
+        isDefault: true
+        name: Prometheus
+        type: prometheus
+        uid: prometheus
+        url: http://prometheus
+      - editable: true
+        isDefault: false
+        name: Mimir
+        type: prometheus
+        uid: mimir
+        url: http://mimir-gateway/prometheus
+        jsonData:
+          httpMethod: POST
+          manageAlerts: false
+          prometheusType: Mimir
+      - editable: true
+        isDefault: false
+        name: loki
+        type: loki
+        uid: loki
+        url: http://loki-gateway
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "foo"
+      - editable: true
+        isDefault: false
+        name: loki-bazz
+        type: loki
+        uid: loki-bazz
+        url: http://loki-gateway
+        jsonData:
+          httpHeaderName1: "X-Scope-OrgID"
+        secureJsonData:
+          httpHeaderValue1: "bazz"
+      - name: Tempo
+        type: tempo
+        uid: tempo
+        url: http://tempo:3200
+        jsonData:
+          tracesToLogsV2:
+            customQuery: true
+            datasourceUid: 'loki'
+            query: '{$${__tags}} | trace_id = "$${__trace.traceId}"'
+            tags:
+              - key: 'service.name'
+                value: 'service_name'
+
+  alerting: {}
+  notifiers: {}
+  dashboardProviders: {}
+  dashboards: {}
+
+  dashboardsConfigMaps: {}
+
+  grafana.ini:
+    paths:
+      data: /var/lib/grafana/
+      logs: /var/log/grafana
+      plugins: /var/lib/grafana/plugins
+      provisioning: /etc/grafana/provisioning
+    analytics:
+      check_for_updates: true
+    log:
+      mode: console
+    auth:
+      disable_login: true
+    auth.anonymous:
+      enabled: true
+      org_role: "Admin"
+    grafana_net:
+      url: https://grafana.net
+    server:
+      domain: "{{ if (and .Values.ingress.enabled .Values.ingress.hosts) }}{{ tpl (.Values.ingress.hosts | first) . }}{{ else }}''{{ end }}"
+    profile:
+      enabled: false
+    feature_toggles:
+      alertingListViewV2: true
+      grafanaAdvisor: true
+      ProfileFeatureTogglePage: false
+
+  ldap:
+    enabled: false
+    existingSecret: ""
+    config: ""
+
+  revisionHistoryLimit: 10
