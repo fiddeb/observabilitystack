@@ -2,6 +2,7 @@
 # Unified visualization dashboard
 
 grafana-destination:
+  nameOverride: grafanadest
   fullnameOverride: grafanadest
   global:
     imageRegistry: null
@@ -112,11 +113,6 @@ grafana-destination:
     pathType: Prefix
     hosts:
       - grafanadest.k8s.test
-    backend:
-      service:
-        name: grafana
-        port:
-          number: 80
 
   serviceMonitor:
     enabled: false
