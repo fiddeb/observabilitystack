@@ -21,10 +21,10 @@ dependencies:
     repository: "https://prometheus-community.github.io/helm-charts"
     condition: prometheus.enabled
   - name: grafana
-    alias: grafana-destination
+    alias: grafanadest
     version: "10.2.0"
     repository: "https://grafana.github.io/helm-charts"
-    condition: grafana-destination.enabled
+    condition: grafanadest.enabled
 
   - name: grafana
     version: "10.2.0"
