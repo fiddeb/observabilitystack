@@ -1,0 +1,3810 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="GitOps-managed observability stack for local Kubernetes">
+      
+      
+        <meta name="author" content="Fredrik Frodlund">
+      
+      
+      
+        <link rel="prev" href="../GIT_WORKFLOW/">
+      
+      
+        <link rel="next" href="../../advanced/BATCH_OPTIMIZATION/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../logo.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+    
+    
+      
+        <title>Troubleshooting - ObservabilityStack</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="grey" data-md-color-accent="deep-purple">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#troubleshooting-guide" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="https://fiddeb.github.io/docnet/" title="ObservabilityStack" class="md-header__button md-logo" aria-label="ObservabilityStack" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ObservabilityStack
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Troubleshooting
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+    
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/fiddeb/observabilitystack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    fiddeb/observabilitystack
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../INSTALLATION/" class="md-tabs__link">
+          
+  
+  
+  Getting Started
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../ARCHITECTURE/" class="md-tabs__link">
+          
+  
+  
+  Guides
+
+        </a>
+      </li>
+    
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../../advanced/BATCH_OPTIMIZATION/" class="md-tabs__link">
+          
+  
+  
+  Advanced
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="https://fiddeb.github.io/docnet/" title="ObservabilityStack" class="md-nav__button md-logo" aria-label="ObservabilityStack" data-md-component="logo">
+      
+  <img src="../../assets/logo.png" alt="logo">
+
+    </a>
+    ObservabilityStack
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/fiddeb/observabilitystack" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    fiddeb/observabilitystack
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../INSTALLATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Installation
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../USAGE_GUIDE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Usage Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../ARCHITECTURE/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../GIT_WORKFLOW/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Git Workflow
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Troubleshooting
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#5-minute-health-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-Minute Health Check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Fixes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Fixes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#if-pods-are-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If Pods Are Down
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#if-ingress-doesnt-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If Ingress Doesn't Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-all-pods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restart All Pods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocd-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-liner-status-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-Liner Status Check
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-checklists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment Checklists
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment Checklists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-deployment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-Deployment Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-deployment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-Deployment Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deployment-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#git-and-branch-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git and Branch Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Git and Branch Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#branch-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branch Information
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-branch-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature Branch Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#argocd-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ArgoCD Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#application-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocd-web-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Web Interface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#force-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Force Sync
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocd-server-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Server Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branch-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branch Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kubernetes-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes Debugging
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Kubernetes Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pod-and-service-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pod and Service Information
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#services-and-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Services and Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configmaps-and-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigMaps and Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loki-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loki Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loki Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#log-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log Ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-querying" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log Querying
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-tenant-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Tenant Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-tenant-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Tenant Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loki-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loki Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grafana-datasource-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grafana Datasource Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tempotracing-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tempo/Tracing Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tempo/Tracing Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trace-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trace Ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tempo-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tempo Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tempo-storage-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tempo Storage Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opentelemetry-collector-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenTelemetry Collector Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OpenTelemetry Collector Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#collector-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collector Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otlp-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OTLP Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-and-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network and Connectivity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Network and Connectivity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dns-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#port-forwarding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Port Forwarding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ingress-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ingress Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Verification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#volume-mounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Volume Mounts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-and-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance and Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance and Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resource-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting Playbook
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Playbook">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-pod-not-readyrunning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Pod Not Ready/Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-service-not-accessible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Service Not Accessible
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-storage-problems-filesystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Storage Problems (Filesystem)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-argocd-sync-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: ArgoCD Sync Problems
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-no-logstraces-appearing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: No Logs/Traces Appearing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-grafana-datasources-not-working" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Grafana Datasources Not Working
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Backend
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storage Backend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pvc-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PVC Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list-all-pvcs-kubectl-get-pvc-n-observability-lab-list-all-pvs-kubectl-get-pv-pvcs-for-specific-component-kubectl-get-pv-l-appkubernetesionameloki-kubectl-get-pv-l-appkubernetesionametempo-pvc-details-kubectl-describe-pvc-n-observability-lab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        # List all PVCs kubectl get pvc -n observability-lab # List all PVs kubectl get pv # PVCs for specific component kubectl get pv -l app.kubernetes.io/name=loki kubectl get pv -l app.kubernetes.io/name=tempo # PVC details kubectl describe pvc -n observability-lab
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleanup-and-uninstall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleanup and Uninstall
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cleanup and Uninstall">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-cleanup-keep-cluster-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Cleanup - Keep Cluster Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-uninstall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Uninstall
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#selective-component-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Selective Component Removal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Selective Component Removal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disable-component-via-helm-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disable Component via Helm Values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-component-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Component Removal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset-to-clean-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reset to Clean State
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dns-cleanup-macoslinux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS Cleanup (macOS/Linux)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DNS Cleanup (macOS/Linux)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#macos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linux
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification-after-cleanup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification After Cleanup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting-cleanup-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting Cleanup Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Cleanup Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#namespace-stuck-in-terminating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Namespace Stuck in Terminating
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pvcs-wont-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PVCs Won't Delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocd-application-wont-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Application Won't Delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-shortcuts-and-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Useful Shortcuts and Aliases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+          
+        
+        <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Advanced
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Advanced
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/BATCH_OPTIMIZATION/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Batch Optimization
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../advanced/MIMIR_SETUP/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Mimir Setup
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#quick-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Quick Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#5-minute-health-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5-Minute Health Check
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#common-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Common Fixes
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Common Fixes">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#if-pods-are-down" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If Pods Are Down
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#if-ingress-doesnt-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        If Ingress Doesn't Work
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#restart-all-pods" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Restart All Pods
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocd-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#one-liner-status-check" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        One-Liner Status Check
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#deployment-checklists" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment Checklists
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Deployment Checklists">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pre-deployment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pre-Deployment Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#post-deployment-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Post-Deployment Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#deployment-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deployment Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#git-and-branch-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Git and Branch Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Git and Branch Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#branch-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branch Information
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feature-branch-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feature Branch Workflow
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#argocd-operations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Operations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="ArgoCD Operations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#application-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocd-web-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Web Interface
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#force-sync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Force Sync
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocd-server-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Server Management
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#branch-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Branch Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#kubernetes-debugging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Kubernetes Debugging
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Kubernetes Debugging">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pod-and-service-information" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pod and Service Information
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#services-and-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Services and Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configmaps-and-secrets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ConfigMaps and Secrets
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#resource-overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource Overview
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#loki-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loki Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Loki Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#log-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log Ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#log-querying" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Log Querying
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-tenant-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Tenant Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#multi-tenant-checklist" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-Tenant Checklist
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#loki-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Loki Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#grafana-datasource-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Grafana Datasource Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#tempotracing-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tempo/Tracing Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Tempo/Tracing Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#trace-ingestion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Trace Ingestion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tempo-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tempo Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tempo-storage-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tempo Storage Verification
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#opentelemetry-collector-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OpenTelemetry Collector Testing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="OpenTelemetry Collector Testing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#collector-status" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Collector Status
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#otlp-endpoints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        OTLP Endpoints
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#network-and-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Network and Connectivity
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Network and Connectivity">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#dns-resolution" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS Resolution
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#service-connectivity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Service Connectivity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#port-forwarding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Port Forwarding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#ingress-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ingress Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#configuration-verification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Verification
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Configuration Verification">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#environment-variables" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Environment Variables
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#volume-mounts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Volume Mounts
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration Files
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#performance-and-monitoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance and Monitoring
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Performance and Monitoring">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#resource-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Resource Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#storage-usage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Usage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#application-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Application Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#performance-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Performance Testing
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#troubleshooting-playbook" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting Playbook
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Playbook">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#issue-pod-not-readyrunning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Pod Not Ready/Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-service-not-accessible" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Service Not Accessible
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-storage-problems-filesystem" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Storage Problems (Filesystem)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-argocd-sync-problems" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: ArgoCD Sync Problems
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-no-logstraces-appearing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: No Logs/Traces Appearing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#issue-grafana-datasources-not-working" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Issue: Grafana Datasources Not Working
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#storage-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Storage Backend
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Storage Backend">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#pvc-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PVC Commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#list-all-pvcs-kubectl-get-pvc-n-observability-lab-list-all-pvs-kubectl-get-pv-pvcs-for-specific-component-kubectl-get-pv-l-appkubernetesionameloki-kubectl-get-pv-l-appkubernetesionametempo-pvc-details-kubectl-describe-pvc-n-observability-lab" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        # List all PVCs kubectl get pvc -n observability-lab # List all PVs kubectl get pv # PVCs for specific component kubectl get pv -l app.kubernetes.io/name=loki kubectl get pv -l app.kubernetes.io/name=tempo # PVC details kubectl describe pvc -n observability-lab
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cleanup-and-uninstall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cleanup and Uninstall
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cleanup and Uninstall">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#quick-cleanup-keep-cluster-running" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Quick Cleanup - Keep Cluster Running
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#full-uninstall" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Full Uninstall
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#selective-component-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Selective Component Removal
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Selective Component Removal">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#disable-component-via-helm-values" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Disable Component via Helm Values
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manual-component-removal" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manual Component Removal
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reset-to-clean-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reset to Clean State
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#dns-cleanup-macoslinux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        DNS Cleanup (macOS/Linux)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="DNS Cleanup (macOS/Linux)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#macos" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        macOS
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#linux" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Linux
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification-after-cleanup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification After Cleanup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#troubleshooting-cleanup-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Troubleshooting Cleanup Issues
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Troubleshooting Cleanup Issues">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#namespace-stuck-in-terminating" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Namespace Stuck in Terminating
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#pvcs-wont-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        PVCs Won't Delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#argocd-application-wont-delete" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ArgoCD Application Won't Delete
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#useful-shortcuts-and-aliases" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Useful Shortcuts and Aliases
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#related-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Related Documentation
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="troubleshooting-guide">Troubleshooting Guide<a class="headerlink" href="#troubleshooting-guide" title="Permanent link">&para;</a></h1>
+<p>How to debug, test, and recover the ObservabilityStack.</p>
+<hr />
+<h2 id="quick-recovery">Quick Recovery<a class="headerlink" href="#quick-recovery" title="Permanent link">&para;</a></h2>
+<h3 id="5-minute-health-check">5-Minute Health Check<a class="headerlink" href="#5-minute-health-check" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Pod status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># 2. ArgoCD sync status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd
+
+<span class="c1"># 3. Endpoint connectivity</span>
+curl<span class="w"> </span>-s<span class="w"> </span>http://loki.k8s.test/ready
+curl<span class="w"> </span>-s<span class="w"> </span>http://grafana.k8s.test/api/health
+</code></pre></div>
+<h3 id="common-fixes">Common Fixes<a class="headerlink" href="#common-fixes" title="Permanent link">&para;</a></h3>
+<h4 id="if-pods-are-down">If Pods Are Down<a class="headerlink" href="#if-pods-are-down" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Check recent events</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>events<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--sort-by<span class="o">=</span>.metadata.creationTimestamp<span class="w"> </span><span class="p">|</span><span class="w"> </span>tail<span class="w"> </span>-10
+
+<span class="c1"># 2. Restart problematic pod</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>pod<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># 3. Force ArgoCD sync</span>
+./scripts/force_argo_sync.sh
+</code></pre></div>
+<h4 id="if-ingress-doesnt-work">If Ingress Doesn't Work<a class="headerlink" href="#if-ingress-doesnt-work" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Use port forwards as backup</span>
+kubectl<span class="w"> </span>port-forward<span class="w"> </span>service/grafana<span class="w"> </span><span class="m">3000</span>:80<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">&amp;</span>
+kubectl<span class="w"> </span>port-forward<span class="w"> </span>service/loki<span class="w"> </span><span class="m">3100</span>:3100<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">&amp;</span>
+
+<span class="c1"># 2. Test service directly</span>
+kubectl<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>debug<span class="w"> </span>--image<span class="o">=</span>curlimages/curl<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>http://loki.observability-lab.svc.cluster.local:3100/ready
+</code></pre></div>
+<h4 id="restart-all-pods">Restart All Pods<a class="headerlink" href="#restart-all-pods" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Delete all pods (Kubernetes recreates them)</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>pods<span class="w"> </span>--all<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># 2. Wait for all pods to be ready</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-w
+
+<span class="c1"># 3. Verify health and sync</span>
+./scripts/force_argo_sync.sh
+</code></pre></div>
+<h4 id="argocd-recovery">ArgoCD Recovery<a class="headerlink" href="#argocd-recovery" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Reset to known good state</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+./scripts/force_argo_sync.sh
+
+<span class="c1"># 2. If that fails, recreate application</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>argocd/observability-stack.yaml<span class="w"> </span>-n<span class="w"> </span>argocd
+</code></pre></div>
+<h3 id="one-liner-status-check">One-Liner Status Check<a class="headerlink" href="#one-liner-status-check" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;=== Pods ===&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;=== ArgoCD ===&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+<span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;=== Endpoints ===&quot;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>http://loki.k8s.test/ready<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="se">\</span>
+curl<span class="w"> </span>-sI<span class="w"> </span>http://grafana.k8s.test<span class="w"> </span><span class="p">|</span><span class="w"> </span>head<span class="w"> </span>-1
+</code></pre></div>
+<hr />
+<h2 id="deployment-checklists">Deployment Checklists<a class="headerlink" href="#deployment-checklists" title="Permanent link">&para;</a></h2>
+<h3 id="pre-deployment-checklist">Pre-Deployment Checklist<a class="headerlink" href="#pre-deployment-checklist" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] <code>git status</code> - No uncommitted changes</li>
+<li>[ ] <code>targetRevision: main</code> in <code>argocd/observability-stack.yaml</code></li>
+<li>[ ] All tests pass locally</li>
+<li>[ ] Configuration reviewed</li>
+</ul>
+<h3 id="post-deployment-checklist">Post-Deployment Checklist<a class="headerlink" href="#post-deployment-checklist" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] All pods Running: <code>kubectl get pods -n observability-lab</code></li>
+<li>[ ] ArgoCD Synced + Healthy: <code>kubectl get application observability-stack -n argocd</code></li>
+<li>[ ] Ingress endpoints respond: <code>loki.k8s.test</code>, <code>grafana.k8s.test</code></li>
+<li>[ ] Test log ingestion (see <a href="#loki-testing">Loki Testing</a>)</li>
+</ul>
+<h3 id="deployment-verification">Deployment Verification<a class="headerlink" href="#deployment-verification" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Pod status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># ArgoCD status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd
+
+<span class="c1"># Service endpoints</span>
+curl<span class="w"> </span>-s<span class="w"> </span>http://loki.k8s.test/ready
+curl<span class="w"> </span>-s<span class="w"> </span>http://grafana.k8s.test/api/health
+
+<span class="c1"># Test log ingestion</span>
+curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Scope-OrgID: foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-XPOST<span class="w"> </span><span class="s2">&quot;http://loki.k8s.test/loki/api/v1/push&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;streams&quot;:[{&quot;stream&quot;:{&quot;job&quot;:&quot;deployment-test&quot;},&quot;values&quot;:[[&quot;&#39;</span><span class="k">$(</span>date<span class="w"> </span>+%s%N<span class="k">)</span><span class="s1">&#39;&quot;,&quot;Deployment verification&quot;]]}]}&#39;</span>
+
+<span class="c1"># Verify log arrived</span>
+logcli<span class="w"> </span>query<span class="w"> </span>--addr<span class="o">=</span>http://loki.k8s.test<span class="w"> </span>--org-id<span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">&#39;{job=&quot;deployment-test&quot;}&#39;</span><span class="w"> </span>--limit<span class="o">=</span><span class="m">5</span><span class="w"> </span>--since<span class="o">=</span>5m
+</code></pre></div>
+<hr />
+<h2 id="git-and-branch-management">Git and Branch Management<a class="headerlink" href="#git-and-branch-management" title="Permanent link">&para;</a></h2>
+<h3 id="branch-information">Branch Information<a class="headerlink" href="#branch-information" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Current branch</span>
+git<span class="w"> </span>rev-parse<span class="w"> </span>--abbrev-ref<span class="w"> </span>HEAD
+
+<span class="c1"># All branches</span>
+git<span class="w"> </span>branch<span class="w"> </span>-a
+
+<span class="c1"># Status and changes</span>
+git<span class="w"> </span>status
+git<span class="w"> </span>diff
+git<span class="w"> </span>diff<span class="w"> </span>--cached
+
+<span class="c1"># Commit history</span>
+git<span class="w"> </span>log<span class="w"> </span>--oneline<span class="w"> </span>-10
+</code></pre></div>
+<h3 id="feature-branch-workflow">Feature Branch Workflow<a class="headerlink" href="#feature-branch-workflow" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Create feature branch</span>
+git<span class="w"> </span>checkout<span class="w"> </span>-b<span class="w"> </span>feat/my-feature
+
+<span class="c1"># Commit changes</span>
+git<span class="w"> </span>add<span class="w"> </span>-u<span class="w">  </span><span class="c1"># For modified files</span>
+git<span class="w"> </span>add<span class="w"> </span>&lt;filename&gt;<span class="w">  </span><span class="c1"># For new files</span>
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: description of change&quot;</span>
+
+<span class="c1"># Merge to main (recommended - uses script)</span>
+./scripts/merge_feature.sh<span class="w"> </span>feat/my-feature
+
+<span class="c1"># Manual merge (with Git hook protection)</span>
+git<span class="w"> </span>checkout<span class="w"> </span>main
+git<span class="w"> </span>merge<span class="w"> </span>feat/my-feature
+</code></pre></div>
+<hr />
+<h2 id="argocd-operations">ArgoCD Operations<a class="headerlink" href="#argocd-operations" title="Permanent link">&para;</a></h2>
+<h3 id="application-status">Application Status<a class="headerlink" href="#application-status" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># List all applications</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>applications<span class="w"> </span>-n<span class="w"> </span>argocd
+
+<span class="c1"># Detailed status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span>-o<span class="w"> </span>yaml
+
+<span class="c1"># Check targetRevision (should match current Git branch)</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.source.targetRevision}&#39;</span>
+
+<span class="c1"># Sync and health status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.status.sync.status}&#39;</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.status.health.status}&#39;</span>
+</code></pre></div>
+<h3 id="argocd-web-interface">ArgoCD Web Interface<a class="headerlink" href="#argocd-web-interface" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Get admin password</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>argocd-initial-admin-secret<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s2">&quot;{.data.password}&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>-d<span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="nb">echo</span>
+
+<span class="c1"># Port forward to ArgoCD UI</span>
+kubectl<span class="w"> </span>port-forward<span class="w"> </span>svc/argocd-server<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="m">8080</span>:443<span class="w"> </span><span class="p">&amp;</span>
+
+<span class="c1"># Access at: https://localhost:8080 (admin/&lt;password&gt;)</span>
+
+<span class="c1"># Create ingress for permanent access</span>
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>manifests/argocd-ingress.yaml
+</code></pre></div>
+<h3 id="force-sync">Force Sync<a class="headerlink" href="#force-sync" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Automated sync script (recommended)</span>
+./scripts/force_argo_sync.sh
+
+<span class="c1"># Manual refresh</span>
+kubectl<span class="w"> </span>patch<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="s1">&#39;{&quot;metadata&quot;:{&quot;annotations&quot;:{&quot;argocd.argoproj.io/refresh&quot;:&quot;hard&quot;}}}&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--type<span class="o">=</span>merge
+
+<span class="c1"># Manual sync</span>
+kubectl<span class="w"> </span>patch<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="s1">&#39;{&quot;operation&quot;:{&quot;sync&quot;:{&quot;syncStrategy&quot;:{&quot;hook&quot;:{}}}}}&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--type<span class="o">=</span>merge
+
+<span class="c1"># Apply ArgoCD application manifest</span>
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>argocd/observability-stack.yaml<span class="w"> </span>-n<span class="w"> </span>argocd
+</code></pre></div>
+<h3 id="argocd-server-management">ArgoCD Server Management<a class="headerlink" href="#argocd-server-management" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check ArgoCD server status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>argocd-server
+
+<span class="c1"># Restart ArgoCD server if needed</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>pod<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/name<span class="o">=</span>argocd-server<span class="w"> </span>-n<span class="w"> </span>argocd
+</code></pre></div>
+<h3 id="branch-verification">Branch Verification<a class="headerlink" href="#branch-verification" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Current Git branch</span>
+git<span class="w"> </span>rev-parse<span class="w"> </span>--abbrev-ref<span class="w"> </span>HEAD
+
+<span class="c1"># ArgoCD targetRevision</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.source.targetRevision}&#39;</span>
+
+<span class="c1"># Should match! If not, sync:</span>
+./scripts/force_argo_sync.sh
+</code></pre></div>
+<hr />
+<h2 id="kubernetes-debugging">Kubernetes Debugging<a class="headerlink" href="#kubernetes-debugging" title="Permanent link">&para;</a></h2>
+<h3 id="pod-and-service-information">Pod and Service Information<a class="headerlink" href="#pod-and-service-information" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># List all pods</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>wide
+
+<span class="c1"># Describe specific pod</span>
+kubectl<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Pod logs</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>logs<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--tail<span class="o">=</span><span class="m">20</span><span class="w"> </span>--follow
+
+<span class="c1"># Logs for specific container</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-c<span class="w"> </span>&lt;container-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Previous container logs (for crashed pods)</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--previous
+</code></pre></div>
+<h3 id="services-and-endpoints">Services and Endpoints<a class="headerlink" href="#services-and-endpoints" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># List services</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>services<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># List endpoints</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>endpoints<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Service details</span>
+kubectl<span class="w"> </span>describe<span class="w"> </span>service<span class="w"> </span>&lt;service-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+</code></pre></div>
+<h3 id="configmaps-and-secrets">ConfigMaps and Secrets<a class="headerlink" href="#configmaps-and-secrets" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># List configmaps</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>configmaps<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Show configmap contents</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>&lt;configmap-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml
+
+<span class="c1"># List secrets</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>secrets<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Get secret value (base64 decoded)</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>secret<span class="w"> </span>&lt;secret-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.data.&lt;key&gt;}&#39;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span>base64<span class="w"> </span>-d
+</code></pre></div>
+<h3 id="resource-overview">Resource Overview<a class="headerlink" href="#resource-overview" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># All resources</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>all<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Recent events</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>events<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--sort-by<span class="o">=</span>.metadata.creationTimestamp
+
+<span class="c1"># Resource usage</span>
+kubectl<span class="w"> </span>top<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>top<span class="w"> </span>nodes
+</code></pre></div>
+<hr />
+<h2 id="loki-testing">Loki Testing<a class="headerlink" href="#loki-testing" title="Permanent link">&para;</a></h2>
+<h3 id="log-ingestion">Log Ingestion<a class="headerlink" href="#log-ingestion" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Send single test log</span>
+curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Scope-OrgID: foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-XPOST<span class="w"> </span><span class="s2">&quot;http://loki.k8s.test/loki/api/v1/push&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;streams&quot;: [{</span>
+<span class="s1">      &quot;stream&quot;: {</span>
+<span class="s1">        &quot;job&quot;: &quot;test-job&quot;,</span>
+<span class="s1">        &quot;service_name&quot;: &quot;test-service&quot;</span>
+<span class="s1">      },</span>
+<span class="s1">      &quot;values&quot;: [</span>
+<span class="s1">        [&quot;&#39;</span><span class="k">$(</span>date<span class="w"> </span>+%s%N<span class="k">)</span><span class="s1">&#39;&quot;, &quot;Test log message&quot;]</span>
+<span class="s1">      ]</span>
+<span class="s1">    }]</span>
+<span class="s1">  }&#39;</span>
+
+<span class="c1"># Send multiple logs (chunk testing)</span>
+curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Scope-OrgID: foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-XPOST<span class="w"> </span><span class="s2">&quot;http://loki.k8s.test/loki/api/v1/push&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;streams&quot;: [{</span>
+<span class="s1">      &quot;stream&quot;: {</span>
+<span class="s1">        &quot;job&quot;: &quot;multi-test&quot;,</span>
+<span class="s1">        &quot;service_name&quot;: &quot;batch-test&quot;</span>
+<span class="s1">      },</span>
+<span class="s1">      &quot;values&quot;: [</span>
+<span class="s1">        [&quot;&#39;</span><span class="k">$(</span>date<span class="w"> </span>+%s%N<span class="k">)</span><span class="s1">&#39;&quot;, &quot;First message&quot;],</span>
+<span class="s1">        [&quot;&#39;</span><span class="k">$(</span>date<span class="w"> </span>+%s%N<span class="k">)</span><span class="s1">&#39;&quot;, &quot;Second message&quot;],</span>
+<span class="s1">        [&quot;&#39;</span><span class="k">$(</span>date<span class="w"> </span>+%s%N<span class="k">)</span><span class="s1">&#39;&quot;, &quot;Third message&quot;]</span>
+<span class="s1">      ]</span>
+<span class="s1">    }]</span>
+<span class="s1">  }&#39;</span>
+</code></pre></div>
+<h3 id="log-querying">Log Querying<a class="headerlink" href="#log-querying" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Basic query</span>
+logcli<span class="w"> </span>query<span class="w"> </span>--addr<span class="o">=</span>http://loki.k8s.test<span class="w"> </span>--org-id<span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">&#39;{job=&quot;test-job&quot;}&#39;</span><span class="w"> </span>--limit<span class="o">=</span><span class="m">100</span><span class="w"> </span>--since<span class="o">=</span>1h
+
+<span class="c1"># Query specific service</span>
+logcli<span class="w"> </span>query<span class="w"> </span>--addr<span class="o">=</span>http://loki.k8s.test<span class="w"> </span>--org-id<span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">&#39;{service_name=&quot;test-service&quot;}&#39;</span><span class="w"> </span>--limit<span class="o">=</span><span class="m">50</span><span class="w"> </span>--since<span class="o">=</span>30m
+
+<span class="c1"># Pattern matching</span>
+logcli<span class="w"> </span>query<span class="w"> </span>--addr<span class="o">=</span>http://loki.k8s.test<span class="w"> </span>--org-id<span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">&#39;{job=~&quot;test.*&quot;}&#39;</span><span class="w"> </span>--limit<span class="o">=</span><span class="m">200</span><span class="w"> </span>--since<span class="o">=</span>2h
+
+<span class="c1"># Live tail</span>
+logcli<span class="w"> </span>query<span class="w"> </span>--addr<span class="o">=</span>http://loki.k8s.test<span class="w"> </span>--org-id<span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">&#39;{job=&quot;test-job&quot;}&#39;</span><span class="w"> </span>--tail<span class="w"> </span>--since<span class="o">=</span>1m
+</code></pre></div>
+<h3 id="multi-tenant-testing">Multi-Tenant Testing<a class="headerlink" href="#multi-tenant-testing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Test foo tenant</span>
+curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Scope-OrgID: foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-XPOST<span class="w"> </span><span class="s2">&quot;http://loki.k8s.test/loki/api/v1/push&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;streams&quot;:[{&quot;stream&quot;:{&quot;job&quot;:&quot;foo-test&quot;},&quot;values&quot;:[[&quot;&#39;</span><span class="k">$(</span>date<span class="w"> </span>+%s%N<span class="k">)</span><span class="s1">&#39;&quot;,&quot;Test from foo&quot;]]}]}&#39;</span>
+
+<span class="c1"># Test bazz tenant</span>
+curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Scope-OrgID: bazz&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-XPOST<span class="w"> </span><span class="s2">&quot;http://loki.k8s.test/loki/api/v1/push&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;streams&quot;:[{&quot;stream&quot;:{&quot;job&quot;:&quot;bazz-test&quot;},&quot;values&quot;:[[&quot;&#39;</span><span class="k">$(</span>date<span class="w"> </span>+%s%N<span class="k">)</span><span class="s1">&#39;&quot;,&quot;Test from bazz&quot;]]}]}&#39;</span>
+
+<span class="c1"># Verify tenant isolation</span>
+logcli<span class="w"> </span>query<span class="w"> </span>--addr<span class="o">=</span>http://loki.k8s.test<span class="w"> </span>--org-id<span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">&#39;{job=&quot;foo-test&quot;}&#39;</span><span class="w"> </span>--limit<span class="o">=</span><span class="m">5</span><span class="w"> </span>--since<span class="o">=</span>5m
+logcli<span class="w"> </span>query<span class="w"> </span>--addr<span class="o">=</span>http://loki.k8s.test<span class="w"> </span>--org-id<span class="o">=</span><span class="s2">&quot;bazz&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">&#39;{job=&quot;bazz-test&quot;}&#39;</span><span class="w"> </span>--limit<span class="o">=</span><span class="m">5</span><span class="w"> </span>--since<span class="o">=</span>5m
+
+<span class="c1"># Check OTLP routing</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>deployment/otel-collector<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span>routing
+</code></pre></div>
+<h3 id="multi-tenant-checklist">Multi-Tenant Checklist<a class="headerlink" href="#multi-tenant-checklist" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] Logs with <code>dev.audit.category</code> attribute go to bazz tenant</li>
+<li>[ ] Other logs go to foo tenant (default)</li>
+<li>[ ] Routing processor works: check OTLP collector logs</li>
+<li>[ ] Both Grafana datasources configured (Loki-foo and Loki-bazz)</li>
+</ul>
+<h3 id="loki-configuration">Loki Configuration<a class="headerlink" href="#loki-configuration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Runtime configuration</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>loki-0<span class="w"> </span>--<span class="w"> </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://localhost:3100/config
+
+<span class="c1"># Loki metrics</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>loki-0<span class="w"> </span>--<span class="w"> </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://localhost:3100/metrics
+
+<span class="c1"># Ready status</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>loki-0<span class="w"> </span>--<span class="w"> </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://localhost:3100/ready
+
+<span class="c1"># Loki logs with filtering</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>loki-0<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--tail<span class="o">=</span><span class="m">20</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;(error|warn|chunk|flush|filesystem)&quot;</span>
+</code></pre></div>
+<h3 id="grafana-datasource-verification">Grafana Datasource Verification<a class="headerlink" href="#grafana-datasource-verification" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check datasource configuration</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>grafana<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A5<span class="w"> </span><span class="s2">&quot;loki\|bazz&quot;</span>
+
+<span class="c1"># Test datasource connectivity from Grafana pod</span>
+kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>deployment/grafana<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>wget<span class="w"> </span>-qO-<span class="w"> </span><span class="s2">&quot;http://loki-gateway:80/ready&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="tempotracing-testing">Tempo/Tracing Testing<a class="headerlink" href="#tempotracing-testing" title="Permanent link">&para;</a></h2>
+<h3 id="trace-ingestion">Trace Ingestion<a class="headerlink" href="#trace-ingestion" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Send test trace via OTLP Collector (recommended)</span>
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://otel-collector.k8s.test:4318/v1/traces<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;resourceSpans&quot;: [{</span>
+<span class="s1">      &quot;resource&quot;: {</span>
+<span class="s1">        &quot;attributes&quot;: [{</span>
+<span class="s1">          &quot;key&quot;: &quot;service.name&quot;,</span>
+<span class="s1">          &quot;value&quot;: {&quot;stringValue&quot;: &quot;test-service&quot;}</span>
+<span class="s1">        }]</span>
+<span class="s1">      },</span>
+<span class="s1">      &quot;instrumentationLibrarySpans&quot;: [{</span>
+<span class="s1">        &quot;spans&quot;: [{</span>
+<span class="s1">          &quot;traceId&quot;: &quot;&#39;</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">16</span><span class="k">)</span><span class="s1">&#39;&quot;,</span>
+<span class="s1">          &quot;spanId&quot;: &quot;&#39;</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">8</span><span class="k">)</span><span class="s1">&#39;&quot;,</span>
+<span class="s1">          &quot;name&quot;: &quot;test-span&quot;,</span>
+<span class="s1">          &quot;kind&quot;: 1,</span>
+<span class="s1">          &quot;startTimeUnixNano&quot;: &quot;&#39;</span><span class="k">$(($(</span>date<span class="w"> </span>+%s<span class="k">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1000000000</span><span class="k">))</span><span class="s1">&#39;&quot;,</span>
+<span class="s1">          &quot;endTimeUnixNano&quot;: &quot;&#39;</span><span class="k">$((</span><span class="o">(</span><span class="k">$(</span>date<span class="w"> </span>+%s<span class="k">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1000000000</span><span class="k">))</span><span class="s1">&#39;&quot;</span>
+<span class="s1">        }]</span>
+<span class="s1">      }]</span>
+<span class="s1">    }]</span>
+<span class="s1">  }&#39;</span>
+
+<span class="c1"># Send directly to Tempo (requires port-forward)</span>
+kubectl<span class="w"> </span>port-forward<span class="w"> </span>service/tempo<span class="w"> </span><span class="m">3200</span>:3200<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">&amp;</span>
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://localhost:3200/v1/traces<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;resourceSpans&quot;: [{</span>
+<span class="s1">      &quot;resource&quot;: {</span>
+<span class="s1">        &quot;attributes&quot;: [{</span>
+<span class="s1">          &quot;key&quot;: &quot;service.name&quot;,</span>
+<span class="s1">          &quot;value&quot;: {&quot;stringValue&quot;: &quot;direct-tempo-test&quot;}</span>
+<span class="s1">        }]</span>
+<span class="s1">      },</span>
+<span class="s1">      &quot;instrumentationLibrarySpans&quot;: [{</span>
+<span class="s1">        &quot;spans&quot;: [{</span>
+<span class="s1">          &quot;traceId&quot;: &quot;&#39;</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">16</span><span class="k">)</span><span class="s1">&#39;&quot;,</span>
+<span class="s1">          &quot;spanId&quot;: &quot;&#39;</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">8</span><span class="k">)</span><span class="s1">&#39;&quot;,</span>
+<span class="s1">          &quot;name&quot;: &quot;direct-test-span&quot;,</span>
+<span class="s1">          &quot;kind&quot;: 1,</span>
+<span class="s1">          &quot;startTimeUnixNano&quot;: &quot;&#39;</span><span class="k">$(($(</span>date<span class="w"> </span>+%s<span class="k">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1000000000</span><span class="k">))</span><span class="s1">&#39;&quot;,</span>
+<span class="s1">          &quot;endTimeUnixNano&quot;: &quot;&#39;</span><span class="k">$((</span><span class="o">(</span><span class="k">$(</span>date<span class="w"> </span>+%s<span class="k">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1000000000</span><span class="k">))</span><span class="s1">&#39;&quot;</span>
+<span class="s1">        }]</span>
+<span class="s1">      }]</span>
+<span class="s1">    }]</span>
+<span class="s1">  }&#39;</span>
+</code></pre></div>
+<blockquote>
+<p><strong>Important</strong>: Current configuration does NOT have Tempo search API enabled. Use Grafana to search and view traces.</p>
+</blockquote>
+<h3 id="tempo-configuration">Tempo Configuration<a class="headerlink" href="#tempo-configuration" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Show Tempo configmap</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>tempo<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml
+
+<span class="c1"># Check environment variables</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>tempo-0<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">10</span><span class="w"> </span>-B<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="s2">&quot;env:&quot;</span>
+
+<span class="c1"># Tempo logs</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>tempo-0<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--tail<span class="o">=</span><span class="m">20</span>
+
+<span class="c1"># Tempo metrics</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tempo-0<span class="w"> </span>--<span class="w"> </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://localhost:3200/metrics
+</code></pre></div>
+<h3 id="tempo-storage-verification">Tempo Storage Verification<a class="headerlink" href="#tempo-storage-verification" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Verify traces written to filesystem</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tempo-0<span class="w"> </span>--<span class="w"> </span>ls<span class="w"> </span>-lh<span class="w"> </span>/var/tempo/traces/
+
+<span class="c1"># Check ingestion metrics</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tempo-0<span class="w"> </span>--<span class="w"> </span>wget<span class="w"> </span>-qO-<span class="w"> </span><span class="s2">&quot;http://localhost:3200/metrics&quot;</span><span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;tempo_distributor|tempo_ingester&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="opentelemetry-collector-testing">OpenTelemetry Collector Testing<a class="headerlink" href="#opentelemetry-collector-testing" title="Permanent link">&para;</a></h2>
+<h3 id="collector-status">Collector Status<a class="headerlink" href="#collector-status" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Show collector logs</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>otel-collector<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--tail<span class="o">=</span><span class="m">20</span>
+
+<span class="c1"># Check configuration</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>otel-collector<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml
+
+<span class="c1"># Test collector health</span>
+curl<span class="w"> </span>http://otel-collector.k8s.test:13133/
+</code></pre></div>
+<h3 id="otlp-endpoints">OTLP Endpoints<a class="headerlink" href="#otlp-endpoints" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Test OTLP HTTP endpoint (port 4318)</span>
+curl<span class="w"> </span>-X<span class="w"> </span>POST<span class="w"> </span>http://otel-collector.k8s.test:4318/v1/traces<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{</span>
+<span class="s1">    &quot;resourceSpans&quot;: [{</span>
+<span class="s1">      &quot;resource&quot;: {</span>
+<span class="s1">        &quot;attributes&quot;: [{</span>
+<span class="s1">          &quot;key&quot;: &quot;service.name&quot;,</span>
+<span class="s1">          &quot;value&quot;: {&quot;stringValue&quot;: &quot;curl-test&quot;}</span>
+<span class="s1">        }]</span>
+<span class="s1">      },</span>
+<span class="s1">      &quot;instrumentationLibrarySpans&quot;: [{</span>
+<span class="s1">        &quot;spans&quot;: [{</span>
+<span class="s1">          &quot;traceId&quot;: &quot;&#39;</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">16</span><span class="k">)</span><span class="s1">&#39;&quot;,</span>
+<span class="s1">          &quot;spanId&quot;: &quot;&#39;</span><span class="k">$(</span>openssl<span class="w"> </span>rand<span class="w"> </span>-hex<span class="w"> </span><span class="m">8</span><span class="k">)</span><span class="s1">&#39;&quot;,</span>
+<span class="s1">          &quot;name&quot;: &quot;test-operation&quot;,</span>
+<span class="s1">          &quot;startTimeUnixNano&quot;: &quot;&#39;</span><span class="k">$(($(</span>date<span class="w"> </span>+%s<span class="k">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1000000000</span><span class="k">))</span><span class="s1">&#39;&quot;,</span>
+<span class="s1">          &quot;endTimeUnixNano&quot;: &quot;&#39;</span><span class="k">$((</span><span class="o">(</span><span class="k">$(</span>date<span class="w"> </span>+%s<span class="k">)</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="m">1</span><span class="o">)</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="m">1000000000</span><span class="k">))</span><span class="s1">&#39;&quot;</span>
+<span class="s1">        }]</span>
+<span class="s1">      }]</span>
+<span class="s1">    }]</span>
+<span class="s1">  }&#39;</span>
+
+<span class="c1"># OTLP gRPC endpoint (port 4317)</span>
+<span class="c1"># Use OpenTelemetry SDK or grpcurl for testing</span>
+</code></pre></div>
+<hr />
+<h2 id="network-and-connectivity">Network and Connectivity<a class="headerlink" href="#network-and-connectivity" title="Permanent link">&para;</a></h2>
+<h3 id="dns-resolution">DNS Resolution<a class="headerlink" href="#dns-resolution" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Internal DNS (cluster services)</span>
+kubectl<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>debug<span class="w"> </span>--image<span class="o">=</span>busybox<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>nslookup<span class="w"> </span>loki.observability-lab.svc.cluster.local
+
+kubectl<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>debug<span class="w"> </span>--image<span class="o">=</span>busybox<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>nslookup<span class="w"> </span>tempo.observability-lab.svc.cluster.local
+
+<span class="c1"># External DNS (ingress)</span>
+nslookup<span class="w"> </span>loki.k8s.test
+nslookup<span class="w"> </span>grafana.k8s.test
+</code></pre></div>
+<h3 id="service-connectivity">Service Connectivity<a class="headerlink" href="#service-connectivity" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Test internal service connectivity</span>
+kubectl<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>debug<span class="w"> </span>--image<span class="o">=</span>curlimages/curl<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>http://loki.observability-lab.svc.cluster.local:3100/ready
+
+kubectl<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>debug<span class="w"> </span>--image<span class="o">=</span>curlimages/curl<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>curl<span class="w"> </span>-s<span class="w"> </span>http://tempo.observability-lab.svc.cluster.local:3200/ready
+
+<span class="c1"># Test cross-service connectivity</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>deployment/grafana<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://loki:3100/ready
+</code></pre></div>
+<h3 id="port-forwarding">Port Forwarding<a class="headerlink" href="#port-forwarding" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Loki</span>
+kubectl<span class="w"> </span>port-forward<span class="w"> </span>service/loki<span class="w"> </span><span class="m">3100</span>:3100<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">&amp;</span>
+
+<span class="c1"># Grafana</span>
+kubectl<span class="w"> </span>port-forward<span class="w"> </span>service/grafana<span class="w"> </span><span class="m">3000</span>:80<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">&amp;</span>
+
+<span class="c1"># Prometheus</span>
+kubectl<span class="w"> </span>port-forward<span class="w"> </span>service/prometheus<span class="w"> </span><span class="m">9090</span>:80<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">&amp;</span>
+
+<span class="c1"># Tempo</span>
+kubectl<span class="w"> </span>port-forward<span class="w"> </span>service/tempo<span class="w"> </span><span class="m">3200</span>:3200<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">&amp;</span>
+
+<span class="c1"># List active port forwards</span>
+ps<span class="w"> </span>aux<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span><span class="s2">&quot;kubectl port-forward&quot;</span>
+
+<span class="c1"># Stop all port forwards</span>
+pkill<span class="w"> </span>-f<span class="w"> </span><span class="s2">&quot;kubectl port-forward&quot;</span>
+</code></pre></div>
+<p><strong>Access URLs (when port-forwarding):</strong>
+- Grafana: http://localhost:3000 (admin/admin)
+- Loki: http://localhost:3100
+- Prometheus: http://localhost:9090
+- Tempo: http://localhost:3200</p>
+<h3 id="ingress-testing">Ingress Testing<a class="headerlink" href="#ingress-testing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Test ingress endpoints</span>
+curl<span class="w"> </span>-s<span class="w"> </span>http://grafana.k8s.test
+curl<span class="w"> </span>-s<span class="w"> </span>http://loki.k8s.test/ready
+
+<span class="c1"># Check ingress resources</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>describe<span class="w"> </span>ingress<span class="w"> </span>&lt;ingress-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+</code></pre></div>
+<hr />
+<h2 id="configuration-verification">Configuration Verification<a class="headerlink" href="#configuration-verification" title="Permanent link">&para;</a></h2>
+<h3 id="environment-variables">Environment Variables<a class="headerlink" href="#environment-variables" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Loki environment</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>loki-0<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="s2">&quot;env:&quot;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>loki-0<span class="w"> </span>--<span class="w"> </span>env<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort
+
+<span class="c1"># Tempo environment</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>tempo-0<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="s2">&quot;env:&quot;</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tempo-0<span class="w"> </span>--<span class="w"> </span>env<span class="w"> </span><span class="p">|</span><span class="w"> </span>sort
+
+<span class="c1"># Grafana environment</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/name<span class="o">=</span>grafana<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="s2">&quot;env:&quot;</span>
+</code></pre></div>
+<h3 id="volume-mounts">Volume Mounts<a class="headerlink" href="#volume-mounts" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Loki volumes</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>loki-0<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">10</span><span class="w"> </span>-B<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="s2">&quot;volumeMounts&quot;</span>
+
+<span class="c1"># Tempo volumes</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pod<span class="w"> </span>tempo-0<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">10</span><span class="w"> </span>-B<span class="w"> </span><span class="m">5</span><span class="w"> </span><span class="s2">&quot;volumeMounts&quot;</span>
+</code></pre></div>
+<h3 id="configuration-files">Configuration Files<a class="headerlink" href="#configuration-files" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Loki config</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>loki-0<span class="w"> </span>--<span class="w"> </span>cat<span class="w"> </span>/etc/loki/config/config.yaml
+
+<span class="c1"># Tempo config</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tempo-0<span class="w"> </span>--<span class="w"> </span>cat<span class="w"> </span>/etc/tempo/tempo.yaml
+
+<span class="c1"># Prometheus config</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>deployment/prometheus<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>cat<span class="w"> </span>/etc/prometheus/prometheus.yml
+</code></pre></div>
+<hr />
+<h2 id="performance-and-monitoring">Performance and Monitoring<a class="headerlink" href="#performance-and-monitoring" title="Permanent link">&para;</a></h2>
+<h3 id="resource-usage">Resource Usage<a class="headerlink" href="#resource-usage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Pod resource usage</span>
+kubectl<span class="w"> </span>top<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Node resource usage</span>
+kubectl<span class="w"> </span>top<span class="w"> </span>nodes
+kubectl<span class="w"> </span>describe<span class="w"> </span>nodes<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;(Pressure|Allocatable|Allocated)&quot;</span>
+
+<span class="c1"># Resource requests and limits</span>
+kubectl<span class="w"> </span>describe<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;(Requests|Limits)&quot;</span>
+
+<span class="c1"># Detailed resource info</span>
+kubectl<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">10</span><span class="w"> </span>-B<span class="w"> </span><span class="m">5</span><span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;(Requests|Limits|Containers)&quot;</span>
+</code></pre></div>
+<h3 id="storage-usage">Storage Usage<a class="headerlink" href="#storage-usage" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check PVC status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pvc<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># PVC details</span>
+kubectl<span class="w"> </span>describe<span class="w"> </span>pvc<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Disk usage in pods</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>loki-0<span class="w"> </span>--<span class="w"> </span>df<span class="w"> </span>-h<span class="w"> </span>/var/loki
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tempo-0<span class="w"> </span>--<span class="w"> </span>df<span class="w"> </span>-h<span class="w"> </span>/var/tempo
+</code></pre></div>
+<h3 id="application-metrics">Application Metrics<a class="headerlink" href="#application-metrics" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Loki metrics</span>
+curl<span class="w"> </span>http://loki.k8s.test:3100/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>loki_
+
+<span class="c1"># Tempo metrics</span>
+curl<span class="w"> </span>http://tempo.k8s.test:3200/metrics<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>tempo_
+
+<span class="c1"># Prometheus targets</span>
+curl<span class="w"> </span>http://prometheus.k8s.test/api/v1/targets
+
+<span class="c1"># Grafana health</span>
+curl<span class="w"> </span>http://grafana.k8s.test/api/health
+</code></pre></div>
+<h3 id="performance-testing">Performance Testing<a class="headerlink" href="#performance-testing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Response times</span>
+<span class="nb">time</span><span class="w"> </span>curl<span class="w"> </span>-s<span class="w"> </span>http://loki.k8s.test/ready
+<span class="nb">time</span><span class="w"> </span>curl<span class="w"> </span>-I<span class="w"> </span>http://grafana.k8s.test
+
+<span class="c1"># Log ingestion performance</span>
+<span class="nb">time</span><span class="w"> </span>curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Scope-OrgID: foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-XPOST<span class="w"> </span><span class="s2">&quot;http://loki.k8s.test/loki/api/v1/push&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;streams&quot;:[{&quot;stream&quot;:{&quot;job&quot;:&quot;perf-test&quot;},&quot;values&quot;:[[&quot;&#39;</span><span class="k">$(</span>date<span class="w"> </span>+%s%N<span class="k">)</span><span class="s1">&#39;&quot;,&quot;Performance test&quot;]]}]}&#39;</span>
+
+<span class="c1"># Query performance</span>
+<span class="nb">time</span><span class="w"> </span>logcli<span class="w"> </span>query<span class="w"> </span>--addr<span class="o">=</span>http://loki.k8s.test<span class="w"> </span>--org-id<span class="o">=</span><span class="s2">&quot;foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="s1">&#39;{job=&quot;perf-test&quot;}&#39;</span><span class="w"> </span>--limit<span class="o">=</span><span class="m">1</span><span class="w"> </span>--since<span class="o">=</span>1h
+</code></pre></div>
+<hr />
+<h2 id="troubleshooting-playbook">Troubleshooting Playbook<a class="headerlink" href="#troubleshooting-playbook" title="Permanent link">&para;</a></h2>
+<h3 id="issue-pod-not-readyrunning">Issue: Pod Not Ready/Running<a class="headerlink" href="#issue-pod-not-readyrunning" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Step 1: Check pod status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Step 2: Check recent events</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>events<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--sort-by<span class="o">=</span>.metadata.creationTimestamp
+
+<span class="c1"># Step 3: Check logs</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--previous
+kubectl<span class="w"> </span>logs<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Step 4: Check resource constraints</span>
+kubectl<span class="w"> </span>describe<span class="w"> </span>pod<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;(Requests|Limits)&quot;</span>
+
+<span class="c1"># Step 5: Restart pod if necessary</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>pod<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+</code></pre></div>
+<h3 id="issue-service-not-accessible">Issue: Service Not Accessible<a class="headerlink" href="#issue-service-not-accessible" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Step 1: Check service endpoints</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>endpoints<span class="w"> </span>&lt;service-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Step 2: Test internal connectivity</span>
+kubectl<span class="w"> </span>run<span class="w"> </span>-it<span class="w"> </span>--rm<span class="w"> </span>debug<span class="w"> </span>--image<span class="o">=</span>curlimages/curl<span class="w"> </span>--restart<span class="o">=</span>Never<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>curl<span class="w"> </span>-v<span class="w"> </span>http://&lt;service-name&gt;.observability-lab.svc.cluster.local:&lt;port&gt;
+
+<span class="c1"># Step 3: Check network policies</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>networkpolicies<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Step 4: Check ingress configuration</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>describe<span class="w"> </span>ingress<span class="w"> </span>&lt;ingress-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+</code></pre></div>
+<h3 id="issue-storage-problems-filesystem">Issue: Storage Problems (Filesystem)<a class="headerlink" href="#issue-storage-problems-filesystem" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Step 1: Check PVC status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pvc<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>describe<span class="w"> </span>pvc<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># Step 2: Check disk space</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>loki-0<span class="w"> </span>--<span class="w"> </span>df<span class="w"> </span>-h<span class="w"> </span>/var/loki
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tempo-0<span class="w"> </span>--<span class="w"> </span>df<span class="w"> </span>-h<span class="w"> </span>/var/tempo
+
+<span class="c1"># Step 3: Check for permission issues</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>loki-0<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;permission denied&quot;</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>tempo-0<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-i<span class="w"> </span><span class="s2">&quot;permission denied&quot;</span>
+
+<span class="c1"># Step 4: Check PV status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pv
+kubectl<span class="w"> </span>describe<span class="w"> </span>pv<span class="w"> </span>&lt;pv-name&gt;
+</code></pre></div>
+<h3 id="issue-argocd-sync-problems">Issue: ArgoCD Sync Problems<a class="headerlink" href="#issue-argocd-sync-problems" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Step 1: Check application status</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span>-o<span class="w"> </span>yaml
+
+<span class="c1"># Step 2: Force refresh and sync</span>
+./scripts/force_argo_sync.sh
+
+<span class="c1"># Step 3: Check Git connectivity</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.status.conditions}&#39;</span>
+
+<span class="c1"># Step 4: Check targetRevision matches Git branch</span>
+git<span class="w"> </span>rev-parse<span class="w"> </span>--abbrev-ref<span class="w"> </span>HEAD
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-o<span class="w"> </span><span class="nv">jsonpath</span><span class="o">=</span><span class="s1">&#39;{.spec.source.targetRevision}&#39;</span>
+
+<span class="c1"># Step 5: Recreate application if necessary</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd
+kubectl<span class="w"> </span>apply<span class="w"> </span>-f<span class="w"> </span>argocd/observability-stack.yaml<span class="w"> </span>-n<span class="w"> </span>argocd
+</code></pre></div>
+<h3 id="issue-no-logstraces-appearing">Issue: No Logs/Traces Appearing<a class="headerlink" href="#issue-no-logstraces-appearing" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Step 1: Verify component is running</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s2">&quot;loki|tempo|otel&quot;</span>
+
+<span class="c1"># Step 2: Check OTLP Collector</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>-l<span class="w"> </span><span class="nv">app</span><span class="o">=</span>otel-collector<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--tail<span class="o">=</span><span class="m">50</span>
+
+<span class="c1"># Step 3: Test direct ingestion</span>
+<span class="c1"># For Loki:</span>
+curl<span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;Content-Type: application/json&quot;</span><span class="w"> </span>-H<span class="w"> </span><span class="s2">&quot;X-Scope-OrgID: foo&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-XPOST<span class="w"> </span><span class="s2">&quot;http://loki.k8s.test/loki/api/v1/push&quot;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-d<span class="w"> </span><span class="s1">&#39;{&quot;streams&quot;:[{&quot;stream&quot;:{&quot;job&quot;:&quot;debug&quot;},&quot;values&quot;:[[&quot;&#39;</span><span class="k">$(</span>date<span class="w"> </span>+%s%N<span class="k">)</span><span class="s1">&#39;&quot;,&quot;Debug test&quot;]]}]}&#39;</span>
+
+<span class="c1"># Step 4: Check storage</span>
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>loki-0<span class="w"> </span>--<span class="w"> </span>ls<span class="w"> </span>-lh<span class="w"> </span>/var/loki/chunks/
+kubectl<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>tempo-0<span class="w"> </span>--<span class="w"> </span>ls<span class="w"> </span>-lh<span class="w"> </span>/var/tempo/traces/
+
+<span class="c1"># Step 5: Check Grafana datasource configuration</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>grafana<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml
+</code></pre></div>
+<h3 id="issue-grafana-datasources-not-working">Issue: Grafana Datasources Not Working<a class="headerlink" href="#issue-grafana-datasources-not-working" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><span class="c1"># Step 1: Check datasource configuration</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>configmap<span class="w"> </span>grafana<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>grep<span class="w"> </span>-A<span class="w"> </span><span class="m">20</span><span class="w"> </span><span class="s2">&quot;datasources&quot;</span>
+
+<span class="c1"># Step 2: Test connectivity from Grafana pod</span>
+kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>deployment/grafana<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://loki-gateway:80/ready
+
+kubectl<span class="w"> </span><span class="nb">exec</span><span class="w"> </span>-it<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>deployment/grafana<span class="w"> </span>--<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>wget<span class="w"> </span>-qO-<span class="w"> </span>http://tempo:3200/ready
+
+<span class="c1"># Step 3: Check Grafana logs</span>
+kubectl<span class="w"> </span>logs<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>deployment/grafana<span class="w"> </span>--tail<span class="o">=</span><span class="m">50</span>
+
+<span class="c1"># Step 4: Restart Grafana</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>pod<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/name<span class="o">=</span>grafana
+</code></pre></div>
+<hr />
+<h2 id="storage-backend">Storage Backend<a class="headerlink" href="#storage-backend" title="Permanent link">&para;</a></h2>
+<p><strong>Current Configuration:</strong> Local filesystem storage via PVCs</p>
+<h3 id="pvc-commands">PVC Commands<a class="headerlink" href="#pvc-commands" title="Permanent link">&para;</a></h3>
+<h2 id="list-all-pvcs-kubectl-get-pvc-n-observability-lab-list-all-pvs-kubectl-get-pv-pvcs-for-specific-component-kubectl-get-pv-l-appkubernetesionameloki-kubectl-get-pv-l-appkubernetesionametempo-pvc-details-kubectl-describe-pvc-n-observability-lab"><div class="highlight"><pre><span></span><code><span class="c1"># List all PVCs</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pvc<span class="w"> </span>-n<span class="w"> </span>observability-lab
+
+<span class="c1"># List all PVs</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pv
+
+<span class="c1"># PVCs for specific component</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pv<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/name<span class="o">=</span>loki
+kubectl<span class="w"> </span>get<span class="w"> </span>pv<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/name<span class="o">=</span>tempo
+
+<span class="c1"># PVC details</span>
+kubectl<span class="w"> </span>describe<span class="w"> </span>pvc<span class="w"> </span>-n<span class="w"> </span>observability-lab
+</code></pre></div><a class="headerlink" href="#list-all-pvcs-kubectl-get-pvc-n-observability-lab-list-all-pvs-kubectl-get-pv-pvcs-for-specific-component-kubectl-get-pv-l-appkubernetesionameloki-kubectl-get-pv-l-appkubernetesionametempo-pvc-details-kubectl-describe-pvc-n-observability-lab" title="Permanent link">&para;</a></h2>
+<h2 id="cleanup-and-uninstall">Cleanup and Uninstall<a class="headerlink" href="#cleanup-and-uninstall" title="Permanent link">&para;</a></h2>
+<h3 id="quick-cleanup-keep-cluster-running">Quick Cleanup - Keep Cluster Running<a class="headerlink" href="#quick-cleanup-keep-cluster-running" title="Permanent link">&para;</a></h3>
+<p>Remove the observability stack but keep ArgoCD and cluster infrastructure:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Delete the ArgoCD application (keeps ArgoCD itself)</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd
+
+<span class="c1"># 2. Verify resources are being removed</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--watch
+
+<span class="c1"># 3. Clean up namespace (if empty)</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>namespace<span class="w"> </span>observability-lab
+
+<span class="c1"># 4. Remove ingress rules</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>ingress<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--all
+
+<span class="c1"># 5. Clean up any orphaned PVCs (⚠️ deletes data!)</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pvc<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>delete<span class="w"> </span>pvc<span class="w"> </span>--all<span class="w"> </span>-n<span class="w"> </span>observability-lab
+</code></pre></div>
+<h3 id="full-uninstall">Full Uninstall<a class="headerlink" href="#full-uninstall" title="Permanent link">&para;</a></h3>
+<p>Remove everything including ArgoCD:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Delete observability stack</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd
+
+<span class="c1"># 2. Wait for resources to be removed</span>
+kubectl<span class="w"> </span><span class="nb">wait</span><span class="w"> </span>--for<span class="o">=</span>delete<span class="w"> </span>namespace/observability-lab<span class="w"> </span>--timeout<span class="o">=</span>120s<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">true</span>
+
+<span class="c1"># 3. Uninstall ArgoCD</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>namespace<span class="w"> </span>argocd
+
+<span class="c1"># 4. Remove ArgoCD CRDs</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>crd<span class="w"> </span>applications.argoproj.io
+kubectl<span class="w"> </span>delete<span class="w"> </span>crd<span class="w"> </span>applicationsets.argoproj.io
+kubectl<span class="w"> </span>delete<span class="w"> </span>crd<span class="w"> </span>appprojects.argoproj.io
+
+<span class="c1"># 5. Clean up any remaining PVs (⚠️ deletes all data!)</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pv<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>delete<span class="w"> </span>pv<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/part-of<span class="o">=</span>observability-stack
+
+<span class="c1"># 6. Remove local Git repository artifacts (optional)</span>
+rm<span class="w"> </span>-rf<span class="w"> </span>/Users/faar/Documents/Src/github/fiddeb/observabilitystack/helm/stackcharts/charts/*.tgz
+rm<span class="w"> </span>-f<span class="w"> </span>/Users/faar/Documents/Src/github/fiddeb/observabilitystack/helm/stackcharts/Chart.lock
+</code></pre></div>
+<h3 id="selective-component-removal">Selective Component Removal<a class="headerlink" href="#selective-component-removal" title="Permanent link">&para;</a></h3>
+<p>Remove individual components while keeping the rest:</p>
+<h4 id="disable-component-via-helm-values">Disable Component via Helm Values<a class="headerlink" href="#disable-component-via-helm-values" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Edit helm/stackcharts/values/base.yaml</span>
+<span class="c1"># Set component.enabled: false (e.g., tempo.enabled: false)</span>
+
+<span class="c1"># 2. Commit and push changes</span>
+git<span class="w"> </span>add<span class="w"> </span>helm/stackcharts/values/base.yaml
+git<span class="w"> </span>commit<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;feat: disable tempo component&quot;</span>
+git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>main
+
+<span class="c1"># 3. Force ArgoCD sync</span>
+./scripts/force_argo_sync.sh
+
+<span class="c1"># 4. Clean up component PVCs (⚠️ deletes data!)</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>pvc<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/name<span class="o">=</span>tempo<span class="w"> </span>-n<span class="w"> </span>observability-lab
+</code></pre></div>
+<h4 id="manual-component-removal">Manual Component Removal<a class="headerlink" href="#manual-component-removal" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># Example: Remove Tempo</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>statefulset<span class="w"> </span>tempo<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>delete<span class="w"> </span>service<span class="w"> </span>tempo<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>delete<span class="w"> </span>configmap<span class="w"> </span>tempo<span class="w"> </span>-n<span class="w"> </span>observability-lab
+kubectl<span class="w"> </span>delete<span class="w"> </span>pvc<span class="w"> </span>-l<span class="w"> </span>app.kubernetes.io/name<span class="o">=</span>tempo<span class="w"> </span>-n<span class="w"> </span>observability-lab
+</code></pre></div>
+<h3 id="reset-to-clean-state">Reset to Clean State<a class="headerlink" href="#reset-to-clean-state" title="Permanent link">&para;</a></h3>
+<p>Start fresh without reinstalling cluster:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Remove observability stack</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd
+kubectl<span class="w"> </span>delete<span class="w"> </span>namespace<span class="w"> </span>observability-lab<span class="w"> </span>--wait<span class="o">=</span><span class="nb">true</span>
+
+<span class="c1"># 2. Recreate namespace</span>
+kubectl<span class="w"> </span>create<span class="w"> </span>namespace<span class="w"> </span>observability-lab
+
+<span class="c1"># 3. Reinstall via ArgoCD</span>
+./scripts/force_argo_sync.sh
+
+<span class="c1"># 4. Wait for healthy state</span>
+kubectl<span class="w"> </span><span class="nb">wait</span><span class="w"> </span>--for<span class="o">=</span><span class="nv">condition</span><span class="o">=</span>ready<span class="w"> </span>pod<span class="w"> </span>--all<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--timeout<span class="o">=</span>300s
+</code></pre></div>
+<h3 id="dns-cleanup-macoslinux">DNS Cleanup (macOS/Linux)<a class="headerlink" href="#dns-cleanup-macoslinux" title="Permanent link">&para;</a></h3>
+<p>If you want to remove the <code>*.k8s.test</code> DNS configuration:</p>
+<h4 id="macos">macOS<a class="headerlink" href="#macos" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Remove resolver configuration</span>
+sudo<span class="w"> </span>rm<span class="w"> </span>/etc/resolver/k8s.test
+
+<span class="c1"># 2. Restart DNS (optional)</span>
+sudo<span class="w"> </span>killall<span class="w"> </span>-HUP<span class="w"> </span>mDNSResponder
+
+<span class="c1"># 3. Remove dnsmasq configuration (if you want to uninstall dnsmasq)</span>
+<span class="c1"># Edit /opt/homebrew/etc/dnsmasq.conf and remove: address=/.k8s.test/127.0.0.1</span>
+brew<span class="w"> </span>services<span class="w"> </span>stop<span class="w"> </span>dnsmasq
+<span class="c1"># brew uninstall dnsmasq  # Only if you don&#39;t need it for anything else</span>
+</code></pre></div>
+<h4 id="linux">Linux<a class="headerlink" href="#linux" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Remove dnsmasq configuration</span>
+sudo<span class="w"> </span>sed<span class="w"> </span>-i<span class="w"> </span><span class="s1">&#39;/address=\/.k8s.test\/127.0.0.1/d&#39;</span><span class="w"> </span>/etc/dnsmasq.conf
+
+<span class="c1"># 2. Restart dnsmasq</span>
+sudo<span class="w"> </span>systemctl<span class="w"> </span>restart<span class="w"> </span>dnsmasq
+<span class="c1"># or</span>
+sudo<span class="w"> </span>service<span class="w"> </span>dnsmasq<span class="w"> </span>restart
+</code></pre></div>
+<h3 id="verification-after-cleanup">Verification After Cleanup<a class="headerlink" href="#verification-after-cleanup" title="Permanent link">&para;</a></h3>
+<p>Confirm everything is removed:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Check namespaces</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>namespace<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>-E<span class="w"> </span><span class="s1">&#39;observability-lab|argocd&#39;</span>
+
+<span class="c1"># Check PVs (should show none for observability-lab)</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pv<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>observability-lab
+
+<span class="c1"># Check ingress</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>ingress<span class="w"> </span>--all-namespaces
+
+<span class="c1"># Test DNS (should fail or timeout)</span>
+curl<span class="w"> </span>-s<span class="w"> </span>--max-time<span class="w"> </span><span class="m">5</span><span class="w"> </span>http://grafana.k8s.test<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;✅ Grafana endpoint removed&quot;</span>
+curl<span class="w"> </span>-s<span class="w"> </span>--max-time<span class="w"> </span><span class="m">5</span><span class="w"> </span>http://loki.k8s.test/ready<span class="w"> </span><span class="o">||</span><span class="w"> </span><span class="nb">echo</span><span class="w"> </span><span class="s2">&quot;✅ Loki endpoint removed&quot;</span>
+</code></pre></div>
+<h3 id="troubleshooting-cleanup-issues">Troubleshooting Cleanup Issues<a class="headerlink" href="#troubleshooting-cleanup-issues" title="Permanent link">&para;</a></h3>
+<h4 id="namespace-stuck-in-terminating">Namespace Stuck in Terminating<a class="headerlink" href="#namespace-stuck-in-terminating" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Check for finalizers</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>namespace<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;.spec.finalizers&#39;</span>
+
+<span class="c1"># 2. Force remove finalizers (use with caution!)</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>namespace<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>jq<span class="w"> </span><span class="s1">&#39;del(.spec.finalizers)&#39;</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span><span class="p">|</span><span class="w"> </span>kubectl<span class="w"> </span>replace<span class="w"> </span>--raw<span class="w"> </span>/api/v1/namespaces/observability-lab/finalize<span class="w"> </span>-f<span class="w"> </span>-
+</code></pre></div>
+<h4 id="pvcs-wont-delete">PVCs Won't Delete<a class="headerlink" href="#pvcs-wont-delete" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Check if PVC is bound to pods</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>pods<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>-o<span class="w"> </span>json<span class="w"> </span><span class="p">|</span><span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>jq<span class="w"> </span><span class="s1">&#39;.items[].spec.volumes[].persistentVolumeClaim.claimName&#39;</span>
+
+<span class="c1"># 2. Delete pods using the PVC first</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>pod<span class="w"> </span>&lt;pod-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab<span class="w"> </span>--force<span class="w"> </span>--grace-period<span class="o">=</span><span class="m">0</span>
+
+<span class="c1"># 3. Then delete PVC</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>pvc<span class="w"> </span>&lt;pvc-name&gt;<span class="w"> </span>-n<span class="w"> </span>observability-lab
+</code></pre></div>
+<h4 id="argocd-application-wont-delete">ArgoCD Application Won't Delete<a class="headerlink" href="#argocd-application-wont-delete" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><span class="c1"># 1. Check finalizers</span>
+kubectl<span class="w"> </span>get<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span>-o<span class="w"> </span>yaml<span class="w"> </span><span class="p">|</span><span class="w"> </span>grep<span class="w"> </span>finalizers<span class="w"> </span>-A5
+
+<span class="c1"># 2. Remove finalizers if stuck</span>
+kubectl<span class="w"> </span>patch<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>-p<span class="w"> </span><span class="s1">&#39;{&quot;metadata&quot;:{&quot;finalizers&quot;:null}}&#39;</span><span class="w"> </span>--type<span class="o">=</span>merge
+
+<span class="c1"># 3. Force delete</span>
+kubectl<span class="w"> </span>delete<span class="w"> </span>application<span class="w"> </span>observability-stack<span class="w"> </span>-n<span class="w"> </span>argocd<span class="w"> </span>--force<span class="w"> </span>--grace-period<span class="o">=</span><span class="m">0</span>
+</code></pre></div>
+<hr />
+<h2 id="useful-shortcuts-and-aliases">Useful Shortcuts and Aliases<a class="headerlink" href="#useful-shortcuts-and-aliases" title="Permanent link">&para;</a></h2>
+<p>Add these to your <code>~/.zshrc</code> or <code>~/.bashrc</code>:</p>
+<div class="highlight"><pre><span></span><code><span class="c1"># Kubernetes aliases</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">k</span><span class="o">=</span><span class="s1">&#39;kubectl&#39;</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">kgp</span><span class="o">=</span><span class="s1">&#39;kubectl get pods&#39;</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">kgs</span><span class="o">=</span><span class="s1">&#39;kubectl get services&#39;</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">kgc</span><span class="o">=</span><span class="s1">&#39;kubectl get configmaps&#39;</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">kd</span><span class="o">=</span><span class="s1">&#39;kubectl describe&#39;</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">kl</span><span class="o">=</span><span class="s1">&#39;kubectl logs&#39;</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">ke</span><span class="o">=</span><span class="s1">&#39;kubectl exec -it&#39;</span>
+
+<span class="c1"># Observability namespace shortcuts</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">kobs</span><span class="o">=</span><span class="s1">&#39;kubectl -n observability-lab&#39;</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">kobspods</span><span class="o">=</span><span class="s1">&#39;kubectl get pods -n observability-lab&#39;</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">kobslogs</span><span class="o">=</span><span class="s1">&#39;kubectl logs -n observability-lab&#39;</span>
+
+<span class="c1"># ArgoCD shortcuts</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">argoapp</span><span class="o">=</span><span class="s1">&#39;kubectl get application observability-stack -n argocd&#39;</span>
+<span class="nb">alias</span><span class="w"> </span><span class="nv">argosync</span><span class="o">=</span><span class="s1">&#39;./scripts/force_argo_sync.sh&#39;</span>
+
+<span class="c1"># Port forwarding shortcuts</span>
+<span class="nb">alias</span><span class="w"> </span>pf-grafana<span class="o">=</span><span class="s1">&#39;kubectl port-forward service/grafana 3000:80 -n observability-lab &amp;&#39;</span>
+<span class="nb">alias</span><span class="w"> </span>pf-loki<span class="o">=</span><span class="s1">&#39;kubectl port-forward service/loki 3100:3100 -n observability-lab &amp;&#39;</span>
+<span class="nb">alias</span><span class="w"> </span>pf-tempo<span class="o">=</span><span class="s1">&#39;kubectl port-forward service/tempo 3200:3200 -n observability-lab &amp;&#39;</span>
+<span class="nb">alias</span><span class="w"> </span>pf-prometheus<span class="o">=</span><span class="s1">&#39;kubectl port-forward service/prometheus 9090:80 -n observability-lab &amp;&#39;</span>
+
+<span class="c1"># Stop all port forwards</span>
+<span class="nb">alias</span><span class="w"> </span>pf-stop<span class="o">=</span><span class="s1">&#39;pkill -f &quot;kubectl port-forward&quot;&#39;</span>
+</code></pre></div>
+<hr />
+<h2 id="related-documentation">Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../ARCHITECTURE/">Architecture Guide</a> - System design</li>
+<li><a href="../INSTALLATION/">Installation Guide</a> - Setup instructions</li>
+<li><a href="../USAGE_GUIDE/">Usage Guide</a> - How to use the stack</li>
+<li><a href="../GIT_WORKFLOW/">Git Workflow</a> - Branch and merge procedures</li>
+</ul>
+<hr />
+<p><strong>Last Updated:</strong> October 2, 2025</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.instant", "navigation.tracking", "navigation.tabs", "navigation.sections", "navigation.expand", "search.suggest", "search.highlight", "content.code.copy"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
