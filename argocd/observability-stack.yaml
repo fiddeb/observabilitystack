@@ -16,7 +16,7 @@ spec:
         - values/tempo.yaml
         - values/prometheus.yaml
         - values/grafana.yaml
-        - values/grafana_destination.yaml
+        - values/grafanadest.yaml
         - values/mimir.yaml
         - values/minio.yaml
         - values/opentelemetry-collector.yaml
