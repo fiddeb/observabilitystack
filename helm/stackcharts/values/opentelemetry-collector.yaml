@@ -57,11 +57,11 @@ opentelemetry-collector:
       
       debug/audit: 
         verbosity: detailed
-      # Traces to Tempo
-      #otlp/tempo:
-      #  endpoint: http://tempo.observability-lab.svc.cluster.local:4317
-      #  tls:
-      #     insecure: true
+     # Traces to Tempo
+      otlp/tempo:
+       endpoint: http://tempo.observability-lab.svc.cluster.local:4317
+       tls:
+          insecure: true
       
       # Logs to Loki
       otlphttp/default:
@@ -117,10 +117,10 @@ opentelemetry-collector:
     
     service:
       pipelines:
-        #traces:
-        #  receivers: [otlp]
-        #  processors: [memory_limiter, batch]
-        #  exporters: [otlp/tempo]
+        traces:
+         receivers: [otlp]
+         processors: [memory_limiter, batch]
+         exporters: [otlp/tempo]
         
         logs:
           receivers: [otlp, loki]
@@ -133,7 +133,6 @@ opentelemetry-collector:
           exporters: [otlphttp/prometheus]
         logs/default:
           receivers: [routing]
-          processors: [memory_limiter, batch]
           exporters: [otlphttp/default]
         logs/audit:
           receivers: [routing]
