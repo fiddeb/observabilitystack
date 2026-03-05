@@ -48,4 +48,4 @@ dependencies:
   - name: perses
     version: "0.20.0"
     repository: "https://perses.github.io/helm-charts"
-    condition: perses.enabled
+    condition: persesEnabled

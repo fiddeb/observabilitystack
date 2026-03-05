@@ -25,5 +25,4 @@ minio:
 opentelemetry-collector:
   enabled: true
 
-perses:
-  enabled: true
+persesEnabled: true
