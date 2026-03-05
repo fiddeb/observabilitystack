@@ -11,6 +11,9 @@ dependencies:
 - name: grafana
   repository: https://grafana.github.io/helm-charts
   version: 10.2.0
+- name: grafana
+  repository: https://grafana.github.io/helm-charts
+  version: 10.2.0
 - name: mimir-distributed
   repository: file://./charts/mimir-distributed
   version: 5.9.0-weekly.365
@@ -20,5 +23,8 @@ dependencies:
 - name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
   version: 0.122.2
-digest: sha256:fa3e3c075f1559270907cecadd8bef0e0de878c36a65b401168506cdd2122603
-generated: "2025-12-18T11:02:58.280662+01:00"
+- name: perses
+  repository: https://perses.github.io/helm-charts
+  version: 0.20.0
+digest: sha256:274ee4bab6de183d1f54dbcfe0a9a5b25e6536b5c7635024cdf6f07ecc3cdfcb
+generated: "2026-03-06T00:07:38.575796+01:00"

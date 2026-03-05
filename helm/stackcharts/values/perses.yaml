@@ -1,0 +1,25 @@
+# Perses configuration
+# Open-source dashboarding and observability tool
+
+perses:
+  fullnameOverride: perses
+
+  replicas: 1
+
+  service:
+    type: ClusterIP
+    port: 8080
+
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations: {}
+    hosts:
+      - host: perses.k8s.test
+        paths:
+          - path: /
+            pathType: Prefix
+    tls: []
+
+  serviceMonitor:
+    selfMonitor: false
