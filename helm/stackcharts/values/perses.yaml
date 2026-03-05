@@ -23,3 +23,63 @@ perses:
 
   serviceMonitor:
     selfMonitor: false
+
+  # Sidecar watches ConfigMaps with label perses.dev/resource=true
+  # and writes their data into /etc/perses/provisioning
+  sidecar:
+    enabled: true
+    allNamespaces: false
+
+  config:
+    provisioning:
+      folders:
+        - /etc/perses/provisioning
+      interval: 1m
+
+  # ConfigMap with GlobalDatasource resources, picked up by the sidecar
+  extraObjects:
+    - apiVersion: v1
+      kind: ConfigMap
+      metadata:
+        name: perses-provisioned-datasources
+        namespace: observability-lab
+        labels:
+          perses.dev/resource: "true"
+      data:
+        datasources.yaml: |
+          - kind: GlobalDatasource
+            metadata:
+              name: prometheus
+            spec:
+              default: true
+              plugin:
+                kind: PrometheusDatasource
+                spec:
+                  directUrl: "http://prometheus"
+
+          - kind: GlobalDatasource
+            metadata:
+              name: mimir
+            spec:
+              plugin:
+                kind: PrometheusDatasource
+                spec:
+                  directUrl: "http://mimir-gateway/prometheus"
+
+          - kind: GlobalDatasource
+            metadata:
+              name: loki
+            spec:
+              plugin:
+                kind: LokiDatasource
+                spec:
+                  directUrl: "http://loki-gateway"
+
+          - kind: GlobalDatasource
+            metadata:
+              name: tempo
+            spec:
+              plugin:
+                kind: TempoDatasource
+                spec:
+                  directUrl: "http://tempo:3200"
