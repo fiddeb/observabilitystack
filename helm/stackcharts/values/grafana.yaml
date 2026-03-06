@@ -159,9 +159,12 @@ grafana:
       # Label som sidecar bevakar på ConfigMaps i samma namespace
       label: grafana_datasource
       labelValue: "1"
-      # initDatasources: false (default) — använd ej true, init-containern
-      # försöker kalla Grafanas reload-API (localhost:3000) innan Grafana
-      # startat och fastnar i retry-loopar som blockerar hela podden.
+      # initDatasources: true säkerställer att ALLA filer är på plats innan
+      # Grafana startar (via init-container). skipReload: true krävs — annars
+      # försöker init-containern kalla reload-API på localhost:3000 som inte
+      # finns än, och fastnar i retry-loopar som blockerar hela podden.
+      initDatasources: true
+      skipReload: true
 
   alerting: {}
   notifiers: {}
