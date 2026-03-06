@@ -55,7 +55,10 @@ perses:
               plugin:
                 kind: PrometheusDatasource
                 spec:
-                  directUrl: "http://prometheus"
+                  proxy:
+                    kind: HTTPProxy
+                    spec:
+                      url: "http://prometheus"
 
           - kind: GlobalDatasource
             metadata:
@@ -64,7 +67,10 @@ perses:
               plugin:
                 kind: PrometheusDatasource
                 spec:
-                  directUrl: "http://mimir-gateway/prometheus"
+                  proxy:
+                    kind: HTTPProxy
+                    spec:
+                      url: "http://mimir-gateway/prometheus"
 
           - kind: GlobalDatasource
             metadata:
@@ -73,7 +79,10 @@ perses:
               plugin:
                 kind: LokiDatasource
                 spec:
-                  directUrl: "http://loki-gateway"
+                  proxy:
+                    kind: HTTPProxy
+                    spec:
+                      url: "http://loki-gateway"
 
           - kind: GlobalDatasource
             metadata:
@@ -82,4 +91,7 @@ perses:
               plugin:
                 kind: TempoDatasource
                 spec:
-                  directUrl: "http://tempo:3200"
+                  proxy:
+                    kind: HTTPProxy
+                    spec:
+                      url: "http://tempo:3200"
