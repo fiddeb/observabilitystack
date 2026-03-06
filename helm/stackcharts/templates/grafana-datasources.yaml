@@ -1,19 +1,17 @@
 {{/*
-  Grafana datasource ConfigMaps — en per komponent.
-  Sidecar-containern i Grafana-poden bevakar ConfigMaps med
-  label grafana_datasource="1" och provisionerar dem automatiskt.
-  Varje block renderas bara om motsvarande komponent är enabled i base.yaml.
+  Ett samlat ConfigMap med en fil per aktiverad komponent.
+  Monteras direkt i /etc/grafana/provisioning/datasources via
+  grafana.extraConfigmapMounts — ingen sidecar eller init-container.
+  Varje nyckel renderas bara om komponenten är enabled i base.yaml.
 */}}
-
-{{- if and .Values.grafana.enabled .Values.prometheus.enabled }}
+{{- if .Values.grafana.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: grafana-datasource-prometheus
+  name: grafana-provisioned-datasources
   namespace: {{ .Release.Namespace }}
-  labels:
-    grafana_datasource: "1"
 data:
+  {{- if .Values.prometheus.enabled }}
   prometheus.yaml: |
     apiVersion: 1
     datasources:
@@ -23,17 +21,8 @@ data:
       url: http://prometheus
       isDefault: true
       editable: true
-{{- end }}
----
-{{- if and .Values.grafana.enabled .Values.mimir.enabled }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-datasource-mimir
-  namespace: {{ .Release.Namespace }}
-  labels:
-    grafana_datasource: "1"
-data:
+  {{- end }}
+  {{- if .Values.mimir.enabled }}
   mimir.yaml: |
     apiVersion: 1
     datasources:
@@ -47,17 +36,8 @@ data:
         httpMethod: POST
         manageAlerts: false
         prometheusType: Mimir
-{{- end }}
----
-{{- if and .Values.grafana.enabled .Values.loki.enabled }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-datasource-loki
-  namespace: {{ .Release.Namespace }}
-  labels:
-    grafana_datasource: "1"
-data:
+  {{- end }}
+  {{- if .Values.loki.enabled }}
   loki.yaml: |
     apiVersion: 1
     datasources:
@@ -81,17 +61,8 @@ data:
         httpHeaderName1: "X-Scope-OrgID"
       secureJsonData:
         httpHeaderValue1: "bazz"
-{{- end }}
----
-{{- if and .Values.grafana.enabled .Values.tempo.enabled }}
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-datasource-tempo
-  namespace: {{ .Release.Namespace }}
-  labels:
-    grafana_datasource: "1"
-data:
+  {{- end }}
+  {{- if .Values.tempo.enabled }}
   tempo.yaml: |
     apiVersion: 1
     datasources:
@@ -109,4 +80,5 @@ data:
           tags:
             - key: 'service.name'
               value: 'service_name'
+  {{- end }}
 {{- end }}

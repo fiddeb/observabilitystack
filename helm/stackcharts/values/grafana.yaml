@@ -148,23 +148,16 @@ grafana:
 
   plugins: []
 
-  # Datasources provisioneras dynamiskt via sidecar-containern.
-  # Se helm/stackcharts/templates/grafana-datasources.yaml — ett ConfigMap
-  # per komponent, villkorat på att komponenten är enabled i base.yaml.
+  # Datasources provisioneras via ett villkorat ConfigMap (ett per komponent
+  # som är enabled i base.yaml). Se templates/grafana-datasources.yaml.
+  # Monteras direkt som volym — ingen sidecar eller init-container behövs.
   datasources: {}
 
-  sidecar:
-    datasources:
-      enabled: true
-      # Label som sidecar bevakar på ConfigMaps i samma namespace
-      label: grafana_datasource
-      labelValue: "1"
-      # initDatasources: true säkerställer att ALLA filer är på plats innan
-      # Grafana startar (via init-container). skipReload: true krävs — annars
-      # försöker init-containern kalla reload-API på localhost:3000 som inte
-      # finns än, och fastnar i retry-loopar som blockerar hela podden.
-      initDatasources: true
-      skipReload: true
+  extraConfigmapMounts:
+    - name: grafana-provisioned-datasources
+      mountPath: /etc/grafana/provisioning/datasources
+      configMap: grafana-provisioned-datasources
+      readOnly: true
 
   alerting: {}
   notifiers: {}
