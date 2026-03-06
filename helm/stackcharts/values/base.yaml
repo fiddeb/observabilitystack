@@ -14,7 +14,7 @@ grafana:
   enabled: true
 
 grafanadest:
-  enabled: fasle
+  enabled: false
 
 mimir:
   enabled: false
