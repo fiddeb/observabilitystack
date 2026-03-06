@@ -1,0 +1,112 @@
+{{/*
+  Grafana datasource ConfigMaps — en per komponent.
+  Sidecar-containern i Grafana-poden bevakar ConfigMaps med
+  label grafana_datasource="1" och provisionerar dem automatiskt.
+  Varje block renderas bara om motsvarande komponent är enabled i base.yaml.
+*/}}
+
+{{- if and .Values.grafana.enabled .Values.prometheus.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource-prometheus
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_datasource: "1"
+data:
+  prometheus.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Prometheus
+      type: prometheus
+      uid: prometheus
+      url: http://prometheus
+      isDefault: true
+      editable: true
+{{- end }}
+---
+{{- if and .Values.grafana.enabled .Values.mimir.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource-mimir
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_datasource: "1"
+data:
+  mimir.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Mimir
+      type: prometheus
+      uid: mimir
+      url: http://mimir-gateway/prometheus
+      isDefault: false
+      editable: true
+      jsonData:
+        httpMethod: POST
+        manageAlerts: false
+        prometheusType: Mimir
+{{- end }}
+---
+{{- if and .Values.grafana.enabled .Values.loki.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource-loki
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_datasource: "1"
+data:
+  loki.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: loki
+      type: loki
+      uid: loki
+      url: http://loki-gateway
+      isDefault: false
+      editable: true
+      jsonData:
+        httpHeaderName1: "X-Scope-OrgID"
+      secureJsonData:
+        httpHeaderValue1: "foo"
+    - name: loki-bazz
+      type: loki
+      uid: loki-bazz
+      url: http://loki-gateway
+      isDefault: false
+      editable: true
+      jsonData:
+        httpHeaderName1: "X-Scope-OrgID"
+      secureJsonData:
+        httpHeaderValue1: "bazz"
+{{- end }}
+---
+{{- if and .Values.grafana.enabled .Values.tempo.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasource-tempo
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_datasource: "1"
+data:
+  tempo.yaml: |
+    apiVersion: 1
+    datasources:
+    - name: Tempo
+      type: tempo
+      uid: tempo
+      url: http://tempo:3200
+      isDefault: false
+      editable: true
+      jsonData:
+        tracesToLogsV2:
+          customQuery: true
+          datasourceUid: 'loki'
+          query: '{$${__tags}} | trace_id = "$${__trace.traceId}"'
+          tags:
+            - key: 'service.name'
+              value: 'service_name'
+{{- end }}

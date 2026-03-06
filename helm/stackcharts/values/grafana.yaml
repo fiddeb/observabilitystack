@@ -148,58 +148,18 @@ grafana:
 
   plugins: []
 
-  datasources:
-    datasources.yaml:
-      apiVersion: 1
-      datasources:
-      - editable: true
-        isDefault: true
-        name: Prometheus
-        type: prometheus
-        uid: prometheus
-        url: http://prometheus
-      - editable: true
-        isDefault: false
-        name: Mimir
-        type: prometheus
-        uid: mimir
-        url: http://mimir-gateway/prometheus
-        jsonData:
-          httpMethod: POST
-          manageAlerts: false
-          prometheusType: Mimir
-      - editable: true
-        isDefault: false
-        name: loki
-        type: loki
-        uid: loki
-        url: http://loki-gateway
-        jsonData:
-          httpHeaderName1: "X-Scope-OrgID"
-        secureJsonData:
-          httpHeaderValue1: "foo"
-      - editable: true
-        isDefault: false
-        name: loki-bazz
-        type: loki
-        uid: loki-bazz
-        url: http://loki-gateway
-        jsonData:
-          httpHeaderName1: "X-Scope-OrgID"
-        secureJsonData:
-          httpHeaderValue1: "bazz"
-      - name: Tempo
-        type: tempo
-        uid: tempo
-        url: http://tempo:3200
-        jsonData:
-          tracesToLogsV2:
-            customQuery: true
-            datasourceUid: 'loki'
-            query: '{$${__tags}} | trace_id = "$${__trace.traceId}"'
-            tags:
-              - key: 'service.name'
-                value: 'service_name'
+  # Datasources provisioneras dynamiskt via sidecar-containern.
+  # Se helm/stackcharts/templates/grafana-datasources.yaml — ett ConfigMap
+  # per komponent, villkorat på att komponenten är enabled i base.yaml.
+  datasources: {}
+
+  sidecar:
+    datasources:
+      enabled: true
+      # Label som sidecar bevakar på ConfigMaps i samma namespace
+      label: grafana_datasource
+      labelValue: "1"
+      initDatasources: true
 
   alerting: {}
   notifiers: {}
