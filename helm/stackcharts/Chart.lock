@@ -27,7 +27,7 @@ dependencies:
   repository: https://perses.github.io/helm-charts
   version: 0.20.0
 - name: spaceport
-  repository: file://./charts/spaceport
+  repository: oci://ghcr.io/fiddeb/charts
   version: 0.1.0
-digest: sha256:12862997899c5a1d533f1730d5b39ae944f59cdf36b58d42c63308fc0ef9ef54
-generated: "2026-03-16T17:26:25.694632+01:00"
+digest: sha256:65bc88aa91174c4e4d60baab24f51aa4ec80ea977323569ca348cffd3d562fa4
+generated: "2026-03-16T17:31:31.039938+01:00"
