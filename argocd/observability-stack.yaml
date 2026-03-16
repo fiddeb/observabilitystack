@@ -21,6 +21,7 @@ spec:
         - values/minio.yaml
         - values/opentelemetry-collector.yaml
         - values/perses.yaml
+        - values/spaceport.yaml
   destination:
     server: 'https://kubernetes.default.svc'
     namespace: observability-lab

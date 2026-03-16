@@ -26,3 +26,6 @@ opentelemetry-collector:
   enabled: true
 
 persesEnabled: true
+
+spaceport:
+  enabled: true

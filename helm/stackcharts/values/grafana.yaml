@@ -159,6 +159,13 @@ grafana:
       configMap: grafana-provisioned-datasources
       readOnly: true
 
+  sidecar:
+    dashboards:
+      enabled: true
+      label: grafana_dashboard
+      labelValue: "1"
+      searchNamespace: ALL
+
   alerting: {}
   notifiers: {}
   dashboardProviders: {}

@@ -1,0 +1,5 @@
+# Spaceport demo application
+# Sci-fi booking app with API, pricing-service and frontend
+
+spaceport:
+  enabled: true

@@ -49,3 +49,7 @@ dependencies:
     version: "0.20.0"
     repository: "https://perses.github.io/helm-charts"
     condition: persesEnabled
+  - name: spaceport
+    version: "0.1.0"
+    repository: "file://./charts/spaceport"
+    condition: spaceport.enabled
