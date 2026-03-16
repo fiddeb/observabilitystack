@@ -28,6 +28,6 @@ dependencies:
   version: 0.20.0
 - name: spaceport
   repository: oci://ghcr.io/fiddeb/charts
-  version: 0.1.0
-digest: sha256:65bc88aa91174c4e4d60baab24f51aa4ec80ea977323569ca348cffd3d562fa4
-generated: "2026-03-16T17:31:31.039938+01:00"
+  version: 0.1.1
+digest: sha256:355452b427bfd7b2ba4842f4ab5c386a20330b126288dcfef783416b4e34a9fb
+generated: "2026-03-17T00:21:18.303141+01:00"
