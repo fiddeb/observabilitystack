@@ -11,7 +11,7 @@ dependencies:
     version: "1.23.3"
     repository: "https://grafana.github.io/helm-charts"
     condition: tempo.enabled
-    
+        
   - name: prometheus
     version: "27.46.0"
     repository: "https://prometheus-community.github.io/helm-charts"
@@ -21,7 +21,6 @@ dependencies:
     version: "10.2.0"
     repository: "https://grafana.github.io/helm-charts"
     condition: grafana.enabled
-
   # Using local chart from NGDATA fork with monolithic support
   - name: mimir-distributed
     version: "5.9.0-weekly.365"
@@ -33,18 +32,15 @@ dependencies:
     version: "17.0.21"
     repository: "https://charts.bitnami.com/bitnami"
     condition: minio.enabled
-  
   - name: opentelemetry-collector
     version: "0.122.2"
     repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
     condition: opentelemetry-collector.enabled
-  
   - name: perses
     version: "0.20.0"
     repository: "https://perses.github.io/helm-charts"
     condition: persesEnabled
-  
   - name: spaceport
-    version: "0.1.1"
+    version: "0.1.2"
     repository: "oci://ghcr.io/fiddeb/charts"
     condition: spaceport.enabled

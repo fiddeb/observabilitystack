@@ -11,9 +11,6 @@ dependencies:
 - name: grafana
   repository: https://grafana.github.io/helm-charts
   version: 10.2.0
-- name: grafana
-  repository: https://grafana.github.io/helm-charts
-  version: 10.2.0
 - name: mimir-distributed
   repository: file://./charts/mimir-distributed
   version: 5.9.0-weekly.365
@@ -28,6 +25,6 @@ dependencies:
   version: 0.20.0
 - name: spaceport
   repository: oci://ghcr.io/fiddeb/charts
-  version: 0.1.1
-digest: sha256:355452b427bfd7b2ba4842f4ab5c386a20330b126288dcfef783416b4e34a9fb
-generated: "2026-03-17T00:21:18.303141+01:00"
+  version: 0.1.2
+digest: sha256:256f7f453cc4705b9f7c98d095674fcc20f117cd7febc7ec2b0745cd94f07f54
+generated: "2026-03-18T00:07:24.675308+01:00"

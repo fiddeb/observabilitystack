@@ -66,7 +66,6 @@ grafana:
     seccompProfile:
       type: RuntimeDefault
   createConfigmap: true
-  extraConfigmapMounts: []
 
   extraLabels: {}
 
