@@ -144,6 +144,10 @@ grafana:
     disableWarning: false
 
   adminUser: admin
+  # Fixed password prevents Helm from generating a new randAlphaNum on every render,
+  # which would change the Secret checksum annotation and trigger unnecessary pod restarts.
+  # Login is disabled via auth.anonymous, so this value is never used in practice.
+  adminPassword: "observability-stack-admin"
 
   plugins: []
 
