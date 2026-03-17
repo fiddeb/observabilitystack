@@ -80,5 +80,9 @@ data:
           tags:
             - key: 'service.name'
               value: 'service_name'
+        serviceMap:
+          datasourceUid: 'prometheus'
+        tracesToMetrics:
+          datasourceUid: 'prometheus'
   {{- end }}
 {{- end }}
