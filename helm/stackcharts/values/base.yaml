@@ -13,9 +13,6 @@ prometheus:
 grafana:
   enabled: true
 
-grafanadest:
-  enabled: false
-
 mimir:
   enabled: false
 
