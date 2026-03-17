@@ -11,7 +11,7 @@ dependencies:
     version: "1.23.3"
     repository: "https://grafana.github.io/helm-charts"
     condition: tempo.enabled
-        
+
   - name: prometheus
     version: "27.46.0"
     repository: "https://prometheus-community.github.io/helm-charts"
@@ -41,6 +41,6 @@ dependencies:
     repository: "https://perses.github.io/helm-charts"
     condition: persesEnabled
   - name: spaceport
-    version: "0.1.2"
+    version: "0.1.4"
     repository: "oci://ghcr.io/fiddeb/charts"
     condition: spaceport.enabled
