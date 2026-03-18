@@ -41,6 +41,6 @@ dependencies:
     repository: "https://perses.github.io/helm-charts"
     condition: persesEnabled
   - name: spaceport
-    version: "0.1.4"
+    version: "0.1.5"
     repository: "oci://ghcr.io/fiddeb/charts"
     condition: spaceport.enabled
