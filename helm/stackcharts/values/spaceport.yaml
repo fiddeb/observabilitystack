@@ -3,15 +3,3 @@
 
 spaceport:
   enabled: true
-
-  frontend:
-    image:
-      tag: "latest"
-
-  api:
-    image:
-      tag: "latest"
-
-  pricingService:
-    image:
-      tag: "latest"
