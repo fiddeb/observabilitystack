@@ -51,7 +51,7 @@ tempo:
     metricsGenerator:
       # -- If true, enables Tempo's metrics generator (https://grafana.com/docs/tempo/next/metrics-generator/)
       enabled: true
-      remoteWriteUrl: "http://prometheus:9090/api/v1/write"
+      remoteWriteUrl: "http://prometheus/api/v1/write"
     # -- Configuration options for the ingester.
     # Refers to: https://grafana.com/docs/tempo/latest/configuration/#ingester
     ingester: {}
