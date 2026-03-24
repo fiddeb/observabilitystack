@@ -54,9 +54,9 @@ tempo:
       remoteWriteUrl: "http://prometheus/api/v1/write"
     # -- Configuration options for the ingester.
     # Refers to: https://grafana.com/docs/tempo/latest/configuration/#ingester
-    ingester: {}
-    #  flush_check_period: 10s
-    #  trace_idle_period: 10s
+    ingester:
+      flush_check_period: 1s
+      trace_idle_period: 1s
     #  max_block_duration: 30m
     #  complete_block_timeout: 1h
     # -- Configuration options for the querier.
