@@ -9,8 +9,8 @@ dependencies:
   repository: https://prometheus-community.github.io/helm-charts
   version: 27.46.0
 - name: grafana
-  repository: https://grafana.github.io/helm-charts
-  version: 10.2.0
+  repository: https://grafana-community.github.io/helm-charts
+  version: 12.1.1
 - name: mimir-distributed
   repository: file://./charts/mimir-distributed
   version: 5.9.0-weekly.365
@@ -26,5 +26,5 @@ dependencies:
 - name: spaceport
   repository: oci://ghcr.io/fiddeb/charts
   version: 0.3.6
-digest: sha256:638238e36935ba4e9af03888e58f3689637cc394c3ce445c35ff221f910e4e6c
-generated: "2026-03-26T21:06:43.960366+01:00"
+digest: sha256:79faf539efc3a85f914d9926007923902db88e1128a090cb31ef2ddd2990647d
+generated: "2026-04-20T15:30:59.328732+02:00"
