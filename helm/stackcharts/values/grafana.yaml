@@ -200,6 +200,14 @@ grafana:
       alertingListViewV2: true
       grafanaAdvisor: true
       ProfileFeatureTogglePage: false
+      dashboardTemplates: true
+      newSavedQueriesExperience: true
+      queryLibrary: true
+      alertingListViewV2: true
+      alertingMigrationUI: true
+      alertingImportYAMLUI: true
+      alertingNavigationV2: true
+      alertingListViewV2PreviewToggle: true
 
   ldap:
     enabled: false
