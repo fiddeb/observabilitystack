@@ -197,6 +197,7 @@ grafana:
     profile:
       enabled: false
     feature_toggles:
+      alertingTriage: true
       # Explicitly disabled
       ProfileFeatureTogglePage: false
 
