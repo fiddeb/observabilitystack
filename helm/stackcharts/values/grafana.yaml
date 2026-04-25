@@ -197,18 +197,48 @@ grafana:
     profile:
       enabled: false
     feature_toggles:
-      alertingListViewV2: true
-      grafanaAdvisor: true
+      # Explicitly disabled
       ProfileFeatureTogglePage: false
+
+      # Kept from previous config (still experimental/off by default)
       dashboardTemplates: true
       newSavedQueriesExperience: true
       queryLibrary: true
-      alertingListViewV2: true
       alertingMigrationUI: true
       alertingImportYAMLUI: true
-      alertingNavigationV2: true
-      alertingListViewV2PreviewToggle: true
 
+      # === NEW in 13.0.2 — Dashboards ===
+      dashboardAssistantPopover: true       # AI-popover on panel click in view mode
+      dashboardFiltersOverview: true        # Filters overview pane
+      dashboardSectionVariables: true       # Variables at row/tab level
+      sceneCsvExport: true                  # CSV export via scenes architecture
+      annotationsClustering: true           # Annotation clustering
+
+      # === NEW in 13.0.2 — Alerting ===
+      alertingRuleGroupSortByFolderFullpath: true  # Sort rule groups by folder path
+      createAlertRuleFromPanel: true               # Create alert from panel via drawer
+      alertingAlertListPanelEnhancements: true     # Enhanced stat mode in Alert List panel
+      alertingSavedSearches: true                  # Saved searches for alert rules
+
+      # === NEW in 13.0.2 — Visualization ===
+      enableDatagridEditing: true           # Edit functionality in datagrid panel
+      newGauge: true                        # New gauge visualization
+      yAxisTickControl: true                # Fine-grained Y-axis tick options
+      tabularNumbers: true                  # Fixed-width numbers globally in UI
+      enableColorblindSafePanelOptions: true  # Colorblind-safe palette + line patterns
+
+      # === NEW in 13.0.2 — Logs / Tracing / Profiling ===
+      inlineLogDetailsNoScrolls: true       # Inline log details without extra scroll
+      lokiAlignedQuerySplitting: true       # Align Loki query splits at UTC midnight
+      flameGraphWithCallTree: true          # Call Tree view in Flame Graph
+      tracesDrilldownTimeSeeker: true       # Time seeker in traces drilldown
+
+      # === NEW in 13.0.2 — Queries & Caching ===
+      queryCacheRequestDeduplication: true  # Deduplicate in-flight cached queries
+      sseExpressionErrorIsolation: true     # Isolate SSE expression errors per refID
+
+      # === NEW in 13.0.2 — Provisioning ===
+      provisioningExport: true              # Export provisioned resources
   ldap:
     enabled: false
     existingSecret: ""
