@@ -245,6 +245,16 @@ tempo:
     labels: {}
     targetPort: ""
 
+  ingress:
+    enabled: true
+    ingressClassName: traefik
+    annotations: {}
+    hosts:
+      - host: tempo.k8s.test
+        paths:
+          - path: /
+            pathType: Prefix
+
   serviceMonitor:
     enabled: false
     interval: ""

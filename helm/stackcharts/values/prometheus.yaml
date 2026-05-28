@@ -64,9 +64,13 @@ prometheus:
       evaluation_interval: 1m
     fullnameOverride: "prometheus"
     ingress:
-      enabled: false
+      enabled: true
+      ingressClassName: traefik
+      annotations: {}
       path: /
       pathType: Prefix
+      hosts:
+        - prometheus.k8s.test
     strategy:
       type: Recreate
     podAntiAffinityTopologyKey: kubernetes.io/hostname
