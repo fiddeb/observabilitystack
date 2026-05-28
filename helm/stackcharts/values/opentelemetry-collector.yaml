@@ -62,7 +62,7 @@ opentelemetry-collector:
           - name: http.route
           - name: db.system
         exemplars:
-          enabled: true
+          enabled: false
         dimensions_cache_size: 1500
         metrics_expiration: 5m
 
