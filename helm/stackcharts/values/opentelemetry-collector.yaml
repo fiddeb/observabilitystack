@@ -51,6 +51,23 @@ opentelemetry-collector:
                 attributes["dev.audit.severity"] != nil
             pipelines: [logs/audit]
 
+      spanmetrics:
+        histogram:
+          explicit:
+            buckets: [1ms, 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2s, 5s]
+        dimensions:
+          - name: service.name
+          - name: service.namespace
+          - name: span.kind
+          - name: http.method
+          - name: http.status_code
+          - name: http.route
+          - name: db.system
+        exemplars:
+          enabled: true
+        dimensions_cache_size: 1500
+        metrics_expiration: 5m
+
     exporters:
       debug/default:
         verbosity: basic
@@ -120,7 +137,7 @@ opentelemetry-collector:
         traces:
          receivers: [otlp]
          processors: [memory_limiter, batch]
-         exporters: [otlp/tempo]
+         exporters: [otlp/tempo, spanmetrics]
         
         logs:
           receivers: [otlp, loki]
@@ -129,6 +146,10 @@ opentelemetry-collector:
         
         metrics:
           receivers: [otlp]
+          processors: [memory_limiter, batch]
+          exporters: [otlphttp/prometheus]
+        metrics/spanmetrics:
+          receivers: [spanmetrics]
           processors: [memory_limiter, batch]
           exporters: [otlphttp/prometheus]
         logs/default:
