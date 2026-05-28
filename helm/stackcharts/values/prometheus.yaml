@@ -116,7 +116,7 @@ prometheus:
   serverFiles:
     prometheus.yml:
       otlp:
-        translation_strategy: NoTranslation
+        translation_strategy: UnderscoreEscapingWithSuffixes
         promote_resource_attributes:
           - service.instance.id
           - service.name
