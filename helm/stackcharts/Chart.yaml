@@ -33,7 +33,7 @@ dependencies:
     repository: "https://charts.bitnami.com/bitnami"
     condition: minio.enabled
   - name: opentelemetry-collector
-    version: "0.122.2"
+    version: "0.150.1"
     repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"
     condition: opentelemetry-collector.enabled
   - name: perses

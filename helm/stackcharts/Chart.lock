@@ -19,12 +19,12 @@ dependencies:
   version: 17.0.21
 - name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
-  version: 0.122.2
+  version: 0.150.1
 - name: perses
   repository: https://perses.github.io/helm-charts
   version: 0.20.0
 - name: spaceport
   repository: oci://ghcr.io/fiddeb/charts
-  version: 0.3.6
-digest: sha256:79faf539efc3a85f914d9926007923902db88e1128a090cb31ef2ddd2990647d
-generated: "2026-04-20T15:30:59.328732+02:00"
+  version: 0.5.0
+digest: sha256:b9ddfecd556ca46a6875eb91fa7921615db9dd74b37bb08e8db5f8ea9cb7021f
+generated: "2026-05-29T01:16:15.53465+02:00"
