@@ -57,11 +57,13 @@ prometheus:
       - web.enable-remote-write-receiver
       - web.enable-otlp-receiver
       - enable-feature=promql-experimental-functions
+      - enable-feature=exemplar-storage
     configPath: /etc/config/prometheus.yml
     global:
       scrape_interval: 1m
       scrape_timeout: 10s
       evaluation_interval: 1m
+      metric_name_validation_scheme: legacy
     fullnameOverride: "prometheus"
     ingress:
       enabled: true
