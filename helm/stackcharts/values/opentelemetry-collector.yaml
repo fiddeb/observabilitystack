@@ -56,9 +56,7 @@ opentelemetry-collector:
           explicit:
             buckets: [1ms, 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2s, 5s]
         dimensions:
-          - name: service.name
           - name: service.namespace
-          - name: span.kind
           - name: http.method
           - name: http.status_code
           - name: http.route
