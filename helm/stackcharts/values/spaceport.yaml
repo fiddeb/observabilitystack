@@ -3,3 +3,12 @@
 
 spaceport:
   enabled: true
+  api:
+    image:
+      tag: "v0.5.0"
+  pricingService:
+    image:
+      tag: "v0.5.0"
+  frontend:
+    image:
+      tag: "v0.5.0"
