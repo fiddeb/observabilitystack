@@ -112,6 +112,11 @@ prometheus:
       type: ClusterIP
     terminationGracePeriodSeconds: 300
     retention: "15d"
+    extraConfigmapMounts:
+      - name: slo-rules
+        mountPath: /etc/prometheus/rules/slo-rules
+        configMap: slo-rules
+        readOnly: true
 
   serverFiles:
     prometheus.yml:
@@ -142,6 +147,7 @@ prometheus:
         - /etc/config/alerting_rules.yml
         - /etc/config/rules
         - /etc/config/alerts
+        - /etc/prometheus/rules/slo-rules/*.yaml
       scrape_configs:
         - job_name: prometheus
           static_configs:
