@@ -244,11 +244,10 @@ tempo:
     enabled: true
     ingressClassName: traefik
     annotations: {}
+    path: /
+    pathType: Prefix
     hosts:
-      - host: tempo.k8s.test
-        paths:
-          - path: /
-            pathType: Prefix
+      - tempo.k8s.test
 
   serviceMonitor:
     enabled: false
