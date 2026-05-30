@@ -54,6 +54,10 @@ opentelemetry-collector:
             pipelines: [logs/audit]
 
       spanmetrics:
+        # Flush span metrics every 15s instead of the default 60s. This is the
+        # dominant source of delay between a span being produced and the metric
+        # (and the SLO recording rules derived from it) updating.
+        metrics_flush_interval: 15s
         histogram:
           explicit:
             buckets: [1ms, 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2s, 5s]
@@ -66,7 +70,9 @@ opentelemetry-collector:
         exemplars:
           enabled: false
         dimensions_cache_size: 1500
-        metrics_expiration: 5m
+        # Keep series alive longer so bursty/idle traffic does not expire and
+        # reset cumulative counters to 0 (which causes rate() gaps).
+        metrics_expiration: 30m
 
     exporters:
       debug/default:

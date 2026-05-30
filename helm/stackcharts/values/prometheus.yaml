@@ -60,9 +60,9 @@ prometheus:
       - enable-feature=exemplar-storage
     configPath: /etc/config/prometheus.yml
     global:
-      scrape_interval: 1m
+      scrape_interval: 15s
       scrape_timeout: 10s
-      evaluation_interval: 1m
+      evaluation_interval: 30s
       metric_name_validation_scheme: legacy
     fullnameOverride: "prometheus"
     ingress:
