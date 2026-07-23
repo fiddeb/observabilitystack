@@ -26,8 +26,11 @@ VALUES_FILES=(
     "tempo.yaml"
     "prometheus.yaml"
     "grafana.yaml"
+    "mimir.yaml"
     "garage.yaml"
     "opentelemetry-collector.yaml"
+    "perses.yaml"
+    "spaceport.yaml"
 )
 
 for file in "${VALUES_FILES[@]}"; do
@@ -50,7 +53,10 @@ helm template observability-stack ./helm/stackcharts \
   -f helm/stackcharts/values/tempo.yaml \
   -f helm/stackcharts/values/prometheus.yaml \
   -f helm/stackcharts/values/grafana.yaml \
+  -f helm/stackcharts/values/mimir.yaml \
   -f helm/stackcharts/values/opentelemetry-collector.yaml \
+  -f helm/stackcharts/values/perses.yaml \
+  -f helm/stackcharts/values/spaceport.yaml \
   --dry-run \
   --debug \
   > /tmp/helm-template-output.yaml 2>&1
@@ -103,7 +109,10 @@ helm template observability-stack ./helm/stackcharts \
   -f helm/stackcharts/values/tempo.yaml \
   -f helm/stackcharts/values/prometheus.yaml \
   -f helm/stackcharts/values/grafana.yaml \
+  -f helm/stackcharts/values/mimir.yaml \
   -f helm/stackcharts/values/opentelemetry-collector.yaml \
+  -f helm/stackcharts/values/perses.yaml \
+  -f helm/stackcharts/values/spaceport.yaml \
   -f helm/stackcharts/values/garage.yaml \
   --dry-run \
   > /tmp/helm-template-garage-output.yaml 2>&1
@@ -113,6 +122,14 @@ if grep -q "charts/garage/templates/workload.yaml" /tmp/helm-template-garage-out
     echo "✓"
 else
     print_error "Garage not rendered"
+    exit 1
+fi
+
+echo -n "  Verifying garage credentials secret is rendered... "
+if grep -q "name: garage-credentials" /tmp/helm-template-garage-output.yaml; then
+    echo "✓"
+else
+    print_error "garage-credentials secret not rendered"
     exit 1
 fi
 
@@ -167,8 +184,11 @@ echo "  • loki.yaml - Log aggregation"
 echo "  • tempo.yaml - Distributed tracing"
 echo "  • prometheus.yaml - Metrics collection"
 echo "  • grafana.yaml - Visualization"
+echo "  • mimir.yaml - Long-term metrics storage"
 echo "  • garage.yaml - S3 storage profile (opt-in: enables Garage + S3 for Loki/Tempo)"
 echo "  • opentelemetry-collector.yaml - Telemetry pipeline"
+echo "  • perses.yaml - Dashboards as code"
+echo "  • spaceport.yaml - Spaceport"
 echo ""
 echo "Next steps:"
 echo "  1. Review the split configuration in helm/stackcharts/values/"

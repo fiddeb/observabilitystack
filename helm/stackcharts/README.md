@@ -97,6 +97,8 @@ To switch to S3-compatible object storage backed by [Garage](https://garagehq.de
 
 When `values/garage.yaml` is not included, Garage is not deployed and Loki/Tempo fall back to local filesystem storage.
 
+S3 credentials live in the `garage-credentials` Kubernetes Secret (rendered from `garageCredentials` in `values/garage.yaml`). Loki and Tempo read them as environment variables via `-config.expand-env=true`, so the keys never appear in their ConfigMaps. Override `garageCredentials` for anything beyond a local lab.
+
 ## Troubleshooting
 
 ### Dependency Issues

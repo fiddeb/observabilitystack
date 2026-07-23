@@ -128,12 +128,15 @@ helm/stackcharts/
 │   ├── tempo.yaml          # Tempo configuration
 │   ├── prometheus.yaml     # Prometheus configuration
 │   ├── grafana.yaml        # Grafana configuration
+│   ├── mimir.yaml          # Mimir configuration
 │   ├── garage.yaml         # Garage S3 storage profile (opt-in)
+│   ├── perses.yaml         # Perses configuration
+│   ├── spaceport.yaml      # Spaceport configuration
 │   └── opentelemetry-collector.yaml  # OTel configuration
 └── charts/             # Downloaded dependencies (.tgz files)
-    ├── grafana-10.0.0.tgz
-    ├── loki-6.36.0.tgz
-    ├── prometheus-27.30.0.tgz
+    ├── grafana-<version>.tgz
+    ├── loki-<version>.tgz
+    ├── prometheus-<version>.tgz
     └── ...
 ```
 
@@ -153,7 +156,10 @@ helm install observability-stack ./helm/stackcharts \
   -f helm/stackcharts/values/tempo.yaml \
   -f helm/stackcharts/values/prometheus.yaml \
   -f helm/stackcharts/values/grafana.yaml \
+  -f helm/stackcharts/values/mimir.yaml \
   -f helm/stackcharts/values/opentelemetry-collector.yaml \
+  -f helm/stackcharts/values/perses.yaml \
+  -f helm/stackcharts/values/spaceport.yaml \
   -n observability-lab
 ```
 **Version Management**
@@ -166,7 +172,7 @@ helm install observability-stack ./helm/stackcharts \
 # Chart.yaml automatically handles component relationships
 dependencies:
   - name: grafana
-    version: "10.0.0"
+    version: "12.1.1"    # Example - see Chart.yaml for current versions
     repository: "https://grafana.github.io/helm-charts"
     condition: grafana.enabled        # Controlled by values/base.yaml
   - name: loki
@@ -229,9 +235,9 @@ helm/stackcharts/
 │   └── ...
 ├── Chart.lock             # Locked subchart versions
 └── charts/                # Downloaded subcharts
-    ├── grafana-10.0.0.tgz     # Subchart: Grafana
+    ├── grafana-<version>.tgz  # Subchart: Grafana
     ├── loki-6.36.0.tgz        # Subchart: Loki  
-    ├── prometheus-27.30.0.tgz # Subchart: Prometheus
+    ├── prometheus-<version>.tgz # Subchart: Prometheus
     └── ...
 ```
 
@@ -314,7 +320,7 @@ dependencies:
     condition: loki.enabled        # ← Controls if this subchart installs
   
   - name: grafana
-    version: "10.0.0"
+    version: "12.1.1"    # Example - see Chart.yaml for current versions
     repository: "https://grafana.github.io/helm-charts" 
     condition: grafana.enabled     # ← Controls if this subchart installs
 ```
@@ -390,8 +396,11 @@ spec:
         - values/tempo.yaml
         - values/prometheus.yaml
         - values/grafana.yaml
+        - values/mimir.yaml
         # - values/garage.yaml    # Opt-in: Garage S3 storage for Loki/Tempo
         - values/opentelemetry-collector.yaml
+        - values/perses.yaml
+        - values/spaceport.yaml
 ```
 
 **Change Workflow:**
