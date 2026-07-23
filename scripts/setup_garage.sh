@@ -51,7 +51,7 @@ if garage_cmd layout show 2>/dev/null | grep -q "$NODE_ID"; then
     print_info "Layout already contains node, skipping assignment"
 else
     garage_cmd layout assign -z dc1 -c 2G "$NODE_ID"
-    LAYOUT_VERSION=$(( $(garage_cmd layout show | grep -oE 'version ([0-9]+)' | grep -oE '[0-9]+' | tail -1) ))
+    LAYOUT_VERSION=$(garage_cmd layout show | grep -oE 'version ([0-9]+)' | grep -oE '[0-9]+' | tail -1)
     garage_cmd layout apply --version "$LAYOUT_VERSION"
     print_success "Layout assigned and applied (version $LAYOUT_VERSION)"
 fi

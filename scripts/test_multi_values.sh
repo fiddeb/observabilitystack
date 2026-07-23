@@ -94,7 +94,7 @@ done
 
 # Check that disabled components are NOT present
 echo -n "  Verifying garage is disabled by default... "
-if ! grep -q "kind: StatefulSet" <(grep -A3 "name: garage" "$TEMPLATE_FILE" 2>/dev/null); then
+if ! grep -A3 "name: garage" "$TEMPLATE_FILE" 2>/dev/null | grep -q "kind: StatefulSet"; then
     echo "✓"
 else
     print_warning "Garage might be enabled"
