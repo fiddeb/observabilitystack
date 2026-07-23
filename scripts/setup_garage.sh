@@ -15,9 +15,9 @@ source "${SCRIPT_DIR}/lib/common.sh"
 NAMESPACE="${NAMESPACE:-observability-lab}"
 GARAGE_POD="${GARAGE_POD:-garage-0}"
 
-# Static lab credentials - must match helm/stackcharts/values/garage.yaml
-ACCESS_KEY_ID="GK0123456789abcdef01234567"
-SECRET_ACCESS_KEY="0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+# Credentials are read from the garage-credentials Secret
+# (rendered from garageCredentials in helm/stackcharts/values/garage.yaml)
+CREDENTIALS_SECRET="garage-credentials"
 KEY_NAME="observability-stack"
 
 BUCKETS=(loki-chunks loki-ruler loki-admin tempo-traces)
@@ -57,6 +57,12 @@ else
 fi
 
 print_step "Step 3: Importing S3 credentials"
+ACCESS_KEY_ID=$(kubectl get secret "$CREDENTIALS_SECRET" -n "$NAMESPACE" -o jsonpath='{.data.GARAGE_ACCESS_KEY_ID}' 2>/dev/null | base64 -d)
+SECRET_ACCESS_KEY=$(kubectl get secret "$CREDENTIALS_SECRET" -n "$NAMESPACE" -o jsonpath='{.data.GARAGE_SECRET_ACCESS_KEY}' 2>/dev/null | base64 -d)
+if [ -z "$ACCESS_KEY_ID" ] || [ -z "$SECRET_ACCESS_KEY" ]; then
+    print_error "Could not read credentials from secret $CREDENTIALS_SECRET in namespace $NAMESPACE"
+    exit 1
+fi
 if garage_cmd key info "$ACCESS_KEY_ID" &> /dev/null; then
     print_info "Key $ACCESS_KEY_ID already exists, skipping import"
 else

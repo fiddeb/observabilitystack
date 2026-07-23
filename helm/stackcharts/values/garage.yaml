@@ -11,8 +11,17 @@
 # After the first deployment, run ./scripts/setup_garage.sh to initialize
 # the cluster layout, create the buckets and import the S3 credentials.
 #
-# NOTE: the credentials below are static lab credentials (like the previous
-# minio/minio123). Do not use them outside a local lab environment.
+# S3 credentials are stored in the `garage-credentials` Kubernetes Secret
+# (rendered from garageCredentials below by templates/garage-credentials.yaml).
+# Loki and Tempo read them as environment variables via -config.expand-env,
+# so the keys never appear in their rendered ConfigMaps.
+#
+# NOTE: these are static lab credentials (like the previous minio/minio123).
+# Override them for anything beyond a local lab environment.
+
+garageCredentials:
+  accessKeyId: GK0123456789abcdef01234567
+  secretAccessKey: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
 
 garage:
   enabled: true
@@ -52,6 +61,13 @@ garage:
 
 # --- Loki: switch storage from filesystem to S3 (Garage) ---
 loki:
+  singleBinary:
+    # Expand ${...} environment variables in the Loki config
+    extraArgs:
+      - -config.expand-env=true
+    extraEnvFrom:
+      - secretRef:
+          name: garage-credentials
   loki:
     storage:
       type: s3
@@ -62,8 +78,9 @@ loki:
       s3:
         endpoint: http://garage:3900
         region: garage
-        accessKeyId: GK0123456789abcdef01234567
-        secretAccessKey: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        # Expanded from the garage-credentials Secret at runtime
+        accessKeyId: ${GARAGE_ACCESS_KEY_ID}
+        secretAccessKey: ${GARAGE_SECRET_ACCESS_KEY}
         s3ForcePathStyle: true
         insecure: true
     # schemaConfig is replaced wholesale (lists are not merged by Helm)
@@ -80,6 +97,12 @@ loki:
 # --- Tempo: switch storage from local to S3 (Garage) ---
 tempo:
   tempo:
+    # Expand ${...} environment variables in the Tempo config
+    extraArgs:
+      config.expand-env: "true"
+    extraEnvFrom:
+      - secretRef:
+          name: garage-credentials
     storage:
       trace:
         backend: s3
@@ -87,8 +110,9 @@ tempo:
           bucket: tempo-traces
           endpoint: garage:3900
           region: garage
-          access_key: GK0123456789abcdef01234567
-          secret_key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          # Expanded from the garage-credentials Secret at runtime
+          access_key: ${GARAGE_ACCESS_KEY_ID}
+          secret_key: ${GARAGE_SECRET_ACCESS_KEY}
           insecure: true
           forcepathstyle: true
         wal:
