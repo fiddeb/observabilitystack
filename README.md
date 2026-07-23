@@ -96,7 +96,7 @@ observabilitystack/
 │   │   ├── tempo.yaml             # Tempo configuration
 │   │   ├── prometheus.yaml        # Prometheus configuration
 │   │   ├── grafana.yaml           # Grafana configuration
-│   │   ├── minio.yaml             # Minio configuration (disabled)
+│   │   ├── garage.yaml            # Garage S3 storage profile (opt-in)
 │   │   └── opentelemetry-collector.yaml  # OTel configuration
 │   └── charts/                # Downloaded dependency charts (.tgz)
 ├── manifests/                 # Kubernetes manifests

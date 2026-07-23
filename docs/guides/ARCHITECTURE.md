@@ -128,7 +128,7 @@ helm/stackcharts/
 │   ├── tempo.yaml          # Tempo configuration
 │   ├── prometheus.yaml     # Prometheus configuration
 │   ├── grafana.yaml        # Grafana configuration
-│   ├── minio.yaml          # Minio configuration
+│   ├── garage.yaml         # Garage S3 storage profile (opt-in)
 │   └── opentelemetry-collector.yaml  # OTel configuration
 └── charts/             # Downloaded dependencies (.tgz files)
     ├── grafana-10.0.0.tgz
@@ -153,7 +153,6 @@ helm install observability-stack ./helm/stackcharts \
   -f helm/stackcharts/values/tempo.yaml \
   -f helm/stackcharts/values/prometheus.yaml \
   -f helm/stackcharts/values/grafana.yaml \
-  -f helm/stackcharts/values/minio.yaml \
   -f helm/stackcharts/values/opentelemetry-collector.yaml \
   -n observability-lab
 ```
@@ -191,8 +190,8 @@ prometheus:
   enabled: true
 grafana:
   enabled: true
-minio:
-  enabled: false  # Disabled - using filesystem storage
+garage:
+  enabled: false  # Disabled - Loki/Tempo use filesystem storage (enable via values/garage.yaml)
 opentelemetry-collector:
   enabled: true
 ```
@@ -391,7 +390,7 @@ spec:
         - values/tempo.yaml
         - values/prometheus.yaml
         - values/grafana.yaml
-        - values/minio.yaml
+        # - values/garage.yaml    # Opt-in: Garage S3 storage for Loki/Tempo
         - values/opentelemetry-collector.yaml
 ```
 

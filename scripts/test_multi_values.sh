@@ -26,7 +26,7 @@ VALUES_FILES=(
     "tempo.yaml"
     "prometheus.yaml"
     "grafana.yaml"
-    "minio.yaml"
+    "garage.yaml"
     "opentelemetry-collector.yaml"
 )
 
@@ -50,7 +50,6 @@ helm template observability-stack ./helm/stackcharts \
   -f helm/stackcharts/values/tempo.yaml \
   -f helm/stackcharts/values/prometheus.yaml \
   -f helm/stackcharts/values/grafana.yaml \
-  -f helm/stackcharts/values/minio.yaml \
   -f helm/stackcharts/values/opentelemetry-collector.yaml \
   --dry-run \
   --debug \
@@ -88,11 +87,49 @@ for component in "${EXPECTED_COMPONENTS[@]}"; do
 done
 
 # Check that disabled components are NOT present
-echo -n "  Verifying minio is disabled... "
-if ! grep -q "kind: Deployment" "$TEMPLATE_FILE" | grep -q "minio"; then
+echo -n "  Verifying garage is disabled by default... "
+if ! grep -q "kind: StatefulSet" <(grep -A3 "name: garage" "$TEMPLATE_FILE" 2>/dev/null); then
     echo "✓"
 else
-    print_warning "Minio might be enabled"
+    print_warning "Garage might be enabled"
+fi
+
+# Test the Garage S3 storage profile
+echo ""
+print_step "Step 3b: Testing Garage S3 storage profile"
+helm template observability-stack ./helm/stackcharts \
+  -f helm/stackcharts/values/base.yaml \
+  -f helm/stackcharts/values/loki.yaml \
+  -f helm/stackcharts/values/tempo.yaml \
+  -f helm/stackcharts/values/prometheus.yaml \
+  -f helm/stackcharts/values/grafana.yaml \
+  -f helm/stackcharts/values/opentelemetry-collector.yaml \
+  -f helm/stackcharts/values/garage.yaml \
+  --dry-run \
+  > /tmp/helm-template-garage-output.yaml 2>&1
+
+echo -n "  Verifying garage is deployed... "
+if grep -q "charts/garage/templates/workload.yaml" /tmp/helm-template-garage-output.yaml; then
+    echo "✓"
+else
+    print_error "Garage not rendered"
+    exit 1
+fi
+
+echo -n "  Verifying loki uses s3 storage... "
+if grep -q "object_store: s3" /tmp/helm-template-garage-output.yaml; then
+    echo "✓"
+else
+    print_error "Loki not configured for s3"
+    exit 1
+fi
+
+echo -n "  Verifying tempo uses s3 storage... "
+if grep -q "backend: s3" /tmp/helm-template-garage-output.yaml; then
+    echo "✓"
+else
+    print_error "Tempo not configured for s3"
+    exit 1
 fi
 
 # Verify ArgoCD Application manifest
@@ -104,14 +141,14 @@ echo -n "  Checking valueFiles configuration... "
 if grep -q "valueFiles:" "$ARGOCD_APP"; then
     echo "✓"
     
-    # Count number of value files
-    VALUE_FILE_COUNT=$(grep -c "values/" "$ARGOCD_APP" || true)
+    # Count number of active (uncommented) value files
+    VALUE_FILE_COUNT=$(grep -c "^\s*- values/" "$ARGOCD_APP" || true)
     echo "  Found $VALUE_FILE_COUNT values files configured"
     
-    if [ "$VALUE_FILE_COUNT" -eq 7 ]; then
-        print_success "All 7 values files configured"
+    if [ "$VALUE_FILE_COUNT" -eq 9 ]; then
+        print_success "All 9 values files configured"
     else
-        print_warning "Expected 7 files, found $VALUE_FILE_COUNT"
+        print_warning "Expected 9 files, found $VALUE_FILE_COUNT"
     fi
 else
     print_error "valueFiles not found"
@@ -130,7 +167,7 @@ echo "  • loki.yaml - Log aggregation"
 echo "  • tempo.yaml - Distributed tracing"
 echo "  • prometheus.yaml - Metrics collection"
 echo "  • grafana.yaml - Visualization"
-echo "  • minio.yaml - S3 storage (disabled)"
+echo "  • garage.yaml - S3 storage profile (opt-in: enables Garage + S3 for Loki/Tempo)"
 echo "  • opentelemetry-collector.yaml - Telemetry pipeline"
 echo ""
 echo "Next steps:"

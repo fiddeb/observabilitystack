@@ -84,13 +84,18 @@ Key sections:
 - `tempo:` - Tempo configuration
 - `prometheus:` - Prometheus configuration
 - `opentelemetry-collector:` - OTel Collector configuration
-- `minio:` - Minio configuration (disabled by default)
+- `garage:` - Garage S3 object storage (disabled by default, see `values/garage.yaml`)
 
 ## Storage
 
-By default, all components use local filesystem storage via PersistentVolumeClaims.
+By default, Loki and Tempo use local filesystem storage via PersistentVolumeClaims.
 
-For S3/Minio configuration (deprecated), see `docs/deprecated/MINIO_SETUP.md`.
+To switch to S3-compatible object storage backed by [Garage](https://garagehq.deuxfleurs.fr/):
+
+1. Include `values/garage.yaml` in your deployment (uncomment it in `argocd/observability-stack.yaml`, or add `-f helm/stackcharts/values/garage.yaml` to your helm command). This enables the Garage chart **and** switches Loki and Tempo to S3 storage in one step.
+2. After the Garage pod is running, initialize it: `./scripts/setup_garage.sh` (assigns the cluster layout, imports the S3 key and creates the `loki-chunks`, `loki-ruler`, `loki-admin` and `tempo-traces` buckets).
+
+When `values/garage.yaml` is not included, Garage is not deployed and Loki/Tempo fall back to local filesystem storage.
 
 ## Troubleshooting
 
