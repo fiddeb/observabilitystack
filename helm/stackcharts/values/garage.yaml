@@ -1,0 +1,95 @@
+# Garage configuration profile
+# S3-compatible object storage (https://garagehq.deuxfleurs.fr/)
+#
+# This file is an opt-in profile ("smart switch"):
+#   - Included  -> Garage is deployed AND Loki/Tempo use S3 storage (Garage)
+#   - Excluded  -> Garage is not deployed AND Loki/Tempo use local filesystem
+#
+# Enable by uncommenting `values/garage.yaml` in argocd/observability-stack.yaml
+# (or by adding `-f helm/stackcharts/values/garage.yaml` to helm commands).
+#
+# After the first deployment, run ./scripts/setup_garage.sh to initialize
+# the cluster layout, create the buckets and import the S3 credentials.
+#
+# NOTE: the credentials below are static lab credentials (like the previous
+# minio/minio123). Do not use them outside a local lab environment.
+
+garage:
+  enabled: true
+  fullnameOverride: garage
+
+  garage:
+    # Single-node lab setup
+    replicationFactor: "1"
+    consistencyMode: "consistent"
+    s3:
+      api:
+        region: "garage"
+        rootDomain: ".s3.garage.k8s.test"
+
+  deployment:
+    kind: StatefulSet
+    replicaCount: 1
+
+  persistence:
+    enabled: true
+    meta:
+      size: 100Mi
+    data:
+      size: 2Gi
+
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "128Mi"
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+
+  monitoring:
+    metrics:
+      enabled: true
+
+# --- Loki: switch storage from filesystem to S3 (Garage) ---
+loki:
+  loki:
+    storage:
+      type: s3
+      bucketNames:
+        chunks: loki-chunks
+        ruler: loki-ruler
+        admin: loki-admin
+      s3:
+        endpoint: http://garage:3900
+        region: garage
+        accessKeyId: GK0123456789abcdef01234567
+        secretAccessKey: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+        s3ForcePathStyle: true
+        insecure: true
+    # schemaConfig is replaced wholesale (lists are not merged by Helm)
+    schemaConfig:
+      configs:
+      - from: "2024-01-01"
+        store: tsdb
+        index:
+          prefix: loki_index_
+          period: 24h
+        object_store: s3
+        schema: v13
+
+# --- Tempo: switch storage from local to S3 (Garage) ---
+tempo:
+  tempo:
+    storage:
+      trace:
+        backend: s3
+        s3:
+          bucket: tempo-traces
+          endpoint: garage:3900
+          region: garage
+          access_key: GK0123456789abcdef01234567
+          secret_key: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+          insecure: true
+          forcepathstyle: true
+        wal:
+          path: /var/tempo/wal

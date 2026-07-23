@@ -16,7 +16,11 @@ grafana:
 mimir:
   enabled: false
 
-minio:
+# S3-compatible object storage (Garage).
+# Disabled by default - Loki and Tempo then use local filesystem storage.
+# To enable, include values/garage.yaml (sets garage.enabled=true and
+# switches Loki/Tempo to S3 storage backed by Garage).
+garage:
   enabled: false
 
 opentelemetry-collector:
