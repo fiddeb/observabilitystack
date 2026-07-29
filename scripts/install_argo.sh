@@ -78,6 +78,18 @@ kubectl rollout status deployment/argocd-server -n "$ARGOCD_NAMESPACE" --timeout
 print_success "ArgoCD configured"
 echo ""
 
+# Step 3b: Make repo-server copyutil init container idempotent.
+# Upstream uses `cp --update=none` + `ln -s`, which is NOT re-run safe. The
+# `var-files` emptyDir survives in-place container restarts (e.g. Rancher
+# Desktop VM reboot), so a leftover symlink makes `ln -s` fail with
+# "File exists" and the pod crash-loops forever. Force-overwrite fixes this.
+print_step "Patching repo-server init container to be restart-safe..."
+kubectl patch deployment argocd-repo-server -n "$ARGOCD_NAMESPACE" --type=strategic -p \
+    '{"spec":{"template":{"spec":{"initContainers":[{"name":"copyutil","command":["sh","-c","/bin/cp -f /usr/local/bin/argocd /var/run/argocd/argocd && /bin/ln -sf /var/run/argocd/argocd /var/run/argocd/argocd-cmp-server"]}]}}}}'
+kubectl rollout status deployment/argocd-repo-server -n "$ARGOCD_NAMESPACE" --timeout=300s
+print_success "repo-server init container patched"
+echo ""
+
 # Step 4: Install ArgoCD Ingress for HTTP access
 print_step "Installing ArgoCD ingress..."
 kubectl apply -f "$ARGOCD_INGRESS_MANIFEST"
