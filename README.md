@@ -96,19 +96,21 @@ observabilitystack/
 │   │   ├── tempo.yaml             # Tempo configuration
 │   │   ├── prometheus.yaml        # Prometheus configuration
 │   │   ├── grafana.yaml           # Grafana configuration
-│   │   ├── minio.yaml             # Minio configuration (disabled)
+│   │   ├── mimir.yaml             # Mimir configuration
+│   │   ├── garage.yaml            # Garage S3 storage profile (opt-in)
+│   │   ├── perses.yaml            # Perses configuration
+│   │   ├── spaceport.yaml         # Spaceport configuration
 │   │   └── opentelemetry-collector.yaml  # OTel configuration
 │   └── charts/                # Downloaded dependency charts (.tgz)
 ├── manifests/                 # Kubernetes manifests
 │   ├── argocd-ingress.yaml    # ArgoCD web access
 │   └── telemetry-test-jobs.yaml # Test workloads
-├── scripts/                   # Automation scripts
-│   ├── install_argo.sh        # Complete installation
-│   ├── force_argo_sync.sh     # ArgoCD sync management
-│   ├── merge_feature.sh       # Git workflow
-│   └── test_multi_values.sh   # Validate configuration
-└── app/                       # Example applications
-    └── src/demo/
+└── scripts/                   # Automation scripts
+    ├── install_argo.sh        # Complete installation
+    ├── force_argo_sync.sh     # ArgoCD sync management
+    ├── setup_garage.sh        # Initialize Garage object storage
+    ├── merge_feature.sh       # Git workflow
+    └── test_multi_values.sh   # Validate configuration
 ```
 
 ## Configuration

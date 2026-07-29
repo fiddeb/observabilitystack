@@ -28,10 +28,12 @@ dependencies:
     condition: mimir.enabled
     alias: mimir
 
-  - name: minio
-    version: "17.0.21"
-    repository: "https://charts.bitnami.com/bitnami"
-    condition: minio.enabled
+  # Using local chart vendored from the official Garage repository
+  # https://git.deuxfleurs.fr/Deuxfleurs/garage (script/helm/garage)
+  - name: garage
+    version: "0.9.3"
+    repository: "file://./charts/garage"
+    condition: garage.enabled
   - name: opentelemetry-collector
     version: "0.150.1"
     repository: "https://open-telemetry.github.io/opentelemetry-helm-charts"

@@ -14,9 +14,9 @@ dependencies:
 - name: mimir-distributed
   repository: file://./charts/mimir-distributed
   version: 5.9.0-weekly.365
-- name: minio
-  repository: https://charts.bitnami.com/bitnami
-  version: 17.0.21
+- name: garage
+  repository: file://./charts/garage
+  version: 0.9.3
 - name: opentelemetry-collector
   repository: https://open-telemetry.github.io/opentelemetry-helm-charts
   version: 0.150.1
@@ -26,5 +26,5 @@ dependencies:
 - name: spaceport
   repository: oci://ghcr.io/fiddeb/charts
   version: 0.5.0
-digest: sha256:b9ddfecd556ca46a6875eb91fa7921615db9dd74b37bb08e8db5f8ea9cb7021f
-generated: "2026-05-29T01:16:15.53465+02:00"
+digest: sha256:d92338a7e3259d762b54dc1c719b86fee04a76ce342c8bd780be4f9f1b586727
+generated: "2026-07-23T08:29:42.086744+00:00"

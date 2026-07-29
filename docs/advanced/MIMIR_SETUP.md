@@ -114,7 +114,7 @@ mimir:
 
 **Default**: Local filesystem (`/data/mimir`)
 
-To switch to S3/MinIO:
+To switch to S3 (Garage, see `helm/stackcharts/values/garage.yaml`):
 
 ```yaml
 mimir:
@@ -124,12 +124,17 @@ mimir:
         storage:
           backend: s3
           s3:
-            endpoint: minio:9000
+            endpoint: garage:3900
+            region: garage
             bucket_name: mimir-blocks
-            access_key_id: minioadmin
-            secret_access_key: minioadmin
+            access_key_id: ${GARAGE_ACCESS_KEY_ID}
+            secret_access_key: ${GARAGE_SECRET_ACCESS_KEY}
             insecure: true
 ```
+
+The credentials are provided by the `garage-credentials` Secret. Remember to
+create the `mimir-blocks` bucket (extend `scripts/setup_garage.sh` or use the
+`garage` CLI in the pod).
 
 ### Enable AlertManager
 
@@ -223,7 +228,7 @@ mimir:
 1. **OpenTelemetry**: Configure OTel Collector to send metrics to Mimir
 2. **Multi-tenancy**: Use `X-Scope-OrgId` headers for tenant isolation
 3. **HA Setup**: Increase replicas to 3 with zoneAwareReplication
-4. **Production Storage**: Migrate to S3/MinIO for persistence
+4. **Production Storage**: Migrate to S3 (Garage) for persistence
 
 ## References
 
