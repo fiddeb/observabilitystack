@@ -21,7 +21,7 @@ mimir:
 # To enable, include values/garage.yaml (sets garage.enabled=true and
 # switches Loki/Tempo to S3 storage backed by Garage).
 garage:
-  enabled: true
+  enabled: false
 
 opentelemetry-collector:
   enabled: true
