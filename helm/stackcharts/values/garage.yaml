@@ -22,10 +22,24 @@
 garageCredentials:
   accessKeyId: GK0123456789abcdef01234567
   secretAccessKey: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef"
+  # Full-scope admin API token (Garage v2). Enables the admin API so that
+  # garage-webui can manage buckets/keys/layout. Static lab value — override
+  # for anything beyond a local lab. Generate with: openssl rand -base64 32
+  adminToken: "Zy3vK8mQpR2sT5wX9bN1cD4fH7jL0aE6gU8iO3kP2nQ="
 
 garage:
   enabled: true
   fullnameOverride: garage
+
+  # Inject the admin token into the Garage daemon as an environment variable
+  # (GARAGE_ADMIN_TOKEN overrides [admin].admin_token). Metrics stay open since
+  # metrics_require_token is not set, so Prometheus scraping is unaffected.
+  environment:
+    - name: GARAGE_ADMIN_TOKEN
+      valueFrom:
+        secretKeyRef:
+          name: garage-credentials
+          key: GARAGE_ADMIN_TOKEN
 
   garage:
     # Single-node lab setup
@@ -63,6 +77,16 @@ garage:
   monitoring:
     metrics:
       enabled: true
+
+# --- garage-webui: admin UI for Garage (buckets, keys, layout, browser) ---
+# Rendered by templates/garage-webui.yaml, gated on garage.enabled + enabled.
+# Talks to the Garage admin API on garage-metrics:3903 using the admin token.
+garageWebui:
+  enabled: true
+  image: khairul169/garage-webui:1.1.0
+  ingress:
+    enabled: true
+    host: garage.k8s.test
 
 # --- Loki: switch storage from filesystem to S3 (Garage) ---
 loki:

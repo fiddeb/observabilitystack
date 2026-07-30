@@ -1,0 +1,98 @@
+{{/*
+  garage-webui: a lightweight admin UI for Garage (https://github.com/khairul169/garage-webui).
+  Manages buckets, access keys, cluster layout and includes an object browser.
+  Rendered only when Garage is enabled AND garageWebui.enabled is true.
+  It talks to the Garage admin API (garage-metrics:3903) using the admin token
+  from the garage-credentials Secret.
+*/}}
+{{- if and .Values.garage.enabled (.Values.garageWebui).enabled }}
+{{- $w := .Values.garageWebui }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: garage-webui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: garage-webui
+    app.kubernetes.io/part-of: garage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: garage-webui
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: garage-webui
+    spec:
+      containers:
+        - name: garage-webui
+          image: {{ $w.image | default "khairul169/garage-webui:1.1.0" | quote }}
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3909
+          env:
+            - name: API_BASE_URL
+              value: "http://garage-metrics:3903"
+            - name: S3_ENDPOINT_URL
+              value: "http://garage:3900"
+            - name: S3_REGION
+              value: "garage"
+            - name: API_ADMIN_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: garage-credentials
+                  key: GARAGE_ADMIN_TOKEN
+          readinessProbe:
+            httpGet:
+              path: /
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              cpu: 200m
+              memory: 128Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: garage-webui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: garage-webui
+spec:
+  selector:
+    app.kubernetes.io/name: garage-webui
+  ports:
+    - name: http
+      port: 80
+      targetPort: http
+{{- if (($w.ingress) | default dict).enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: garage-webui
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: garage-webui
+spec:
+  ingressClassName: traefik
+  rules:
+    - host: {{ $w.ingress.host | default "garage.k8s.test" | quote }}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: garage-webui
+                port:
+                  number: 80
+{{- end }}
+{{- end }}
