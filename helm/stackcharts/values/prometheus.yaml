@@ -153,6 +153,15 @@ prometheus:
           static_configs:
             - targets:
                 - localhost:9090
+        # Garage S3 exposes Prometheus metrics on its admin API (port 3903).
+        # job_name must be "garage" to match the {job="garage"} queries in the
+        # Garage Grafana dashboard (templates/grafana-dashboard-garage.yaml).
+        # Only reachable when values/garage.yaml is included; otherwise the
+        # target is simply reported as down.
+        - job_name: garage
+          static_configs:
+            - targets:
+                - garage-metrics:3903
 
   alertmanager:
     enabled: false

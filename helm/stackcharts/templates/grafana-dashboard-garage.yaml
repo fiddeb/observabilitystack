@@ -1,0 +1,22 @@
+{{/*
+  Garage S3 Grafana dashboard (Prometheus-based).
+  Source: https://git.deuxfleurs.fr/Deuxfleurs/garage (script/telemetry).
+  Picked up by the Grafana dashboard sidecar via the grafana_dashboard label.
+  Rendered only when both Garage and Grafana are enabled.
+  The dashboard JSON is loaded via .Files.Get so its {{ "{{" }}...{{ "}}" }}
+  legend formats are not parsed as Helm template actions.
+*/}}
+{{- if and .Values.garage.enabled .Values.grafana.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-garage
+  namespace: {{ .Release.Namespace }}
+  labels:
+    grafana_dashboard: "1"
+  annotations:
+    grafana_folder: "Garage"
+data:
+  garage.json: |-
+{{ .Files.Get "dashboards/garage.json" | indent 4 }}
+{{- end }}
