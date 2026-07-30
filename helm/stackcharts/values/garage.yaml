@@ -31,6 +31,11 @@ garage:
     # Single-node lab setup
     replicationFactor: "1"
     consistencyMode: "consistent"
+    # LMDB relies on mmap features that some filesystems (e.g. Rancher Desktop
+    # lima hostPath volumes) do not implement, causing the pod to crash with
+    # "Cannot open LMDB database: Function not implemented (os error 38)".
+    # sqlite avoids that dependency and works on those volumes.
+    dbEngine: sqlite
     s3:
       api:
         region: "garage"
