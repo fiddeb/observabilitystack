@@ -19,7 +19,7 @@ spec:
         - values/mimir.yaml
         # Uncomment to enable Garage (S3 object storage for Loki/Tempo).
         # When commented out, Loki/Tempo use local filesystem storage.
-        # - values/garage.yaml
+        - values/garage.yaml
         - values/opentelemetry-collector.yaml
         - values/perses.yaml
         - values/spaceport.yaml
