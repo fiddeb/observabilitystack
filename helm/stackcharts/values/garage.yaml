@@ -98,6 +98,10 @@ loki:
           period: 24h
         object_store: s3
         schema: v13
+    compactor:
+      # With object storage, Loki requires delete requests to be stored in
+      # the object store (overrides the filesystem default in values/loki.yaml).
+      delete_request_store: s3
 
 # --- Tempo: switch storage from local to S3 (Garage) ---
 tempo:
