@@ -36,6 +36,14 @@ opentelemetry-collector:
         check_interval: 2s
         limit_percentage: 75
         spike_limit_percentage: 25
+
+      # Temporary until Spaceport sets service.namespace in its resource.
+      transform/spaceport_namespace:
+        error_mode: ignore
+        trace_statements:
+          - context: resource
+            statements:
+              - set(resource.attributes["service.namespace"], "spaceport") where resource.attributes["service.namespace"] == nil and resource.attributes["service.name"] != nil and IsMatch(resource.attributes["service.name"], "^spaceport($|-)")
       
       batch:
         send_batch_size: 4096
@@ -54,24 +62,28 @@ opentelemetry-collector:
             pipelines: [logs/audit]
 
       spanmetrics:
-        # Flush span metrics every 15s instead of the default 60s. This is the
-        # dominant source of delay between a span being produced and the metric
-        # (and the SLO recording rules derived from it) updating.
         metrics_flush_interval: 15s
+
         histogram:
           explicit:
             buckets: [1ms, 5ms, 10ms, 25ms, 50ms, 100ms, 250ms, 500ms, 1s, 2s, 5s]
+
         dimensions:
           - name: service.namespace
+          - name: deployment.environment.name
+
           - name: http.request.method
           - name: http.response.status_code
           - name: http.route
-          - name: db.system
+
+        resource_metrics_key_attributes:
+          - service.name
+          - service.namespace
+          - deployment.environment.name
+
         exemplars:
           enabled: false
-        dimensions_cache_size: 1500
-        # Keep series alive longer so bursty/idle traffic does not expire and
-        # reset cumulative counters to 0 (which causes rate() gaps).
+
         metrics_expiration: 30m
 
     exporters:
@@ -142,7 +154,7 @@ opentelemetry-collector:
       pipelines:
         traces:
          receivers: [otlp]
-         processors: [memory_limiter, batch]
+         processors: [memory_limiter, transform/spaceport_namespace, batch]
          exporters: [otlp/tempo, spanmetrics]
         
         logs:
