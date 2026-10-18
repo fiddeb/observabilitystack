@@ -118,6 +118,9 @@ prometheus:
         configMap: slo-rules
         readOnly: true
 
+  # Keep the explicit scrape jobs below instead of the chart's default jobs.
+  scrapeConfigs: null
+
   serverFiles:
     prometheus.yml:
       otlp:
