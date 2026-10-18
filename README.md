@@ -187,6 +187,10 @@ git checkout -b feat/my-awesome-feature
 or create pull request :)
 ```
 
+### Factory tasks
+
+Start a task by naming `fiddeb/observabilitystack` in an allowed Slack channel. Factory works in an isolated sandbox and opens a PR. Send feedback in the same Slack thread or in a GitHub comment beginning with `factory:`. The owner reviews and merges the PR. New commits require renewed approval. ArgoCD may sync `main` after merge.
+
 ## License
 
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
